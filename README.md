@@ -42,7 +42,7 @@ Themes consume roster and activity only. Swap the mount in `apps/client/src/them
 
 ## Live bots
 
-Point the gateway at real agent data:
+[Live setup](docs/live.md) is the full walkthrough for a real Grok Bot host: agent data, webhook routine, env, Tailscale, and a troubleshooting table. The short version points the gateway at real agent data:
 
 ```bash
 AGENT_DATA=/path/to/agent-data npm run gateway -- --listen :8040 --allowlist <bot-uuid>
@@ -69,6 +69,7 @@ Default listen address is `0.0.0.0` so Tailscale peers can reach the port. Use `
 
 ## Docs
 
+- [Live setup](docs/live.md)
 - [Wire contracts](docs/contracts.md)
 - [Gateway](apps/gateway/README.md)
 - [Client](apps/client/README.md)
