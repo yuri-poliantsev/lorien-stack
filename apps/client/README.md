@@ -1,6 +1,6 @@
 # Client
 
-Vite shell that talks to the gateway over `/ws` and `POST /api/prompt`. Roster and activity live in memory by bot id. The theme host is a replaceable mount that currently prints bot names as text. There is no Chat kit.
+Vite shell that talks to the gateway over `/ws` and `POST /api/prompt`. Roster and activity live in memory by bot id. The theme host mounts the StarCraft 2D canvas by default. There is no Chat kit.
 
 ## Run against the demo gateway
 

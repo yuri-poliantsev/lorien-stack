@@ -1,6 +1,6 @@
 # Gateway
 
-Tails Lauren-shaped `$AGENT_DATA` (or a demo replay of `fixtures/demo`) and serves a roster plus activity over HTTP and WebSocket. The only write path is `requestWake`: a server-side POST to a Grok webhook. That is an ack, a fail, or indeterminate. It is not `sendToAgent` and it does not claim the bot ran.
+Tails Grok Bot `$AGENT_DATA` (or a demo replay of `fixtures/demo`) and serves a roster plus activity over HTTP and WebSocket. The only write path is `requestWake`: a server-side POST to a Grok webhook. That is an ack, a fail, or indeterminate. It is not `sendToAgent` and it does not claim the bot ran.
 
 ## Run
 

@@ -8,7 +8,7 @@ Spatial fields are optional so a 2D floor and a 3D room can share the same event
 
 ## Layout on disk
 
-Demo fixtures follow the Lauren `$AGENT_DATA` layout:
+Demo fixtures follow the Grok Bot `$AGENT_DATA` layout:
 
 - `fixtures/demo/agents/<uuid>/profile.json`
 - `fixtures/demo/agent-transcripts/<uuid>/<uuid>.jsonl`
