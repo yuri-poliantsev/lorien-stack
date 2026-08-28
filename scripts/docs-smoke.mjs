@@ -75,6 +75,17 @@ for (const key of ENV_KEYS) {
 	}
 }
 
+check(
+	/GATEWAY_CLIENT_TOKEN and VITE_GATEWAY_TOKEN must hold the same string/.test(
+		example,
+	),
+	".env.example does not state that GATEWAY_CLIENT_TOKEN and VITE_GATEWAY_TOKEN must match",
+);
+check(
+	example.includes("docs/live.md"),
+	".env.example does not point at docs/live.md",
+);
+
 const readme = await read("README.md");
 check(
 	readme.includes("(docs/live.md)"),
