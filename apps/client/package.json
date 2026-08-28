@@ -1,0 +1,19 @@
+{
+  "name": "@bot-space/client",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node --disable-warning=ExperimentalWarning --experimental-strip-types --test src/store.test.ts src/ws.test.ts src/safeSnippet.test.ts src/ui/promptBar.test.ts src/themes/starcraft/layout.test.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@bot-space/contracts": "*"
+  },
+  "devDependencies": {
+    "vite": "^6.3.5"
+  }
+}

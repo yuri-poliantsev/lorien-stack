@@ -3,11 +3,13 @@
   "private": true,
   "type": "module",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "apps/*"
   ],
   "scripts": {
     "test": "npm test -w packages/contracts",
-    "typecheck": "npm run typecheck -w packages/contracts"
+    "typecheck": "npm run typecheck -w packages/contracts",
+    "gateway": "node --disable-warning=ExperimentalWarning --experimental-strip-types apps/gateway/src/main.ts"
   },
   "engines": {
     "node": ">=22.14.0"

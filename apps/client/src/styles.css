@@ -1,0 +1,265 @@
+:root {
+  color-scheme: dark;
+  --bg: #14160f;
+  --panel: #1c2016;
+  --ink: #ece7d4;
+  --muted: #9aa186;
+  --line: #303628;
+  --accent: #d2b36a;
+  --chip-user: #7ea1c4;
+  --chip-assistant: #d2b36a;
+  --chip-tool: #8aa06c;
+  --sleep: #7c9a90;
+  --danger: #c47a62;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  font: 14px/1.4 "IBM Plex Sans", "Segoe UI", sans-serif;
+  overflow-x: hidden;
+}
+
+#app {
+  display: grid;
+  grid-template-columns: minmax(11rem, 16rem) minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "bots theme"
+    "bots activity"
+    "prompt prompt";
+  min-height: 100vh;
+  max-width: 100vw;
+}
+
+.bot-list {
+  grid-area: bots;
+  border-right: 1px solid var(--line);
+  padding: 0.75rem;
+  overflow-x: hidden;
+  background: var(--panel);
+}
+
+.theme-host {
+  grid-area: theme;
+  padding: 0.75rem 1rem 0;
+  min-width: 0;
+}
+
+.activity-panel {
+  grid-area: activity;
+  padding: 0.5rem 1rem 1rem;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.prompt-bar {
+  grid-area: prompt;
+  border-top: 1px solid var(--line);
+  padding: 0.6rem 0.75rem;
+  background: var(--panel);
+}
+
+h2 {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.muted {
+  color: var(--muted);
+  margin: 0.25rem 0;
+}
+
+.bot-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.bot-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--line);
+  background: #15180f;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  min-width: 0;
+}
+
+.bot-row[data-selected="true"] {
+  border-color: var(--accent);
+  background: #262b1b;
+}
+
+.bot-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.presence-badge {
+  flex: 0 0 auto;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.1rem 0.35rem;
+  border: 1px solid var(--sleep);
+  color: var(--sleep);
+}
+
+.theme-placeholder {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  color: var(--ink);
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.85rem;
+}
+
+.activity-id {
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
+}
+
+.activity-rows {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.activity-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4rem 0.55rem;
+  min-width: 0;
+}
+
+.role-chip {
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.08rem 0.35rem;
+  border: 1px solid currentColor;
+}
+
+.activity-row[data-role="user"] .role-chip {
+  color: var(--chip-user);
+}
+
+.activity-row[data-role="assistant"] .role-chip {
+  color: var(--chip-assistant);
+}
+
+.activity-row[data-role="tool"] .role-chip,
+.tool-name {
+  color: var(--chip-tool);
+}
+
+.tool-name {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.8rem;
+}
+
+.snippet {
+  min-width: 0;
+  flex: 1 1 12rem;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  color: var(--ink);
+}
+
+.prompt-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.prompt-form input {
+  flex: 1 1 12rem;
+  min-width: 0;
+  background: #12140e;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  padding: 0.45rem 0.55rem;
+}
+
+.prompt-form input:disabled,
+.prompt-form button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.prompt-form button {
+  background: var(--accent);
+  color: #1a170d;
+  border: 0;
+  padding: 0.45rem 0.8rem;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.wake-status {
+  min-width: 7rem;
+  color: var(--accent);
+}
+
+.wake-status[data-kind="failed"] {
+  color: var(--danger);
+}
+
+.wake-status[data-kind="acknowledged"] {
+  color: var(--chip-tool);
+}
+
+@media (max-width: 720px) {
+  #app {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      "theme"
+      "bots"
+      "activity"
+      "prompt";
+  }
+
+  .bot-list {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .bot-rows {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .bot-row {
+    width: auto;
+    max-width: 100%;
+  }
+}
