@@ -167,6 +167,7 @@ export function mountStarCraftTheme(
       btn.dataset.botName = bot.name;
       btn.dataset.pose = pose;
       btn.dataset.stationId = seat.station.id;
+      btn.style.zIndex = "2";
       btn.setAttribute("aria-label", bot.name);
       const size = Math.max(28, 36 * box.scale);
       placeHit(btn, {
@@ -188,9 +189,10 @@ export function mountStarCraftTheme(
       }
       building.dataset.botId = bot.id;
       building.dataset.stationId = seat.station.id;
+      building.style.zIndex = "1";
       building.setAttribute("aria-label", `${seat.station.label} ${bot.name}`);
-      const bview = worldToView(seat.station.x, seat.station.y, box);
-      const bsize = Math.max(32, 52 * box.scale);
+      const bview = worldToView(seat.station.x, seat.station.y - 18, box);
+      const bsize = Math.max(28, 40 * box.scale);
       placeHit(building, {
         left: bview.x - bsize / 2,
         top: bview.y - bsize / 2,
@@ -283,7 +285,7 @@ export function mountStarCraftTheme(
           selected: bot.id === selected,
           accent: unitAccent(bot.id),
           t,
-          stale: (model.activity.get(bot.id)?.length ?? 0) === 0,
+          stale: bot.name.trim().length === 0,
         });
       }
       canvas.dataset.unitCount = String(model.roster.length);
