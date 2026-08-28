@@ -1,0 +1,4 @@
+{"role":"user","content":"Parse the JSONL without crashing on a partial write.","at":"2026-08-27T09:10:00.000Z"}
+{"role":"assistant","content":"Last line can be truncated. I will skip it.","at":"2026-08-27T09:10:01.000Z"}
+{"role":"tool","name":"read_file","content":"{\"role\":\"user\",\"content\":\"hello\"","at":"2026-08-27T09:10:02.000Z"}
+{"role":"assistant","content":"Prior complete lines stay. Truncated last line is dropped.","at":"2026-08-27T09:10:03.000Z"}

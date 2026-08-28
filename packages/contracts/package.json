@@ -1,0 +1,16 @@
+{
+  "name": "@bot-space/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "test": "node --disable-warning=ExperimentalWarning --experimental-strip-types --test src/index.test.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  }
+}

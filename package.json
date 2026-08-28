@@ -1,0 +1,19 @@
+{
+  "name": "bot-space",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "test": "npm test -w packages/contracts",
+    "typecheck": "npm run typecheck -w packages/contracts"
+  },
+  "engines": {
+    "node": ">=22.14.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.14",
+    "typescript": "^5.8.3"
+  }
+}

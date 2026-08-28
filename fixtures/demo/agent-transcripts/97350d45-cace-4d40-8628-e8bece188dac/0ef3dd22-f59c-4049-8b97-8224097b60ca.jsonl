@@ -1,0 +1,4 @@
+{"role":"user","content":"Theme the room so 3D can reuse the same events.","at":"2026-08-27T09:15:00.000Z","seatId":"booth-west"}
+{"role":"assistant","content":"I only need optional spatial fields on the event.","at":"2026-08-27T09:15:01.000Z"}
+{"role":"tool","name":"list_dir","content":"fixtures/demo/agents","at":"2026-08-27T09:15:02.000Z"}
+{"role":"assistant","content":"Eight bots. Some seated, some on a grid, Koji unplaced.","at":"2026-08-27T09:15:03.000Z"}

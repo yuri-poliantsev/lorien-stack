@@ -1,0 +1,4 @@
+{"role":"user","content":"Who is blocked on contracts?","at":"2026-08-27T09:00:00.000Z","seatId":"desk-a1"}
+{"role":"assistant","content":"Checking the roster and last transcripts.","at":"2026-08-27T09:00:01.000Z","seatId":"desk-a1"}
+{"role":"tool","name":"read_file","content":"packages/contracts/src/index.ts not found yet","at":"2026-08-27T09:00:02.000Z"}
+{"role":"assistant","content":"Nobody owns the schema yet. I will file the wake.","at":"2026-08-27T09:00:03.000Z"}

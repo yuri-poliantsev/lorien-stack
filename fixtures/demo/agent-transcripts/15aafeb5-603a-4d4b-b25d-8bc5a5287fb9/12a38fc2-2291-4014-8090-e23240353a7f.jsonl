@@ -1,0 +1,4 @@
+{"role":"user","content":"How stale is Lauren?","at":"2026-08-27T09:30:00.000Z","seatId":"lab-3"}
+{"role":"assistant","content":"Presence is a hint from the quiet clock.","at":"2026-08-27T09:30:01.000Z"}
+{"role":"tool","name":"read_file","content":"lastActivityAt=2026-08-27T09:00:03.000Z","at":"2026-08-27T09:30:02.000Z"}
+{"role":"assistant","content":"freshnessMs is wall time since last transcript line. Not a lifecycle state.","at":"2026-08-27T09:30:03.000Z"}
