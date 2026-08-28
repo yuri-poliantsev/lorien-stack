@@ -15,7 +15,7 @@ Demo fixtures follow the Lauren `$AGENT_DATA` layout:
 
 `profile.json` is one object. `name` is required. `id` is a UUID and may be omitted; the directory name is then the id. Optional spatial fields are `seatId`, or `gridX` and `gridY` together.
 
-JSONL is one object per line. Known `role` values are `user`, `assistant`, and `tool`. `parseActivityJsonl` skips a truncated last line and unknown roles. It does not throw for those cases.
+JSONL is one object per line. Known `role` values are `user`, `assistant`, and `tool`. `parseActivityJsonl` skips a truncated last line, unknown roles, and lines with no timestamp. It does not throw for those cases.
 
 ## Wake payload
 
