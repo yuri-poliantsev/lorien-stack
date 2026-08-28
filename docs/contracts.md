@@ -72,7 +72,7 @@ Shared fields: `id`, `botId`, `at`, optional `spatial`. Role variants:
 - `{ role: "assistant"; text }`
 - `{ role: "tool"; toolName; text }`
 
-JSONL wire fields: `role`, `content` or `text`, `at` or `timestamp`, optional `id`, optional `name` or `toolName` for tools, optional `seatId` or `gridX`/`gridY`. A missing timestamp becomes `1970-01-01T00:00:00.000Z`.
+JSONL wire fields: `role`, `content` or `text`, `at` or `timestamp`, optional `id`, optional `name` or `toolName` for tools, optional `seatId` or `gridX`/`gridY`. A line with no parseable timestamp is skipped. A line with no `id` uses `eventIdForJsonlLine({ botId, index })`.
 
 ### `PresenceHint`
 
@@ -120,9 +120,13 @@ Parses `profile.json`. Uses `fallbackId` when `id` is absent.
 
 Parses a versioned roster object.
 
+### `eventIdForJsonlLine`
+
+Builds `EventId` as `<botId>:<index>` when a JSONL line has no `id`.
+
 ### `parseActivityJsonl`
 
-Turns JSONL text plus `botId` into `ActivityEvent[]`. Skips blank lines, invalid JSON (including a truncated last line), unknown roles, and tool lines with no name.
+Turns JSONL text plus `botId` into `ActivityEvent[]`. Skips blank lines, invalid JSON (including a truncated last line), unknown roles, lines with no timestamp, and tool lines with no name.
 
 ### `parseWakeRequest`
 

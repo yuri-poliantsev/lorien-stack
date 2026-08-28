@@ -108,6 +108,10 @@ function parseEventId(input: unknown): ParseResult<EventId> {
   return { ok: true, value: input as EventId };
 }
 
+export function eventIdForJsonlLine(input: { botId: BotId; index: number }): EventId {
+  return `${input.botId}:${input.index}` as EventId;
+}
+
 function parseName(input: unknown): ParseResult<string> {
   if (typeof input !== "string" || input.trim().length === 0) {
     return fail("name must be a non-empty string");
@@ -268,16 +272,13 @@ function activityEventFromUnknown(
     return undefined;
   }
   const atResult = timestampFromWire(input);
-  if (atResult !== undefined && !atResult.ok) {
+  if (atResult === undefined || !atResult.ok) {
     return undefined;
   }
-  const at =
-    atResult?.ok === true
-      ? atResult.value
-      : ("1970-01-01T00:00:00.000Z" as IsoTimestamp);
+  const at = atResult.value;
   const idResult =
     input.id === undefined
-      ? parseEventId(`${botId}:${index}`)
+      ? { ok: true as const, value: eventIdForJsonlLine({ botId, index }) }
       : parseEventId(input.id);
   if (!idResult.ok) {
     return undefined;

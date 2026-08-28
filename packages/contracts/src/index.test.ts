@@ -136,6 +136,16 @@ describe("jsonl edge parse", () => {
     assert.equal(events[0]?.text, "keep me");
     assert.equal(events[1]?.text, "also keep");
   });
+
+  it("skips a line with no timestamp", () => {
+    const text = [
+      `{"role":"user","content":"dated","at":"2026-08-20T10:00:00.000Z"}`,
+      `{"role":"assistant","content":"undated"}`,
+    ].join("\n");
+    const events = parseActivityJsonl({ text, botId });
+    assert.equal(events.length, 1);
+    assert.equal(events[0]?.text, "dated");
+  });
 });
 
 describe("wake and presence", () => {
