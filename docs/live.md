@@ -40,7 +40,7 @@ The parent of `agent-transcripts` is your `$AGENT_DATA`. The layout is the grok 
 ```
 $AGENT_DATA/
   agents/<uuid>/profile.json
-  agent-transcripts/<uuid>/<uuid>.jsonl
+  agent-transcripts/<uuid>/*.jsonl
 ```
 
 The tailer applies four rules, so you can tell a broken path from an idle bot:
@@ -96,7 +96,7 @@ Copy the template:
 cp .env.example .env
 ```
 
-Fill in the five values. Nothing in the repo loads `.env` for you, so export it into the shell that starts each process:
+Fill in the five values. The gateway reads its environment and never reads a file, so export the values into the shell that starts each process:
 
 ```bash
 set -a
@@ -113,6 +113,8 @@ set +a
 | `WEBHOOK_SENDER_KEY` | gateway | Sender key of the routine. Server side only, no flag. |
 
 `GATEWAY_CLIENT_TOKEN` and `VITE_GATEWAY_TOKEN` must hold the same string. One token needs two names because the gateway reads its process environment while Vite exposes only `VITE_` variables to the browser. When the two differ, every wake returns 401.
+
+Vite is the one process that reads a file, and it reads `.env` from its own root, `apps/client`, not from the repo root. Exporting `VITE_GATEWAY_TOKEN` before you start the dev server works. A copy in `apps/client/.env` works too. The root `.gitignore` covers both paths.
 
 Generate a token you do not use anywhere else:
 
@@ -179,14 +181,19 @@ tailscale status
 tailscale ip -4
 ```
 
-Both URL forms reach the client on port 5173:
+Reach the UI at the `100.x` address. Vite 6 serves an IPv4 host and refuses a hostname that is not in `server.allowedHosts`, which this repo leaves empty:
 
-- `http://<hostname>.<tailnet>.ts.net:5173`
-- `http://100.x.x.x:5173`
+- `http://100.x.x.x:5173` serves the UI.
+- `http://<hostname>.<tailnet>.ts.net:5173` answers `Blocked request. This host is not allowed.` To use the name, add it to `server.allowedHosts` in `apps/client/vite.config.ts`.
+
+The gateway runs a plain Node server with no host check, so both forms reach it on port 8040:
+
+- `http://<hostname>.<tailnet>.ts.net:8040/api/bots`
+- `http://100.x.x.x:8040/api/bots`
 
 Use HTTP. Add HTTPS only if you want it. If this host already runs an online Tailscale node, use that node. Do not create a second hostname for bot-space.
 
-Every tailnet peer that reaches port 8040 can read the roster and the activity stream, because only `POST /api/prompt` is authenticated. If that is wider than you want, bind loopback with `--listen 127.0.0.1:8040` and reach the UI through an SSH tunnel.
+Every tailnet peer that reaches port 8040 can read the roster and the activity stream, because only `POST /api/prompt` is authenticated. Port 5173 carries the same data, because Vite proxies `/api` and `/ws` to the gateway. If that is wider than you want, bind the gateway with `--listen 127.0.0.1:8040`, leave the dev server on its default `127.0.0.1`, and reach the UI through an SSH tunnel.
 
 ## Troubleshoot
 
@@ -199,6 +206,7 @@ Every tailnet peer that reaches port 8040 can read the roster and the activity s
 | `POST /api/prompt` returns 504 `indeterminate` | The POST hit the 8 second timeout, or the network failed. The bot may still have woken. | Read the routine's own runs before you send the wake again. |
 | Roster is empty while `/health` answers 200 | The gateway is reading a directory with no parseable profile, often one level above or below the real root. | Confirm `$AGENT_DATA/agents/<uuid>/profile.json` exists, holds one JSON object with `name`, and sits in a directory named with a UUID. |
 | Bots appear, activity stays empty | Transcript directory names are not bot UUIDs, or the files do not end in `.jsonl`. | Rename to `agent-transcripts/<bot-uuid>/<name>.jsonl`. The tailer skips anything else. |
+| The client answers `Blocked request. This host is not allowed.` | Vite refuses a Host header it does not know, and `server.allowedHosts` is empty in this repo. | Open the UI at `http://100.x.x.x:5173`, or add the tailnet name to `server.allowedHosts` in `apps/client/vite.config.ts`. |
 | `curl` wakes the bot, the browser gets 401 | `VITE_GATEWAY_TOKEN` was unset when Vite started, so the client fell back to `demo-token`. | Export `VITE_GATEWAY_TOKEN` and restart the dev server. Vite reads the variable at startup, not per request. |
 | The bar shows `acknowledged` and the bot does nothing | Acknowledged means the routine answered 200. Bot work is a separate step that the gateway cannot see. | Read that routine's run. The usual cause is a prompt that ignores the fields the gateway sends, which are `botId`, `prompt`, and `schemaVersion`. |
 

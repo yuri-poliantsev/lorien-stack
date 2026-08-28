@@ -87,10 +87,6 @@ check(
 );
 
 const readme = await read("README.md");
-check(
-	readme.includes("(docs/live.md)"),
-	"README.md does not link docs/live.md",
-);
 
 const demoIndex = readme.indexOf("## Quick start (demo)");
 const liveIndex = readme.indexOf("## Live bots");
@@ -100,6 +96,18 @@ check(
 	demoIndex !== -1 && liveIndex !== -1 && demoIndex < liveIndex,
 	"README.md puts Live bots before Quick start (demo)",
 );
+
+if (liveIndex !== -1) {
+	const nextHeading = readme.indexOf("\n## ", liveIndex + 1);
+	const liveSection = readme.slice(
+		liveIndex,
+		nextHeading === -1 ? readme.length : nextHeading,
+	);
+	check(
+		liveSection.includes("(docs/live.md)"),
+		"README.md does not link docs/live.md from the Live bots section",
+	);
+}
 
 if (failures.length > 0) {
 	for (const failure of failures) {
