@@ -16,7 +16,6 @@ import { PALETTE, drawStation, drawTerrain, drawUnit, unitAccent, worldToView } 
 export type StarCraftRenderInput = {
   roster: readonly BotRecord[];
   activity: ReadonlyMap<BotId, readonly ActivityEvent[]>;
-  selectedBotId: BotId | undefined;
 };
 
 export type StarCraftHandle = {
@@ -87,7 +86,6 @@ export function mountStarCraftTheme(
   let model: StarCraftRenderInput = {
     roster: [],
     activity: new Map(),
-    selectedBotId: undefined,
   };
   let localSelected: BotId | undefined;
   const pulses = new Map<string, PulseState>();
@@ -99,7 +97,7 @@ export function mountStarCraftTheme(
   const buildingHits = new Map<string, HTMLButtonElement>();
 
   function currentSelected(): BotId | undefined {
-    return model.selectedBotId ?? localSelected;
+    return localSelected;
   }
 
   function poseFor(bot: BotRecord, now: number): UnitPose {
@@ -359,7 +357,6 @@ export function mountStarCraftTheme(
     model = {
       roster: [...model.roster, ghost],
       activity: model.activity,
-      selectedBotId: model.selectedBotId,
     };
     root.dataset.staleProbe = "true";
     paint();
@@ -374,6 +371,9 @@ export function mountStarCraftTheme(
   return {
     render(next) {
       model = next;
+      if (localSelected !== undefined && !next.roster.some((bot) => bot.id === localSelected)) {
+        localSelected = undefined;
+      }
       for (const id of [...pulses.keys()]) {
         if (!next.roster.some((bot) => bot.id === id)) {
           pulses.delete(id);

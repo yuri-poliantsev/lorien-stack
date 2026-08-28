@@ -89,7 +89,6 @@ function render(): void {
   theme.render({
     roster,
     activity: store.activity,
-    selectedBotId: store.selectedBotId,
   });
   if (!rosterPainted && roster.length > 0) {
     rosterPainted = true;

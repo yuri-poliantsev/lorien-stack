@@ -6,7 +6,6 @@ export type ThemeHostHandle = {
   render: (input: {
     roster: readonly BotRecord[];
     activity: ReadonlyMap<BotId, readonly ActivityEvent[]>;
-    selectedBotId: BotId | undefined;
   }) => void;
 };
 
