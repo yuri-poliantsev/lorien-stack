@@ -40,7 +40,13 @@ let wakeStatus: WakeStatus = { kind: "idle" };
 const paintOrigin = performance.now();
 let rosterPainted = false;
 
-const theme = mountThemeHost(themeEl);
+const theme = mountThemeHost(themeEl, {
+  onSelect(botId) {
+    selectBot(store, botId);
+    wakeStatus = { kind: "idle" };
+    render();
+  },
+});
 const bots = mountBotList(botListEl, {
   onSelect(botId) {
     selectBot(store, botId);
