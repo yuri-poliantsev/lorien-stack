@@ -1,0 +1,4 @@
+{"role":"user","content":"Empty wake prompt?","at":"2026-08-27T09:25:00.000Z"}
+{"role":"assistant","content":"Fail closed. No wake.","at":"2026-08-27T09:25:01.000Z"}
+{"role":"tool","name":"shell","content":"parseWakeRequest prompt=\"\"","at":"2026-08-27T09:25:02.000Z"}
+{"role":"assistant","content":"ok is false. The caller does not send.","at":"2026-08-27T09:25:03.000Z"}

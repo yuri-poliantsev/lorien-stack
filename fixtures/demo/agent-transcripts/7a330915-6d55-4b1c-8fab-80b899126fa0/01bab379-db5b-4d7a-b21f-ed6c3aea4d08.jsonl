@@ -1,0 +1,4 @@
+{"role":"user","content":"Unknown roles must not throw.","at":"2026-08-27T09:20:00.000Z"}
+{"role":"assistant","content":"I will drop system and function lines.","at":"2026-08-27T09:20:01.000Z"}
+{"role":"tool","name":"shell","content":"role=system skipped","at":"2026-08-27T09:20:02.000Z"}
+{"role":"assistant","content":"Parser returned user and assistant only.","at":"2026-08-27T09:20:03.000Z"}
