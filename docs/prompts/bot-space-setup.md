@@ -10,7 +10,22 @@ The webhook sender key never goes in chat. The prompt tells the bot to ask for i
 Set up bot-space on this machine. This machine holds the Grok Bot agent data. Work the steps in order and report at the end.
 
 1. Install
-   Check `node -v` first. Stop if it is below 22.14.0.
+   Check `node -v`. If it reports a version below 22.14.0, install Node 22.15.1 from the official `.tar.gz` tarball into `$HOME/.local/node22` with these commands.
+   Do not ask me for Node credentials. Do not use nvm or fnm. Do not switch to bun.
+     VER=v22.15.1
+     NODE_DIR=$HOME/.local/node22
+     case $(uname -m) in x86_64) NARCH=x64;; arm64|aarch64) NARCH=arm64;; *) echo "unsupported arch"; exit 1;; esac
+     case $(uname -s) in Linux) NOS=linux;; Darwin) NOS=darwin;; *) echo "unsupported OS"; exit 1;; esac
+     if ! "$NODE_DIR/bin/node" -v 2>/dev/null | grep -q '^v22'; then
+       mkdir -p "$HOME/.local"
+       curl -fsSL "https://nodejs.org/dist/${VER}/node-${VER}-${NOS}-${NARCH}.tar.gz" -o /tmp/node22.tar.gz
+       rm -rf "$NODE_DIR"
+       mkdir -p "$NODE_DIR"
+       tar -xzf /tmp/node22.tar.gz -C "$NODE_DIR" --strip-components=1
+     fi
+     export PATH="$HOME/.local/node22/bin:$PATH"
+   Keep that PATH active for every later step.
+   Confirm `node -v` reports at least 22.14.0. Then:
    git clone https://github.com/yuri-poliantsev/bot-space.git
    cd bot-space
    npm install
@@ -38,7 +53,8 @@ Set up bot-space on this machine. This machine holds the Grok Bot agent data. Wo
    Write the secrets with a heredoc redirect into the file. Do not build the file with `echo`, do not `cat .env` afterwards, and do not commit it.
 
 6. Start both processes
-   Export the file into each shell first:
+   Export the Node path and the file into each shell first:
+     export PATH="$HOME/.local/node22/bin:$PATH"
      set -a; . ./.env; set +a
    Gateway:
      npm run gateway -- --listen :8040 --allowlist <bot-uuid>

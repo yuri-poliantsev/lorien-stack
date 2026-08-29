@@ -27,6 +27,8 @@ const PROMPT_REQUIRED = [
 	"npm run dev -w apps/client",
 	"botId",
 	"tailscale",
+	"nodejs.org/dist",
+	"$HOME/.local/node22",
 ];
 
 const ENV_KEYS = [
@@ -79,6 +81,10 @@ check(
 check(
 	live.includes("prompts/bot-space-setup.md"),
 	`docs/live.md does not link ${PROMPT_PATH}`,
+);
+check(
+	live.includes("nodejs.org/dist") && live.includes("$HOME/.local/node22"),
+	"docs/live.md does not teach the user-local Node 22 install",
 );
 
 const prompt = await read(PROMPT_PATH);
