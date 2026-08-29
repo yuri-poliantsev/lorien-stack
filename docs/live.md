@@ -15,7 +15,7 @@ You can hand this whole setup to a Grok Bot instead. [Setup prompt](prompts/bot-
 
 You need Node.js `>=22.14.0`. Check it with `node -v`.
 
-If `node -v` is below that floor, install a user-local Node 22 and put it first on PATH. Grok Bot boxes often ship Node 20 on `/usr/bin/node`. Do not use nvm or fnm for this path. Non-interactive shells will not load those tools.
+If `node -v` is below that floor, install Node 22.15.1 into `$HOME/.local/node22` with the official `.tar.gz` tarball. Do not use nvm or fnm. Non-interactive shells do not load those tools. Do not switch to bun.
 
 ```bash
 VER=v22.15.1
@@ -29,11 +29,19 @@ if ! "$NODE_DIR/bin/node" -v 2>/dev/null | grep -q '^v22'; then
   mkdir -p "$NODE_DIR"
   tar -xzf /tmp/node22.tar.gz -C "$NODE_DIR" --strip-components=1
 fi
-export PATH="$NODE_DIR/bin:$PATH"
+export PATH="$HOME/.local/node22/bin:$PATH"
 node -v
 ```
 
-Export that PATH again in every new shell before you run npm or the gateway.
+The commands skip the download when `$HOME/.local/node22/bin/node -v` already reports v22. Continue only when `node -v` reports 22.14.0 or later.
+
+Before you run npm or the gateway in a new shell, export the PATH again:
+
+```bash
+export PATH="$HOME/.local/node22/bin:$PATH"
+```
+
+After Node passes the version check, clone the repo and install the dependencies:
 
 ```bash
 git clone https://github.com/yuri-poliantsev/bot-space.git
@@ -225,7 +233,7 @@ Every tailnet peer that reaches port 8040 can read the roster and the activity s
 
 | Symptom | Cause | Fix |
 | --- | --- | --- |
-| `node -v` is below 22.14.0, or `npm run gateway` dies with `bad option: --experimental-strip-types` | The process is still using a Node older than 22.6. The gateway runs TypeScript through `--experimental-strip-types`. | Install the user-local Node 22 from [Before you start](#before-you-start), export `$HOME/.local/node22/bin` first on PATH, and start again. |
+| `node -v` is below 22.14.0, or `npm run gateway` dies with `bad option: --experimental-strip-types` | The process is still using a Node older than 22.6. The gateway runs TypeScript through `--experimental-strip-types`. | Install the user-local Node 22 from [Before you start](#before-you-start). Run `export PATH="$HOME/.local/node22/bin:$PATH"` in the shell, then start again. |
 | The gateway process exits and the message names the token | `GATEWAY_CLIENT_TOKEN` and `--token` were both empty. Live start refuses to listen without a token. | Set `GATEWAY_CLIENT_TOKEN` or pass `--token`, then start again. Demo still defaults to `demo-token`. |
 | `POST /api/prompt` returns 401 `unauthorized` | The request carried no bearer token, or the token did not match `GATEWAY_CLIENT_TOKEN`. | Set `GATEWAY_CLIENT_TOKEN` and `VITE_GATEWAY_TOKEN` to the same string. Restart both processes. |
 | `POST /api/prompt` returns 403 `bot not allowlisted` | The bot id is not in the allowlist, which is empty on a live run unless you pass `--allowlist` or `GATEWAY_ALLOWLIST=discovered`. | Restart the gateway with `--allowlist <bot-uuid>` or `--allowlist discovered`. Use the id from `GET /api/bots`, not the bot's name. |
