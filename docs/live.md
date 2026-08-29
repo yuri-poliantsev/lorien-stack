@@ -122,11 +122,13 @@ Generate a token you do not use anywhere else:
 openssl rand -hex 24
 ```
 
-The allowlist is the second gate, and it is a flag rather than a variable. `POST /api/prompt` returns 403 for any bot id outside it. A live run starts with an empty allowlist, so pass the ids you accept:
+The allowlist is the second gate. `POST /api/prompt` returns 403 for any bot id outside it. A live run starts with an empty allowlist, which denies every wake, so pass the ids you accept:
 
 ```bash
 --allowlist <bot-uuid>,<bot-uuid>
 ```
+
+`--allowlist discovered` or `GATEWAY_ALLOWLIST=discovered` allowlists every bot id present after the first roster scan. Live does not discover by default. Bots that appear later stay off the list until you restart.
 
 Keep `.env` out of git. Commit `.env.example` with empty values and nothing else.
 
@@ -138,7 +140,7 @@ Two processes. Gateway first:
 npm run gateway -- --listen :8040 --allowlist <bot-uuid>
 ```
 
-That command reads `AGENT_DATA`, `GATEWAY_CLIENT_TOKEN`, `WEBHOOK_URL`, and `WEBHOOK_SENDER_KEY` from the environment you exported. The [gateway README](../apps/gateway/README.md) shows the same command with every variable spelled out inline.
+That command reads `AGENT_DATA`, `GATEWAY_CLIENT_TOKEN`, `WEBHOOK_URL`, and `WEBHOOK_SENDER_KEY` from the environment you exported. If `GATEWAY_CLIENT_TOKEN` and `--token` are both empty, the process exits without listening, and the error names the token. The [gateway README](../apps/gateway/README.md) shows the same command with every variable spelled out inline.
 
 Check the gateway before you open a browser:
 
@@ -199,8 +201,9 @@ Every tailnet peer that reaches port 8040 can read the roster and the activity s
 
 | Symptom | Cause | Fix |
 | --- | --- | --- |
-| `POST /api/prompt` returns 401 `unauthorized` | The request carried no bearer token, or the token did not match `GATEWAY_CLIENT_TOKEN`. The gateway also answers 401 when its own token is empty. | Set `GATEWAY_CLIENT_TOKEN` and `VITE_GATEWAY_TOKEN` to the same string. Restart both processes. |
-| `POST /api/prompt` returns 403 `bot not allowlisted` | The bot id is not in the allowlist, which is empty on a live run. | Restart the gateway with `--allowlist <bot-uuid>`. Use the id from `GET /api/bots`, not the bot's name. |
+| The gateway process exits and the message names the token | `GATEWAY_CLIENT_TOKEN` and `--token` were both empty. Live start refuses to listen without a token. | Set `GATEWAY_CLIENT_TOKEN` or pass `--token`, then start again. Demo still defaults to `demo-token`. |
+| `POST /api/prompt` returns 401 `unauthorized` | The request carried no bearer token, or the token did not match `GATEWAY_CLIENT_TOKEN`. | Set `GATEWAY_CLIENT_TOKEN` and `VITE_GATEWAY_TOKEN` to the same string. Restart both processes. |
+| `POST /api/prompt` returns 403 `bot not allowlisted` | The bot id is not in the allowlist, which is empty on a live run unless you pass `--allowlist` or `GATEWAY_ALLOWLIST=discovered`. | Restart the gateway with `--allowlist <bot-uuid>` or `--allowlist discovered`. Use the id from `GET /api/bots`, not the bot's name. |
 | `POST /api/prompt` returns 503 `failed` | `WEBHOOK_URL` or `WEBHOOK_SENDER_KEY` is missing or empty, so the gateway refused to POST anything. | Export both, then restart the gateway. The gateway logs this as `wake failed` with reason `not configured`. |
 | `POST /api/prompt` returns 502 `failed` | The routine answered a status other than 200. | Re-copy the URL and the sender key from the routine panel. A rotated key fails this way. |
 | `POST /api/prompt` returns 504 `indeterminate` | The POST hit the 8 second timeout, or the network failed. The bot may still have woken. | Read the routine's own runs before you send the wake again. |

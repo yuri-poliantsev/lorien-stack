@@ -24,7 +24,11 @@ npm run gateway -- --listen :8040 --allowlist <bot-uuid>
 
 `--data /path/to/agent-data` replaces `AGENT_DATA`, `--token` replaces `GATEWAY_CLIENT_TOKEN`, and `--webhook-url` replaces `WEBHOOK_URL`. `WEBHOOK_SENDER_KEY` has no flag, so the key stays out of `argv` and out of `ps` output. Layout is the grok driver: `agents/<uuid>/profile.json` and `agent-transcripts/<uuid>/*.jsonl`.
 
-Drop `GATEWAY_CLIENT_TOKEN`, `WEBHOOK_URL`, and `WEBHOOK_SENDER_KEY` to read a live roster without wakes. `POST /api/prompt` then answers 401 or 503. `.env.example` in the repo root lists all five variables, and [Live setup](../../docs/live.md) walks through a first live run.
+Live start without `GATEWAY_CLIENT_TOKEN` or `--token` exits without listening. Demo still defaults to `demo-token`.
+
+An empty allowlist denies every wake. `--allowlist <bot-uuid>,<bot-uuid>` names the bots that may wake. `--allowlist discovered` or `GATEWAY_ALLOWLIST=discovered` allowlists every bot id present after the first roster scan. Live does not discover by default. Bots that appear after that scan stay off the list until you restart.
+
+Without `WEBHOOK_URL` and `WEBHOOK_SENDER_KEY`, an authorized prompt returns 503. `.env.example` in the repo root lists the five setup variables, and [Live setup](../../docs/live.md) walks through a first live run.
 
 ## Endpoints
 
@@ -33,9 +37,9 @@ Drop `GATEWAY_CLIENT_TOKEN`, `WEBHOOK_URL`, and `WEBHOOK_SENDER_KEY` to read a l
 - `GET /ws` — first message `{ type: "snapshot", revision, snapshot }`, then `{ type: "event", revision, event }` and `{ type: "presence", revision, botId, hint }`
 - `POST /api/prompt` — `{ botId, prompt }`. Requires `Authorization: Bearer <client token>` and an allowlisted bot id. The server then calls `requestWake` (8s timeout, one try).
 
-Auth lives at this edge. The webhook sender key never leaves the process. Set `WEBHOOK_SENDER_KEY` and `WEBHOOK_URL` (or `--webhook-url`). Demo client token is `demo-token` unless `GATEWAY_CLIENT_TOKEN` / `--token` is set. Demo allowlist is every fixture bot; pass `--allowlist` to shrink it.
+Auth lives at this edge. The webhook sender key never leaves the process. Set `WEBHOOK_SENDER_KEY` and `WEBHOOK_URL` (or `--webhook-url`). Demo client token is `demo-token` unless `GATEWAY_CLIENT_TOKEN` / `--token` is set. Demo allowlist is every fixture bot; pass `--allowlist` to shrink it, or `--allowlist discovered` to use the ids from the first scan.
 
-Wake logs use `acknowledged`, `failed`, or `indeterminate`. They do not print the sender key, the client token, or `Authorization` headers.
+On listen the gateway logs a boot summary: listen address, demo or live, bot count, allowlist mode, and whether the webhook is configured. Wake logs use `acknowledged`, `failed`, or `indeterminate`. Neither log prints the sender key, the client token, or `Authorization` headers.
 
 ## Tail
 

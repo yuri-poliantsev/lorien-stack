@@ -42,6 +42,11 @@ import {
 
 export const DEMO_CLIENT_TOKEN = "demo-token";
 
+export const LIVE_TOKEN_REQUIRED_MSG =
+  "live start requires GATEWAY_CLIENT_TOKEN or --token";
+
+export type AllowlistMode = "empty" | "explicit" | "discovered";
+
 export type GatewayMessage =
   | { type: "snapshot"; revision: number; snapshot: RosterSnapshot }
   | { type: "event"; revision: number; event: ActivityEvent }
@@ -60,7 +65,7 @@ export type GatewayOptions = {
   webhookUrl?: string;
   senderKey?: string;
   token?: string;
-  allowlist?: string[];
+  allowlist?: readonly string[] | "discovered";
   coalesceMs?: number;
   wakeTimeoutMs?: number;
   log?: (entry: LogEntry) => void;
@@ -141,6 +146,52 @@ export function writeLog(input: {
   return safe;
 }
 
+function emptyToUndefined(value: string | undefined): string | undefined {
+  if (value === undefined || value.length === 0) {
+    return undefined;
+  }
+  return value;
+}
+
+export function parseAllowlistArg(raw: string): "discovered" | string[] {
+  const trimmed = raw.trim();
+  if (trimmed === "discovered") {
+    return "discovered";
+  }
+  return trimmed
+    .split(",")
+    .map((id) => id.trim())
+    .filter((id) => id.length > 0);
+}
+
+export function resolveAllowlist(input: {
+  option: GatewayOptions["allowlist"];
+  env: string | undefined;
+  demoIds: string[] | undefined;
+}): { mode: AllowlistMode; ids: string[] } {
+  if (input.option === "discovered") {
+    return { mode: "discovered", ids: [] };
+  }
+  if (input.option !== undefined) {
+    return input.option.length === 0
+      ? { mode: "empty", ids: [] }
+      : { mode: "explicit", ids: [...input.option] };
+  }
+  if (input.env !== undefined && input.env.trim().length > 0) {
+    const parsed = parseAllowlistArg(input.env);
+    if (parsed === "discovered") {
+      return { mode: "discovered", ids: [] };
+    }
+    if (parsed.length > 0) {
+      return { mode: "explicit", ids: parsed };
+    }
+  }
+  if (input.demoIds !== undefined && input.demoIds.length > 0) {
+    return { mode: "explicit", ids: input.demoIds };
+  }
+  return { mode: "empty", ids: [] };
+}
+
 export async function startGateway(options: GatewayOptions = {}): Promise<Gateway> {
   const listen = parseListen(options.listen);
   const repoRoot = repoRootFromModule(import.meta.url);
@@ -149,9 +200,13 @@ export async function startGateway(options: GatewayOptions = {}): Promise<Gatewa
   const coalesceMs = options.coalesceMs ?? COALESCE_MS;
   const multiplier = options.multiplier ?? DEFAULT_DEMO_MULTIPLIER;
   const token =
-    options.token ??
-    process.env.GATEWAY_CLIENT_TOKEN ??
-    (demo ? DEMO_CLIENT_TOKEN : "");
+    options.token !== undefined
+      ? options.token
+      : (emptyToUndefined(process.env.GATEWAY_CLIENT_TOKEN) ??
+        (demo ? DEMO_CLIENT_TOKEN : ""));
+  if (!demo && token.length === 0) {
+    throw new Error(LIVE_TOKEN_REQUIRED_MSG);
+  }
   const senderKey = options.senderKey ?? process.env.WEBHOOK_SENDER_KEY ?? "";
   const secrets = [senderKey, token].filter((value) => value.length > 0);
   const logs: LogEntry[] = [];
@@ -241,15 +296,17 @@ export async function startGateway(options: GatewayOptions = {}): Promise<Gatewa
     await seedDemoWorkspace({ fixtureRoot, workRoot, bots: demoPlan.bots });
   }
 
-  const allowlisted =
-    options.allowlist !== undefined && options.allowlist.length > 0
-      ? options.allowlist
-      : demoPlan !== undefined
-        ? demoPlan.bots.map((bot) => bot.id)
-        : [];
+  const allowlist = resolveAllowlist({
+    option: options.allowlist,
+    env: process.env.GATEWAY_ALLOWLIST,
+    demoIds: demoPlan === undefined ? undefined : demoPlan.bots.map((bot) => bot.id),
+  });
+  const allowlistedBotIds = new Set<string>(
+    allowlist.mode === "discovered" ? [] : allowlist.ids,
+  );
   const auth: AuthConfig = {
     clientToken: token,
-    allowlistedBotIds: new Set(allowlisted),
+    allowlistedBotIds,
   };
   const webhookUrl = options.webhookUrl ?? process.env.WEBHOOK_URL;
 
@@ -264,6 +321,11 @@ export async function startGateway(options: GatewayOptions = {}): Promise<Gatewa
     },
   });
   await tailer.tick();
+  if (allowlist.mode === "discovered") {
+    for (const id of roster.bots.keys()) {
+      allowlistedBotIds.add(id);
+    }
+  }
 
   const server = createServer((req, res) => {
     void handleHttp(req, res);
@@ -393,8 +455,13 @@ export async function startGateway(options: GatewayOptions = {}): Promise<Gatewa
     msg: "gateway listening",
     host: boundHost,
     port: boundPort,
+    listen: `${boundHost}:${boundPort}`,
+    mode: demo ? "demo" : "live",
+    botCount: roster.bots.size,
+    allowlist: allowlist.mode,
+    webhookConfigured:
+      webhookUrl !== undefined && webhookUrl.length > 0 && senderKey.length > 0,
     driver: grokDriver.name,
-    demo,
   });
 
   tailer.start();
@@ -466,7 +533,7 @@ function header(req: IncomingMessage, name: string): string | undefined {
   return value;
 }
 
-function parseCli(argv: string[]): GatewayOptions {
+export function parseGatewayCli(argv: string[]): GatewayOptions {
   const options: GatewayOptions = {};
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
@@ -505,8 +572,12 @@ function parseCli(argv: string[]): GatewayOptions {
       continue;
     }
     if (arg === "--allowlist" && next !== undefined) {
-      options.allowlist = next.split(",").filter((id) => id.length > 0);
+      options.allowlist = parseAllowlistArg(next);
       i += 1;
+      continue;
+    }
+    if (arg !== undefined && arg.startsWith("--allowlist=")) {
+      options.allowlist = parseAllowlistArg(arg.slice("--allowlist=".length));
       continue;
     }
     if (arg === "--coalesce-ms" && next !== undefined) {
@@ -527,7 +598,7 @@ function isMain(moduleUrl: string): boolean {
 }
 
 if (isMain(import.meta.url)) {
-  startGateway(parseCli(process.argv.slice(2))).catch((error: unknown) => {
+  startGateway(parseGatewayCli(process.argv.slice(2))).catch((error: unknown) => {
     const msg = error instanceof Error ? error.message : "gateway failed";
     process.stderr.write(`${JSON.stringify({ msg })}\n`);
     process.exitCode = 1;
