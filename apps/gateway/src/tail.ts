@@ -1,4 +1,4 @@
-import { readdir, readFile, stat } from "node:fs/promises";
+import { open, readdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
 
 import {
@@ -12,6 +12,9 @@ import {
 
 export const GROK_DRIVER_NAME = "grok" as const;
 export const COALESCE_MS = 250;
+/** First sight of a larger transcript skips older bytes so live boot survives multi‑hundred‑MB files. */
+export const MAX_INITIAL_CATCHUP_BYTES = 1_048_576;
+export const READ_CHUNK_BYTES = 256 * 1024;
 
 export type GrokDriver = {
   name: typeof GROK_DRIVER_NAME;
@@ -157,9 +160,15 @@ export function createTailer(input: {
     } catch {
       return [];
     }
-    const cursor = cursors.get(filePath) ?? { offset: 0, pending: "", lineIndex: 0 };
+    const existing = cursors.get(filePath);
+    const cursor = existing ?? { offset: 0, pending: "", lineIndex: 0 };
     if (fileStat.size < cursor.offset) {
       cursor.offset = 0;
+      cursor.pending = "";
+      cursor.lineIndex = 0;
+    }
+    if (existing === undefined && fileStat.size > MAX_INITIAL_CATCHUP_BYTES) {
+      cursor.offset = fileStat.size - MAX_INITIAL_CATCHUP_BYTES;
       cursor.pending = "";
       cursor.lineIndex = 0;
     }
@@ -167,10 +176,33 @@ export function createTailer(input: {
       cursors.set(filePath, cursor);
       return [];
     }
-    const buf = await readFile(filePath);
-    const slice = buf.subarray(cursor.offset, fileStat.size);
-    cursor.offset = fileStat.size;
-    const text = cursor.pending + slice.toString("utf8");
+
+    const readFrom = cursor.offset;
+    const maxChunk =
+      existing === undefined && readFrom > 0 ? MAX_INITIAL_CATCHUP_BYTES : READ_CHUNK_BYTES;
+    const toRead = Math.min(fileStat.size - readFrom, maxChunk);
+    const handle = await open(filePath, "r");
+    let slice: Buffer;
+    try {
+      const buf = Buffer.alloc(toRead);
+      const { bytesRead } = await handle.read(buf, 0, toRead, readFrom);
+      slice = buf.subarray(0, bytesRead);
+    } finally {
+      await handle.close();
+    }
+    cursor.offset = readFrom + slice.length;
+
+    let text = cursor.pending + slice.toString("utf8");
+    if (existing === undefined && readFrom > 0 && cursor.pending === "") {
+      const firstNl = text.indexOf("\n");
+      if (firstNl === -1) {
+        cursor.pending = text;
+        cursors.set(filePath, cursor);
+        return [];
+      }
+      text = text.slice(firstNl + 1);
+    }
+
     const lastNl = text.lastIndexOf("\n");
     if (lastNl === -1) {
       cursor.pending = text;
@@ -180,8 +212,9 @@ export function createTailer(input: {
     const complete = text.slice(0, lastNl + 1);
     cursor.pending = text.slice(lastNl + 1);
     const events = parseActivityJsonl({
-      text: `${"\n".repeat(cursor.lineIndex)}${complete}`,
+      text: complete,
       botId,
+      lineOffset: cursor.lineIndex,
     });
     cursor.lineIndex += complete.split("\n").length - 1;
     cursors.set(filePath, cursor);
