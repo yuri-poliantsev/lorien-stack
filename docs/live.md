@@ -151,6 +151,8 @@ curl -s http://127.0.0.1:8040/api/bots
 
 `/health` answers `{"ok":true}`. `/api/bots` answers a roster snapshot with a `revision`. An empty `bots` array means the gateway runs and finds nothing to read, so fix the data path before you go on.
 
+The WebSocket also sends `presence` hints. `--presence-work-ms` and `GATEWAY_PRESENCE_WORK_MS` default to 12 000. `--presence-sleep-ms` and `GATEWAY_PRESENCE_SLEEP_MS` default to 22 000. Those values match the StarCraft floor. `--presence-tick-ms` and `GATEWAY_PRESENCE_TICK_MS` default to 1000. Bots stay on the roster. Presence is not lifecycle. The [gateway README](../apps/gateway/README.md) lists the flags.
+
 Client second, in another terminal:
 
 ```bash

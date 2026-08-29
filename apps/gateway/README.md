@@ -12,6 +12,8 @@ npm run gateway -- --demo --listen :8040
 
 `--listen :8040` binds `0.0.0.0:8040`. Loopback-only bind is opt-in (`--listen 127.0.0.1:8040`). Demo copies fixture profiles into a temp tree, then appends transcript lines on a compressed clock. Sleeps follow event timestamps divided by `--multiplier` (default 1000), not wall time. After the last line, bots stay on the roster and the socket gets a `presence` hint with reason `sleep`.
 
+Live mode emits the same `presence` messages from a quiet clock. Last activity comes from roster spawn and tailed transcript lines. `--presence-tick-ms` (default 1000, or `GATEWAY_PRESENCE_TICK_MS`) is the emit interval. Reason is `recent` below `--presence-work-ms` (default 12000, or `GATEWAY_PRESENCE_WORK_MS`), `quiet` until `--presence-sleep-ms` (default 22000, or `GATEWAY_PRESENCE_SLEEP_MS`), then `sleep`. Those defaults match `WORK_MS` and `SLEEP_MS` on the StarCraft floor. A hint is not lifecycle. Quiet bots stay on the roster.
+
 Live data. This form is copy-paste complete: a wake needs the client token, the allowlist, and both webhook variables, not `AGENT_DATA` alone.
 
 ```
@@ -44,3 +46,15 @@ On listen the gateway logs a boot summary: listen address, demo or live, bot cou
 ## Tail
 
 The grok driver polls on a 250ms coalesce. Byte offsets and a partial-line buffer make rereads idempotent. A truncated last line stays in the buffer until a newline arrives.
+
+## Presence
+
+Live presence is a quiet-clock hint. `freshnessMs` is wall time since last activity. The gateway never uses a presence reason to drop a bot.
+
+| Flag | Env | Default | Reason when freshness crosses it |
+| --- | --- | --- | --- |
+| `--presence-work-ms` | `GATEWAY_PRESENCE_WORK_MS` | 12000 | `recent` below this, then `quiet` |
+| `--presence-sleep-ms` | `GATEWAY_PRESENCE_SLEEP_MS` | 22000 | `sleep` at or above this |
+| `--presence-tick-ms` | `GATEWAY_PRESENCE_TICK_MS` | 1000 | emit interval |
+
+Demo does not run that timer. It still flushes `sleep` after the tape.

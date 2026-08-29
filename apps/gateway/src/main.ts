@@ -33,6 +33,13 @@ import {
 } from "./tail.ts";
 import { requestWake } from "./wake.ts";
 import {
+  collectPresenceHints,
+  createPresenceClock,
+  PRESENCE_REASON_SLEEP,
+  resolvePresenceConfig,
+  type PresenceClock,
+} from "./presence.ts";
+import {
   DEFAULT_DEMO_MULTIPLIER,
   loadReplayPlan,
   runReplay,
@@ -68,6 +75,9 @@ export type GatewayOptions = {
   allowlist?: readonly string[] | "discovered";
   coalesceMs?: number;
   wakeTimeoutMs?: number;
+  presenceWorkMs?: number;
+  presenceSleepMs?: number;
+  presenceTickMs?: number;
   log?: (entry: LogEntry) => void;
 };
 
@@ -235,6 +245,20 @@ export async function startGateway(options: GatewayOptions = {}): Promise<Gatewa
   const abort = new AbortController();
   let roster: Roster = emptyRoster();
   const sockets = new Set<WebSocket>();
+  const presence = resolvePresenceConfig({
+    ...(options.presenceWorkMs !== undefined
+      ? { workMs: options.presenceWorkMs }
+      : {}),
+    ...(options.presenceSleepMs !== undefined
+      ? { sleepMs: options.presenceSleepMs }
+      : {}),
+    ...(options.presenceTickMs !== undefined
+      ? { tickMs: options.presenceTickMs }
+      : {}),
+    env: process.env,
+  });
+  const clock: PresenceClock | undefined = demo ? undefined : createPresenceClock();
+  let presenceTimer: ReturnType<typeof setInterval> | undefined;
 
   function snapshotMessage(): GatewayMessage {
     const snapshot = toSnapshot({ roster, capturedAt: nowIso() });
@@ -253,17 +277,60 @@ export async function startGateway(options: GatewayOptions = {}): Promise<Gatewa
     }
   }
 
+  function emitPresence(target: WebSocket | "all"): void {
+    if (clock === undefined) {
+      return;
+    }
+    const now = nowIso();
+    const hints = collectPresenceHints({
+      stamps: clock.stamps(),
+      now,
+      nowMs: Date.parse(now),
+      workMs: presence.workMs,
+      sleepMs: presence.sleepMs,
+    });
+    const bump = target === "all";
+    for (const item of hints) {
+      if (!roster.bots.has(item.botId)) {
+        continue;
+      }
+      if (bump) {
+        roster = advanceRevision(roster);
+      }
+      const message: GatewayMessage = {
+        type: "presence",
+        revision: roster.revision,
+        botId: item.botId,
+        hint: item.hint,
+      };
+      if (target === "all") {
+        broadcast(message);
+      } else {
+        send(target, message);
+      }
+    }
+  }
+
   function handleSpawn(bot: Parameters<typeof spawnBot>[1]): void {
+    if (clock !== undefined) {
+      clock.noteSpawn({ botId: bot.id, at: nowIso() });
+    }
     roster = spawnBot(roster, bot);
     broadcast(snapshotMessage());
   }
 
   function handleGone(botId: BotId): void {
+    if (clock !== undefined) {
+      clock.noteGone(botId);
+    }
     roster = goneBot(roster, botId);
     broadcast(snapshotMessage());
   }
 
   function handleEvents(events: ActivityEvent[]): void {
+    if (clock !== undefined) {
+      clock.noteEvents(events);
+    }
     for (const event of events) {
       roster = advanceRevision(roster);
       broadcast({ type: "event", revision: roster.revision, event });
@@ -275,7 +342,7 @@ export async function startGateway(options: GatewayOptions = {}): Promise<Gatewa
     const hint = presenceHintFromQuietClock({
       lastActivityAt: step.lastActivityAt,
       now: nowIso(),
-      reason: "sleep",
+      reason: PRESENCE_REASON_SLEEP,
     });
     broadcast({
       type: "presence",
@@ -346,6 +413,7 @@ export async function startGateway(options: GatewayOptions = {}): Promise<Gatewa
   wss.on("connection", (ws: WebSocket) => {
     sockets.add(ws);
     send(ws, snapshotMessage());
+    emitPresence(ws);
     ws.on("close", () => {
       sockets.delete(ws);
     });
@@ -465,6 +533,11 @@ export async function startGateway(options: GatewayOptions = {}): Promise<Gatewa
   });
 
   tailer.start();
+  if (clock !== undefined) {
+    presenceTimer = setInterval(() => {
+      emitPresence("all");
+    }, presence.tickMs);
+  }
 
   if (demoPlan !== undefined) {
     void (async () => {
@@ -504,6 +577,10 @@ export async function startGateway(options: GatewayOptions = {}): Promise<Gatewa
     },
     async close() {
       abort.abort();
+      if (presenceTimer !== undefined) {
+        clearInterval(presenceTimer);
+        presenceTimer = undefined;
+      }
       tailer.stop();
       for (const socket of sockets) {
         socket.close();
@@ -583,6 +660,33 @@ export function parseGatewayCli(argv: string[]): GatewayOptions {
     if (arg === "--coalesce-ms" && next !== undefined) {
       options.coalesceMs = Number(next);
       i += 1;
+      continue;
+    }
+    if (arg === "--presence-work-ms" && next !== undefined) {
+      options.presenceWorkMs = Number(next);
+      i += 1;
+      continue;
+    }
+    if (arg !== undefined && arg.startsWith("--presence-work-ms=")) {
+      options.presenceWorkMs = Number(arg.slice("--presence-work-ms=".length));
+      continue;
+    }
+    if (arg === "--presence-sleep-ms" && next !== undefined) {
+      options.presenceSleepMs = Number(next);
+      i += 1;
+      continue;
+    }
+    if (arg !== undefined && arg.startsWith("--presence-sleep-ms=")) {
+      options.presenceSleepMs = Number(arg.slice("--presence-sleep-ms=".length));
+      continue;
+    }
+    if (arg === "--presence-tick-ms" && next !== undefined) {
+      options.presenceTickMs = Number(next);
+      i += 1;
+      continue;
+    }
+    if (arg !== undefined && arg.startsWith("--presence-tick-ms=")) {
+      options.presenceTickMs = Number(arg.slice("--presence-tick-ms=".length));
       continue;
     }
   }
