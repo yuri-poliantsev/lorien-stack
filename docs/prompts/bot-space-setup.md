@@ -10,7 +10,20 @@ The webhook sender key never goes in chat. The prompt tells the bot to ask for i
 Set up bot-space on this machine. This machine holds the Grok Bot agent data. Work the steps in order and report at the end.
 
 1. Install
-   Check `node -v` first. Stop if it is below 22.14.0.
+   Check `node -v`. If it is below 22.14.0, install a user-local Node 22 and put it first on PATH for every shell in this setup. Do not ask me for Node credentials. Do not use nvm, fnm, or bun.
+     VER=v22.15.1
+     NODE_DIR=$HOME/.local/node22
+     case $(uname -m) in x86_64) NARCH=x64;; arm64|aarch64) NARCH=arm64;; *) echo "unsupported arch"; exit 1;; esac
+     case $(uname -s) in Linux) NOS=linux;; Darwin) NOS=darwin;; *) echo "unsupported OS"; exit 1;; esac
+     if ! "$NODE_DIR/bin/node" -v 2>/dev/null | grep -q '^v22'; then
+       mkdir -p "$HOME/.local"
+       curl -fsSL "https://nodejs.org/dist/${VER}/node-${VER}-${NOS}-${NARCH}.tar.gz" -o /tmp/node22.tar.gz
+       rm -rf "$NODE_DIR"
+       mkdir -p "$NODE_DIR"
+       tar -xzf /tmp/node22.tar.gz -C "$NODE_DIR" --strip-components=1
+     fi
+     export PATH="$NODE_DIR/bin:$PATH"
+   Confirm `node -v` reports at least 22.14.0. Then:
    git clone https://github.com/yuri-poliantsev/bot-space.git
    cd bot-space
    npm install
