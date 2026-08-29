@@ -6,7 +6,7 @@ import { after, describe, it } from "node:test";
 
 import type { ActivityEvent, BotId, BotRecord } from "@bot-space/contracts";
 
-import { COALESCE_MS, createTailer, grokDriver } from "./tail.ts";
+import { COALESCE_MS, createTailer, grokDriver, MAX_INITIAL_CATCHUP_BYTES } from "./tail.ts";
 
 const botId = "af4c6d21-9ef6-4435-8232-bf09ca561583";
 const line = (n: number) =>
@@ -141,5 +141,32 @@ describe("tail", () => {
     await tailer.tick();
     assert.equal(gone.length, 1);
     assert.equal(gone[0], botId);
+  });
+
+  it("skips older bytes on a multi-megabyte transcript instead of loading the whole file", async () => {
+    const root = await makeRoot();
+    roots.push(root);
+    const file = jsonlPath(root);
+    const early = `${line(0)}\n`;
+    const pad = Buffer.alloc(MAX_INITIAL_CATCHUP_BYTES + 64, "x".charCodeAt(0));
+    const late = `${line(9)}\n`;
+    await writeFile(file, Buffer.concat([Buffer.from(early, "utf8"), pad, Buffer.from(`\n${late}`, "utf8")]));
+    const events: ActivityEvent[][] = [];
+    const tailer = createTailer({
+      root,
+      handlers: {
+        onSpawn: () => undefined,
+        onGone: () => undefined,
+        onEvents: (batch) => {
+          events.push(batch);
+        },
+      },
+    });
+    await tailer.tick();
+    const texts = events.flat().map((event) => event.text);
+    assert.equal(texts.includes("line-0"), false);
+    assert.equal(texts.includes("line-9"), true);
+    const offset = tailer.cursors().get(file)?.offset;
+    assert.ok(offset !== undefined && offset > MAX_INITIAL_CATCHUP_BYTES);
   });
 });

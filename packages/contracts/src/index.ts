@@ -312,7 +312,12 @@ function activityEventFromUnknown(
   }
 }
 
-export function parseActivityJsonl(input: { text: string; botId: BotId }): ActivityEvent[] {
+export function parseActivityJsonl(input: {
+  text: string;
+  botId: BotId;
+  lineOffset?: number;
+}): ActivityEvent[] {
+  const lineOffset = input.lineOffset ?? 0;
   const rawLines = input.text.split("\n");
   if (rawLines.at(-1) === "") {
     rawLines.pop();
@@ -327,7 +332,7 @@ export function parseActivityJsonl(input: { text: string; botId: BotId }): Activ
     if (parsed === undefined) {
       continue;
     }
-    const event = activityEventFromUnknown(parsed, input.botId, index);
+    const event = activityEventFromUnknown(parsed, input.botId, lineOffset + index);
     if (event === undefined) {
       continue;
     }
