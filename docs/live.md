@@ -9,6 +9,8 @@ Two facts to carry through the whole setup:
 
 If you have not run the demo yet, run [Quick start (demo)](../README.md#quick-start-demo) first. The demo proves the client, the socket, and the theme work, so anything that breaks after this point is your data or your webhook.
 
+You can hand this whole setup to a Grok Bot instead. [Setup prompt](prompts/bot-space-setup.md) is one block to paste into a chat with a bot running on the same host, and it covers the same steps in the same order.
+
 ## Before you start
 
 You need Node.js `>=22.14.0`. Check it with `node -v`.
@@ -217,6 +219,7 @@ Every tailnet peer that reaches port 8040 can read the roster and the activity s
 
 ## Related docs
 
+- [Setup prompt](prompts/bot-space-setup.md) to hand these steps to a Grok Bot on the host.
 - [Gateway](../apps/gateway/README.md) for endpoints, flags, and tail behavior.
 - [Client](../apps/client/README.md) for the Vite shell and the theme host.
 - [Wire contracts](contracts.md) for the roster, activity, and wake payload schema.

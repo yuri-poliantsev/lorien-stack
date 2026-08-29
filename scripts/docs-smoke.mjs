@@ -16,6 +16,19 @@ const REQUIRED_HEADINGS = [
 
 const MAX_WORDS = 2500;
 
+const PROMPT_PATH = "docs/prompts/bot-space-setup.md";
+const PROMPT_MAX_WORDS = 1200;
+
+const PROMPT_REQUIRED = [
+	"secret-request",
+	"WEBHOOK_SENDER_KEY",
+	"AGENT_DATA",
+	"npm run gateway",
+	"npm run dev -w apps/client",
+	"botId",
+	"tailscale",
+];
+
 const ENV_KEYS = [
 	"AGENT_DATA",
 	"GATEWAY_CLIENT_TOKEN",
@@ -63,6 +76,34 @@ check(
 	`docs/live.md has ${String(words)} words, over the ${String(MAX_WORDS)} budget`,
 );
 
+check(
+	live.includes("prompts/bot-space-setup.md"),
+	`docs/live.md does not link ${PROMPT_PATH}`,
+);
+
+const prompt = await read(PROMPT_PATH);
+
+for (const needle of PROMPT_REQUIRED) {
+	check(prompt.includes(needle), `${PROMPT_PATH} never names ${needle}`);
+}
+
+check(
+	/never (?:ask me to )?paste the sender key in chat/i.test(prompt),
+	`${PROMPT_PATH} does not forbid pasting the sender key in chat`,
+);
+
+check(
+	/automations\/webhook\/<id>/.test(prompt) &&
+		!/automations\/webhook\/(?!<id>)\S/.test(prompt),
+	`${PROMPT_PATH} hard-codes a webhook id instead of <id>`,
+);
+
+const promptWords = wordCount(prompt);
+check(
+	promptWords < PROMPT_MAX_WORDS,
+	`${PROMPT_PATH} has ${String(promptWords)} words, over the ${String(PROMPT_MAX_WORDS)} budget`,
+);
+
 const example = await read(".env.example");
 for (const key of ENV_KEYS) {
 	const assignment = new RegExp(`^${key}=(.*)$`, "m").exec(example);
@@ -107,6 +148,10 @@ if (liveIndex !== -1) {
 		liveSection.includes("(docs/live.md)"),
 		"README.md does not link docs/live.md from the Live bots section",
 	);
+	check(
+		liveSection.includes(`(${PROMPT_PATH})`),
+		`README.md does not link ${PROMPT_PATH} from the Live bots section`,
+	);
 }
 
 if (failures.length > 0) {
@@ -116,6 +161,6 @@ if (failures.length > 0) {
 	process.exitCode = 1;
 } else {
 	process.stdout.write(
-		`docs smoke: ok, ${String(REQUIRED_HEADINGS.length)} headings, ${String(words)} words in docs/live.md\n`,
+		`docs smoke: ok, ${String(REQUIRED_HEADINGS.length)} headings, ${String(words)} words in docs/live.md, ${String(promptWords)} words in ${PROMPT_PATH}\n`,
 	);
 }
