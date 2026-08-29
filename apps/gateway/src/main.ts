@@ -33,6 +33,13 @@ import {
 } from "./tail.ts";
 import { requestWake } from "./wake.ts";
 import {
+  collectPresenceHints,
+  createPresenceClock,
+  PRESENCE_REASON_SLEEP,
+  resolvePresenceConfig,
+  type PresenceClock,
+} from "./presence.ts";
+import {
   DEFAULT_DEMO_MULTIPLIER,
   loadReplayPlan,
   runReplay,
@@ -41,6 +48,11 @@ import {
 } from "./replay.ts";
 
 export const DEMO_CLIENT_TOKEN = "demo-token";
+
+export const LIVE_TOKEN_REQUIRED_MSG =
+  "live start requires GATEWAY_CLIENT_TOKEN or --token";
+
+export type AllowlistMode = "empty" | "explicit" | "discovered";
 
 export type GatewayMessage =
   | { type: "snapshot"; revision: number; snapshot: RosterSnapshot }
@@ -60,9 +72,12 @@ export type GatewayOptions = {
   webhookUrl?: string;
   senderKey?: string;
   token?: string;
-  allowlist?: string[];
+  allowlist?: readonly string[] | "discovered";
   coalesceMs?: number;
   wakeTimeoutMs?: number;
+  presenceWorkMs?: number;
+  presenceSleepMs?: number;
+  presenceTickMs?: number;
   log?: (entry: LogEntry) => void;
 };
 
@@ -141,6 +156,52 @@ export function writeLog(input: {
   return safe;
 }
 
+function emptyToUndefined(value: string | undefined): string | undefined {
+  if (value === undefined || value.length === 0) {
+    return undefined;
+  }
+  return value;
+}
+
+export function parseAllowlistArg(raw: string): "discovered" | string[] {
+  const trimmed = raw.trim();
+  if (trimmed === "discovered") {
+    return "discovered";
+  }
+  return trimmed
+    .split(",")
+    .map((id) => id.trim())
+    .filter((id) => id.length > 0);
+}
+
+export function resolveAllowlist(input: {
+  option: GatewayOptions["allowlist"];
+  env: string | undefined;
+  demoIds: string[] | undefined;
+}): { mode: AllowlistMode; ids: string[] } {
+  if (input.option === "discovered") {
+    return { mode: "discovered", ids: [] };
+  }
+  if (input.option !== undefined) {
+    return input.option.length === 0
+      ? { mode: "empty", ids: [] }
+      : { mode: "explicit", ids: [...input.option] };
+  }
+  if (input.env !== undefined && input.env.trim().length > 0) {
+    const parsed = parseAllowlistArg(input.env);
+    if (parsed === "discovered") {
+      return { mode: "discovered", ids: [] };
+    }
+    if (parsed.length > 0) {
+      return { mode: "explicit", ids: parsed };
+    }
+  }
+  if (input.demoIds !== undefined && input.demoIds.length > 0) {
+    return { mode: "explicit", ids: input.demoIds };
+  }
+  return { mode: "empty", ids: [] };
+}
+
 export async function startGateway(options: GatewayOptions = {}): Promise<Gateway> {
   const listen = parseListen(options.listen);
   const repoRoot = repoRootFromModule(import.meta.url);
@@ -149,9 +210,13 @@ export async function startGateway(options: GatewayOptions = {}): Promise<Gatewa
   const coalesceMs = options.coalesceMs ?? COALESCE_MS;
   const multiplier = options.multiplier ?? DEFAULT_DEMO_MULTIPLIER;
   const token =
-    options.token ??
-    process.env.GATEWAY_CLIENT_TOKEN ??
-    (demo ? DEMO_CLIENT_TOKEN : "");
+    options.token !== undefined
+      ? options.token
+      : (emptyToUndefined(process.env.GATEWAY_CLIENT_TOKEN) ??
+        (demo ? DEMO_CLIENT_TOKEN : ""));
+  if (!demo && token.length === 0) {
+    throw new Error(LIVE_TOKEN_REQUIRED_MSG);
+  }
   const senderKey = options.senderKey ?? process.env.WEBHOOK_SENDER_KEY ?? "";
   const secrets = [senderKey, token].filter((value) => value.length > 0);
   const logs: LogEntry[] = [];
@@ -180,6 +245,20 @@ export async function startGateway(options: GatewayOptions = {}): Promise<Gatewa
   const abort = new AbortController();
   let roster: Roster = emptyRoster();
   const sockets = new Set<WebSocket>();
+  const presence = resolvePresenceConfig({
+    ...(options.presenceWorkMs !== undefined
+      ? { workMs: options.presenceWorkMs }
+      : {}),
+    ...(options.presenceSleepMs !== undefined
+      ? { sleepMs: options.presenceSleepMs }
+      : {}),
+    ...(options.presenceTickMs !== undefined
+      ? { tickMs: options.presenceTickMs }
+      : {}),
+    env: process.env,
+  });
+  const clock: PresenceClock | undefined = demo ? undefined : createPresenceClock();
+  let presenceTimer: ReturnType<typeof setInterval> | undefined;
 
   function snapshotMessage(): GatewayMessage {
     const snapshot = toSnapshot({ roster, capturedAt: nowIso() });
@@ -198,17 +277,60 @@ export async function startGateway(options: GatewayOptions = {}): Promise<Gatewa
     }
   }
 
+  function emitPresence(target: WebSocket | "all"): void {
+    if (clock === undefined) {
+      return;
+    }
+    const now = nowIso();
+    const hints = collectPresenceHints({
+      stamps: clock.stamps(),
+      now,
+      nowMs: Date.parse(now),
+      workMs: presence.workMs,
+      sleepMs: presence.sleepMs,
+    });
+    const bump = target === "all";
+    for (const item of hints) {
+      if (!roster.bots.has(item.botId)) {
+        continue;
+      }
+      if (bump) {
+        roster = advanceRevision(roster);
+      }
+      const message: GatewayMessage = {
+        type: "presence",
+        revision: roster.revision,
+        botId: item.botId,
+        hint: item.hint,
+      };
+      if (target === "all") {
+        broadcast(message);
+      } else {
+        send(target, message);
+      }
+    }
+  }
+
   function handleSpawn(bot: Parameters<typeof spawnBot>[1]): void {
+    if (clock !== undefined) {
+      clock.noteSpawn({ botId: bot.id, at: nowIso() });
+    }
     roster = spawnBot(roster, bot);
     broadcast(snapshotMessage());
   }
 
   function handleGone(botId: BotId): void {
+    if (clock !== undefined) {
+      clock.noteGone(botId);
+    }
     roster = goneBot(roster, botId);
     broadcast(snapshotMessage());
   }
 
   function handleEvents(events: ActivityEvent[]): void {
+    if (clock !== undefined) {
+      clock.noteEvents(events);
+    }
     for (const event of events) {
       roster = advanceRevision(roster);
       broadcast({ type: "event", revision: roster.revision, event });
@@ -220,7 +342,7 @@ export async function startGateway(options: GatewayOptions = {}): Promise<Gatewa
     const hint = presenceHintFromQuietClock({
       lastActivityAt: step.lastActivityAt,
       now: nowIso(),
-      reason: "sleep",
+      reason: PRESENCE_REASON_SLEEP,
     });
     broadcast({
       type: "presence",
@@ -241,15 +363,17 @@ export async function startGateway(options: GatewayOptions = {}): Promise<Gatewa
     await seedDemoWorkspace({ fixtureRoot, workRoot, bots: demoPlan.bots });
   }
 
-  const allowlisted =
-    options.allowlist !== undefined && options.allowlist.length > 0
-      ? options.allowlist
-      : demoPlan !== undefined
-        ? demoPlan.bots.map((bot) => bot.id)
-        : [];
+  const allowlist = resolveAllowlist({
+    option: options.allowlist,
+    env: process.env.GATEWAY_ALLOWLIST,
+    demoIds: demoPlan === undefined ? undefined : demoPlan.bots.map((bot) => bot.id),
+  });
+  const allowlistedBotIds = new Set<string>(
+    allowlist.mode === "discovered" ? [] : allowlist.ids,
+  );
   const auth: AuthConfig = {
     clientToken: token,
-    allowlistedBotIds: new Set(allowlisted),
+    allowlistedBotIds,
   };
   const webhookUrl = options.webhookUrl ?? process.env.WEBHOOK_URL;
 
@@ -264,6 +388,11 @@ export async function startGateway(options: GatewayOptions = {}): Promise<Gatewa
     },
   });
   await tailer.tick();
+  if (allowlist.mode === "discovered") {
+    for (const id of roster.bots.keys()) {
+      allowlistedBotIds.add(id);
+    }
+  }
 
   const server = createServer((req, res) => {
     void handleHttp(req, res);
@@ -284,6 +413,7 @@ export async function startGateway(options: GatewayOptions = {}): Promise<Gatewa
   wss.on("connection", (ws: WebSocket) => {
     sockets.add(ws);
     send(ws, snapshotMessage());
+    emitPresence(ws);
     ws.on("close", () => {
       sockets.delete(ws);
     });
@@ -393,11 +523,21 @@ export async function startGateway(options: GatewayOptions = {}): Promise<Gatewa
     msg: "gateway listening",
     host: boundHost,
     port: boundPort,
+    listen: `${boundHost}:${boundPort}`,
+    mode: demo ? "demo" : "live",
+    botCount: roster.bots.size,
+    allowlist: allowlist.mode,
+    webhookConfigured:
+      webhookUrl !== undefined && webhookUrl.length > 0 && senderKey.length > 0,
     driver: grokDriver.name,
-    demo,
   });
 
   tailer.start();
+  if (clock !== undefined) {
+    presenceTimer = setInterval(() => {
+      emitPresence("all");
+    }, presence.tickMs);
+  }
 
   if (demoPlan !== undefined) {
     void (async () => {
@@ -437,6 +577,10 @@ export async function startGateway(options: GatewayOptions = {}): Promise<Gatewa
     },
     async close() {
       abort.abort();
+      if (presenceTimer !== undefined) {
+        clearInterval(presenceTimer);
+        presenceTimer = undefined;
+      }
       tailer.stop();
       for (const socket of sockets) {
         socket.close();
@@ -466,7 +610,7 @@ function header(req: IncomingMessage, name: string): string | undefined {
   return value;
 }
 
-function parseCli(argv: string[]): GatewayOptions {
+export function parseGatewayCli(argv: string[]): GatewayOptions {
   const options: GatewayOptions = {};
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
@@ -505,13 +649,44 @@ function parseCli(argv: string[]): GatewayOptions {
       continue;
     }
     if (arg === "--allowlist" && next !== undefined) {
-      options.allowlist = next.split(",").filter((id) => id.length > 0);
+      options.allowlist = parseAllowlistArg(next);
       i += 1;
+      continue;
+    }
+    if (arg !== undefined && arg.startsWith("--allowlist=")) {
+      options.allowlist = parseAllowlistArg(arg.slice("--allowlist=".length));
       continue;
     }
     if (arg === "--coalesce-ms" && next !== undefined) {
       options.coalesceMs = Number(next);
       i += 1;
+      continue;
+    }
+    if (arg === "--presence-work-ms" && next !== undefined) {
+      options.presenceWorkMs = Number(next);
+      i += 1;
+      continue;
+    }
+    if (arg !== undefined && arg.startsWith("--presence-work-ms=")) {
+      options.presenceWorkMs = Number(arg.slice("--presence-work-ms=".length));
+      continue;
+    }
+    if (arg === "--presence-sleep-ms" && next !== undefined) {
+      options.presenceSleepMs = Number(next);
+      i += 1;
+      continue;
+    }
+    if (arg !== undefined && arg.startsWith("--presence-sleep-ms=")) {
+      options.presenceSleepMs = Number(arg.slice("--presence-sleep-ms=".length));
+      continue;
+    }
+    if (arg === "--presence-tick-ms" && next !== undefined) {
+      options.presenceTickMs = Number(next);
+      i += 1;
+      continue;
+    }
+    if (arg !== undefined && arg.startsWith("--presence-tick-ms=")) {
+      options.presenceTickMs = Number(arg.slice("--presence-tick-ms=".length));
       continue;
     }
   }
@@ -527,7 +702,7 @@ function isMain(moduleUrl: string): boolean {
 }
 
 if (isMain(import.meta.url)) {
-  startGateway(parseCli(process.argv.slice(2))).catch((error: unknown) => {
+  startGateway(parseGatewayCli(process.argv.slice(2))).catch((error: unknown) => {
     const msg = error instanceof Error ? error.message : "gateway failed";
     process.stderr.write(`${JSON.stringify({ msg })}\n`);
     process.exitCode = 1;

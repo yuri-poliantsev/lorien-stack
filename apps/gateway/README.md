@@ -12,6 +12,8 @@ npm run gateway -- --demo --listen :8040
 
 `--listen :8040` binds `0.0.0.0:8040`. Loopback-only bind is opt-in (`--listen 127.0.0.1:8040`). Demo copies fixture profiles into a temp tree, then appends transcript lines on a compressed clock. Sleeps follow event timestamps divided by `--multiplier` (default 1000), not wall time. After the last line, bots stay on the roster and the socket gets a `presence` hint with reason `sleep`.
 
+Live mode emits the same `presence` messages from a quiet clock. Last activity comes from roster spawn and tailed transcript lines. `--presence-tick-ms` (default 1000, or `GATEWAY_PRESENCE_TICK_MS`) is the emit interval. Reason is `recent` below `--presence-work-ms` (default 12000, or `GATEWAY_PRESENCE_WORK_MS`), `quiet` until `--presence-sleep-ms` (default 22000, or `GATEWAY_PRESENCE_SLEEP_MS`), then `sleep`. Those defaults match `WORK_MS` and `SLEEP_MS` on the StarCraft floor. A hint is not lifecycle. Quiet bots stay on the roster.
+
 Live data. This form is copy-paste complete: a wake needs the client token, the allowlist, and both webhook variables, not `AGENT_DATA` alone.
 
 ```
@@ -24,7 +26,11 @@ npm run gateway -- --listen :8040 --allowlist <bot-uuid>
 
 `--data /path/to/agent-data` replaces `AGENT_DATA`, `--token` replaces `GATEWAY_CLIENT_TOKEN`, and `--webhook-url` replaces `WEBHOOK_URL`. `WEBHOOK_SENDER_KEY` has no flag, so the key stays out of `argv` and out of `ps` output. Layout is the grok driver: `agents/<uuid>/profile.json` and `agent-transcripts/<uuid>/*.jsonl`.
 
-Drop `GATEWAY_CLIENT_TOKEN`, `WEBHOOK_URL`, and `WEBHOOK_SENDER_KEY` to read a live roster without wakes. `POST /api/prompt` then answers 401 or 503. `.env.example` in the repo root lists all five variables, and [Live setup](../../docs/live.md) walks through a first live run.
+Live start without `GATEWAY_CLIENT_TOKEN` or `--token` exits without listening. Demo still defaults to `demo-token`.
+
+An empty allowlist denies every wake. `--allowlist <bot-uuid>,<bot-uuid>` names the bots that may wake. `--allowlist discovered` or `GATEWAY_ALLOWLIST=discovered` allowlists every bot id present after the first roster scan. Live does not discover by default. Bots that appear after that scan stay off the list until you restart.
+
+Without `WEBHOOK_URL` and `WEBHOOK_SENDER_KEY`, an authorized prompt returns 503. `.env.example` in the repo root lists the five setup variables, and [Live setup](../../docs/live.md) walks through a first live run.
 
 ## Endpoints
 
@@ -33,10 +39,22 @@ Drop `GATEWAY_CLIENT_TOKEN`, `WEBHOOK_URL`, and `WEBHOOK_SENDER_KEY` to read a l
 - `GET /ws` — first message `{ type: "snapshot", revision, snapshot }`, then `{ type: "event", revision, event }` and `{ type: "presence", revision, botId, hint }`
 - `POST /api/prompt` — `{ botId, prompt }`. Requires `Authorization: Bearer <client token>` and an allowlisted bot id. The server then calls `requestWake` (8s timeout, one try).
 
-Auth lives at this edge. The webhook sender key never leaves the process. Set `WEBHOOK_SENDER_KEY` and `WEBHOOK_URL` (or `--webhook-url`). Demo client token is `demo-token` unless `GATEWAY_CLIENT_TOKEN` / `--token` is set. Demo allowlist is every fixture bot; pass `--allowlist` to shrink it.
+Auth lives at this edge. The webhook sender key never leaves the process. Set `WEBHOOK_SENDER_KEY` and `WEBHOOK_URL` (or `--webhook-url`). Demo client token is `demo-token` unless `GATEWAY_CLIENT_TOKEN` / `--token` is set. Demo allowlist is every fixture bot; pass `--allowlist` to shrink it, or `--allowlist discovered` to use the ids from the first scan.
 
-Wake logs use `acknowledged`, `failed`, or `indeterminate`. They do not print the sender key, the client token, or `Authorization` headers.
+On listen the gateway logs a boot summary: listen address, demo or live, bot count, allowlist mode, and whether the webhook is configured. Wake logs use `acknowledged`, `failed`, or `indeterminate`. Neither log prints the sender key, the client token, or `Authorization` headers.
 
 ## Tail
 
 The grok driver polls on a 250ms coalesce. Byte offsets and a partial-line buffer make rereads idempotent. A truncated last line stays in the buffer until a newline arrives.
+
+## Presence
+
+Live presence is a quiet-clock hint. `freshnessMs` is wall time since last activity. The gateway never uses a presence reason to drop a bot.
+
+| Flag | Env | Default | Reason when freshness crosses it |
+| --- | --- | --- | --- |
+| `--presence-work-ms` | `GATEWAY_PRESENCE_WORK_MS` | 12000 | `recent` below this, then `quiet` |
+| `--presence-sleep-ms` | `GATEWAY_PRESENCE_SLEEP_MS` | 22000 | `sleep` at or above this |
+| `--presence-tick-ms` | `GATEWAY_PRESENCE_TICK_MS` | 1000 | emit interval |
+
+Demo does not run that timer. It still flushes `sleep` after the tape.

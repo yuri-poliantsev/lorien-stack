@@ -9,6 +9,8 @@ Two facts to carry through the whole setup:
 
 If you have not run the demo yet, run [Quick start (demo)](../README.md#quick-start-demo) first. The demo proves the client, the socket, and the theme work, so anything that breaks after this point is your data or your webhook.
 
+You can hand this whole setup to a Grok Bot instead. [Setup prompt](prompts/bot-space-setup.md) is one block to paste into a chat with a bot running on the same host, and it covers the same steps in the same order.
+
 ## Before you start
 
 You need Node.js `>=22.14.0`. Check it with `node -v`.
@@ -122,11 +124,13 @@ Generate a token you do not use anywhere else:
 openssl rand -hex 24
 ```
 
-The allowlist is the second gate, and it is a flag rather than a variable. `POST /api/prompt` returns 403 for any bot id outside it. A live run starts with an empty allowlist, so pass the ids you accept:
+The allowlist is the second gate. `POST /api/prompt` returns 403 for any bot id outside it. A live run starts with an empty allowlist, which denies every wake, so pass the ids you accept:
 
 ```bash
 --allowlist <bot-uuid>,<bot-uuid>
 ```
+
+`--allowlist discovered` or `GATEWAY_ALLOWLIST=discovered` allowlists every bot id present after the first roster scan. Live does not discover by default. Bots that appear later stay off the list until you restart.
 
 Keep `.env` out of git. Commit `.env.example` with empty values and nothing else.
 
@@ -138,7 +142,7 @@ Two processes. Gateway first:
 npm run gateway -- --listen :8040 --allowlist <bot-uuid>
 ```
 
-That command reads `AGENT_DATA`, `GATEWAY_CLIENT_TOKEN`, `WEBHOOK_URL`, and `WEBHOOK_SENDER_KEY` from the environment you exported. The [gateway README](../apps/gateway/README.md) shows the same command with every variable spelled out inline.
+That command reads `AGENT_DATA`, `GATEWAY_CLIENT_TOKEN`, `WEBHOOK_URL`, and `WEBHOOK_SENDER_KEY` from the environment you exported. If `GATEWAY_CLIENT_TOKEN` and `--token` are both empty, the process exits without listening, and the error names the token. The [gateway README](../apps/gateway/README.md) shows the same command with every variable spelled out inline.
 
 Check the gateway before you open a browser:
 
@@ -148,6 +152,8 @@ curl -s http://127.0.0.1:8040/api/bots
 ```
 
 `/health` answers `{"ok":true}`. `/api/bots` answers a roster snapshot with a `revision`. An empty `bots` array means the gateway runs and finds nothing to read, so fix the data path before you go on.
+
+The WebSocket also sends `presence` hints. `--presence-work-ms` and `GATEWAY_PRESENCE_WORK_MS` default to 12 000. `--presence-sleep-ms` and `GATEWAY_PRESENCE_SLEEP_MS` default to 22 000. Those values match the StarCraft floor. `--presence-tick-ms` and `GATEWAY_PRESENCE_TICK_MS` default to 1000. Bots stay on the roster. Presence is not lifecycle. The [gateway README](../apps/gateway/README.md) lists the flags.
 
 Client second, in another terminal:
 
@@ -199,8 +205,9 @@ Every tailnet peer that reaches port 8040 can read the roster and the activity s
 
 | Symptom | Cause | Fix |
 | --- | --- | --- |
-| `POST /api/prompt` returns 401 `unauthorized` | The request carried no bearer token, or the token did not match `GATEWAY_CLIENT_TOKEN`. The gateway also answers 401 when its own token is empty. | Set `GATEWAY_CLIENT_TOKEN` and `VITE_GATEWAY_TOKEN` to the same string. Restart both processes. |
-| `POST /api/prompt` returns 403 `bot not allowlisted` | The bot id is not in the allowlist, which is empty on a live run. | Restart the gateway with `--allowlist <bot-uuid>`. Use the id from `GET /api/bots`, not the bot's name. |
+| The gateway process exits and the message names the token | `GATEWAY_CLIENT_TOKEN` and `--token` were both empty. Live start refuses to listen without a token. | Set `GATEWAY_CLIENT_TOKEN` or pass `--token`, then start again. Demo still defaults to `demo-token`. |
+| `POST /api/prompt` returns 401 `unauthorized` | The request carried no bearer token, or the token did not match `GATEWAY_CLIENT_TOKEN`. | Set `GATEWAY_CLIENT_TOKEN` and `VITE_GATEWAY_TOKEN` to the same string. Restart both processes. |
+| `POST /api/prompt` returns 403 `bot not allowlisted` | The bot id is not in the allowlist, which is empty on a live run unless you pass `--allowlist` or `GATEWAY_ALLOWLIST=discovered`. | Restart the gateway with `--allowlist <bot-uuid>` or `--allowlist discovered`. Use the id from `GET /api/bots`, not the bot's name. |
 | `POST /api/prompt` returns 503 `failed` | `WEBHOOK_URL` or `WEBHOOK_SENDER_KEY` is missing or empty, so the gateway refused to POST anything. | Export both, then restart the gateway. The gateway logs this as `wake failed` with reason `not configured`. |
 | `POST /api/prompt` returns 502 `failed` | The routine answered a status other than 200. | Re-copy the URL and the sender key from the routine panel. A rotated key fails this way. |
 | `POST /api/prompt` returns 504 `indeterminate` | The POST hit the 8 second timeout, or the network failed. The bot may still have woken. | Read the routine's own runs before you send the wake again. |
@@ -212,6 +219,7 @@ Every tailnet peer that reaches port 8040 can read the roster and the activity s
 
 ## Related docs
 
+- [Setup prompt](prompts/bot-space-setup.md) to hand these steps to a Grok Bot on the host.
 - [Gateway](../apps/gateway/README.md) for endpoints, flags, and tail behavior.
 - [Client](../apps/client/README.md) for the Vite shell and the theme host.
 - [Wire contracts](contracts.md) for the roster, activity, and wake payload schema.
