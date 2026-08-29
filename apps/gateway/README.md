@@ -12,13 +12,19 @@ npm run gateway -- --demo --listen :8040
 
 `--listen :8040` binds `0.0.0.0:8040`. Loopback-only bind is opt-in (`--listen 127.0.0.1:8040`). Demo copies fixture profiles into a temp tree, then appends transcript lines on a compressed clock. Sleeps follow event timestamps divided by `--multiplier` (default 1000), not wall time. After the last line, bots stay on the roster and the socket gets a `presence` hint with reason `sleep`.
 
-Live data:
+Live data. This form is copy-paste complete: a wake needs the client token, the allowlist, and both webhook variables, not `AGENT_DATA` alone.
 
 ```
-AGENT_DATA=/path/to/agent-data npm run gateway -- --listen :8040
+AGENT_DATA=/path/to/agent-data \
+GATEWAY_CLIENT_TOKEN=<client-token> \
+WEBHOOK_URL=https://api2.cursor.sh/automations/webhook/<id> \
+WEBHOOK_SENDER_KEY=<sender-key> \
+npm run gateway -- --listen :8040 --allowlist <bot-uuid>
 ```
 
-or `--data /path/to/agent-data`. Layout is the grok driver: `agents/<uuid>/profile.json` and `agent-transcripts/<uuid>/*.jsonl`.
+`--data /path/to/agent-data` replaces `AGENT_DATA`, `--token` replaces `GATEWAY_CLIENT_TOKEN`, and `--webhook-url` replaces `WEBHOOK_URL`. `WEBHOOK_SENDER_KEY` has no flag, so the key stays out of `argv` and out of `ps` output. Layout is the grok driver: `agents/<uuid>/profile.json` and `agent-transcripts/<uuid>/*.jsonl`.
+
+Drop `GATEWAY_CLIENT_TOKEN`, `WEBHOOK_URL`, and `WEBHOOK_SENDER_KEY` to read a live roster without wakes. `POST /api/prompt` then answers 401 or 503. `.env.example` in the repo root lists all five variables, and [Live setup](../../docs/live.md) walks through a first live run.
 
 ## Endpoints
 
