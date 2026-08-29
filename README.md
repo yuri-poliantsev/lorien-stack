@@ -42,7 +42,7 @@ Themes consume roster and activity only. Swap the mount in `apps/client/src/them
 
 ## Live bots
 
-[Live setup](docs/live.md) is the full walkthrough for a real Grok Bot host: agent data, webhook routine, env, Tailscale, and a troubleshooting table. The short version points the gateway at real agent data:
+[Live setup](docs/live.md) is the full walkthrough for a real Grok Bot host: agent data, webhook routine, env, Tailscale, and a troubleshooting table. [Setup prompt](docs/prompts/bot-space-setup.md) is the same walkthrough as one block you paste to a Grok Bot on that host. The short version points the gateway at real agent data:
 
 ```bash
 AGENT_DATA=/path/to/agent-data npm run gateway -- --listen :8040 --allowlist <bot-uuid>
