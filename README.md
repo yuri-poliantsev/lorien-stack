@@ -8,6 +8,43 @@ bot-space tails Grok Bot `$AGENT_DATA` on disk, streams roster and activity to a
 
 It is **not** a Chat kit, a theme marketplace, or a 3D engine. Wake means the webhook acknowledged. It does not mean the bot finished the work.
 
+## Vision
+
+One shared runtime for many looks. Keep discovery, activity, and wake stable. Let themes change freely.
+
+Inspiration is one-shot generated villages that burn tokens to rebuild the whole app. bot-space inverts that. The gateway and contracts stay in git. A theme is a consumer of roster and activity events, not a generated rewrite of the stack. 2D ships first. 3D stays possible later because spatial fields on the wire are optional, not because the core embeds a scene graph.
+
+The prompt bar stays an activity panel plus a slim wake. Full Grok chat waits on a real duplex API.
+
+## Status
+
+Shipped and exercised on real Grok Bot hosts.
+
+- Contracts, gateway, Vite client, and StarCraft theme on `main`
+- Demo mode with fixture bots and compressed replay
+- Live mode against `$AGENT_DATA`, including large transcript files
+- Live presence hints from a quiet clock (heuristic, not lifecycle)
+- OSS live how-to and a paste-ready setup prompt for a Grok Bot on the host
+- Live start refuses an empty client token. Allowlist stays explicit or `discovered`
+
+Known limits.
+
+- `GET /api/bots` and `GET /ws` are reachable by anyone who can open the port
+- Client falls back to `demo-token` unless `VITE_GATEWAY_TOKEN` is set. That value must match `GATEWAY_CLIENT_TOKEN`
+- Wake ack is not proof the bot ran
+- Presence is a quiet-time hint. Long tool calls with no JSONL growth can look asleep
+- No WebSocket reconnect. Reload the page after a gateway restart
+- One disk layout (grok driver). One default theme mount
+
+## Next steps
+
+In priority order for maintainers and contributors.
+
+1. Prove wake on a live host if you have only watched the roster so far. Select a bot, send a short prompt, confirm gateway `acknowledged`, then confirm the bot actually moves.
+2. Fix friction from real runs. Reconnect, allowlist UX, presence feel, and doc gaps beat new features.
+3. Optional read-path auth for roster and `/ws` when the UI sits on a wide Tailscale ACL.
+4. A second theme only after wake and security feel solid. That is how the theme host earns its keep.
+
 ## Requirements
 
 - Node.js `>=22.14.0`
@@ -53,15 +90,16 @@ Expected layout:
 - `agents/<uuid>/profile.json`
 - `agent-transcripts/<uuid>/*.jsonl`
 
-Live wakes need a client token, an allowlist, and webhook env:
+Live wakes need matching client tokens, an allowlist, and webhook env:
 
 ```bash
 export GATEWAY_CLIENT_TOKEN=...
+export VITE_GATEWAY_TOKEN=...   # same string; client defaults to demo-token otherwise
 export WEBHOOK_URL=...
 export WEBHOOK_SENDER_KEY=...
 ```
 
-The sender key stays in the gateway process. The browser never receives it.
+See `.env.example` for the full template. The sender key stays in the gateway process. The browser never receives it.
 
 Default listen address is `0.0.0.0` so Tailscale peers can reach the port. Use `--listen 127.0.0.1:8040` for loopback only.
 
