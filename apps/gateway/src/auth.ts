@@ -1,4 +1,4 @@
-import type { BotId } from "@bot-space/contracts";
+import type { BotId } from "@lorien-stack/contracts";
 
 export type AuthConfig = {
   clientToken: string;

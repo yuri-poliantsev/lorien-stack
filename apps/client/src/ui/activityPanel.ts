@@ -1,4 +1,4 @@
-import type { ActivityEvent, BotRecord } from "@bot-space/contracts";
+import type { ActivityEvent, BotRecord } from "@lorien-stack/contracts";
 
 import { summarizeEvent } from "../safeSnippet.ts";
 

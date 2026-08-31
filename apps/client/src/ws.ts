@@ -7,7 +7,7 @@ import {
   type ParseResult,
   type PresenceHint,
   type RosterSnapshot,
-} from "@bot-space/contracts";
+} from "@lorien-stack/contracts";
 
 export type ClientGatewayMessage =
   | { type: "snapshot"; revision: number; snapshot: RosterSnapshot }

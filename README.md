@@ -1,10 +1,10 @@
-# bot-space
+# lorien-stack
 
 ![Bots at play](docs/images/childrens-games.jpg)
 
 Open-source gateway and reference UI for watching Grok Bots work.
 
-bot-space tails Grok Bot `$AGENT_DATA` on disk, streams roster and activity to a browser, and wakes a bot by POSTing a Grok webhook from the server. The default UI is a StarCraft-inspired 2D command view with an activity panel and a one-line prompt bar.
+lorien-stack tails Grok Bot `$AGENT_DATA` on disk, streams roster and activity to a browser, and wakes a bot by POSTing a Grok webhook from the server. The default UI is a StarCraft-inspired 2D command view with an activity panel and a one-line prompt bar.
 
 It is **not** a Chat kit, a theme marketplace, or a 3D engine. Wake means the webhook acknowledged. It does not mean the bot finished the work.
 
@@ -12,7 +12,7 @@ It is **not** a Chat kit, a theme marketplace, or a 3D engine. Wake means the we
 
 One shared runtime for many looks. Keep discovery, activity, and wake stable. Let themes change freely.
 
-Inspiration is one-shot generated villages that burn tokens to rebuild the whole app. bot-space inverts that. The gateway and contracts stay in git. A theme is a consumer of roster and activity events, not a generated rewrite of the stack. 2D ships first. 3D stays possible later because spatial fields on the wire are optional, not because the core embeds a scene graph.
+Inspiration is one-shot generated villages that burn tokens to rebuild the whole app. lorien-stack inverts that. The gateway and contracts stay in git. A theme is a consumer of roster and activity events, not a generated rewrite of the stack. 2D ships first. 3D stays possible later because spatial fields on the wire are optional, not because the core embeds a scene graph.
 
 The prompt bar stays an activity panel plus a slim wake. Full Grok chat waits on a real duplex API.
 
@@ -79,7 +79,7 @@ Themes consume roster and activity only. Swap the mount in `apps/client/src/them
 
 ## Live bots
 
-[Live setup](docs/live.md) is the full walkthrough for a real Grok Bot host: agent data, webhook routine, env, Tailscale, and a troubleshooting table. [Setup prompt](docs/prompts/bot-space-setup.md) is the same walkthrough as one block you paste to a Grok Bot on that host. The short version points the gateway at real agent data:
+[Live setup](docs/live.md) is the full walkthrough for a real Grok Bot host: agent data, webhook routine, env, Tailscale, and a troubleshooting table. [Setup prompt](docs/prompts/lorien-stack-setup.md) is the same walkthrough as one block you paste to a Grok Bot on that host. The short version points the gateway at real agent data:
 
 ```bash
 AGENT_DATA=/path/to/agent-data npm run gateway -- --listen :8040 --allowlist <bot-uuid>
@@ -117,8 +117,8 @@ Default listen address is `0.0.0.0` so Tailscale peers can reach the port. Use `
 
 ```bash
 npm test -w packages/contracts
-npm test -w @bot-space/gateway
-npm test -w @bot-space/client
+npm test -w @lorien-stack/gateway
+npm test -w @lorien-stack/client
 ```
 
 Root `npm test` runs contracts only.

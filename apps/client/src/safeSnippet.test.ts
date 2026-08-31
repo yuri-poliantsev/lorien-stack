@@ -6,7 +6,7 @@ import {
   parseBotId,
   parseIsoTimestamp,
   type ActivityEvent,
-} from "@bot-space/contracts";
+} from "@lorien-stack/contracts";
 
 import { MAX_ABS_PATH_CHARS, summarizeEvent } from "./safeSnippet.ts";
 

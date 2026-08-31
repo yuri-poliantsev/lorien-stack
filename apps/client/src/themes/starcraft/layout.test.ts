@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { parseBotId, parseSeatId, type BotRecord } from "@bot-space/contracts";
+import { parseBotId, parseSeatId, type BotRecord } from "@lorien-stack/contracts";
 
 import {
   STATIONS,

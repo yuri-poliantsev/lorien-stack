@@ -1,4 +1,4 @@
-import type { BotId, BotRecord, PresenceHint } from "@bot-space/contracts";
+import type { BotId, BotRecord, PresenceHint } from "@lorien-stack/contracts";
 
 export type BotListModel = {
   bots: readonly BotRecord[];

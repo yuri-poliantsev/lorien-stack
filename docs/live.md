@@ -1,4 +1,4 @@
-# How to run bot-space against live Grok Bots
+# How to run lorien-stack against live Grok Bots
 
 You have a Grok Bot host with real agent data on disk. This guide points the gateway at that data, wires a webhook so the prompt bar can wake a bot, and puts the UI on your tailnet. Run every step on the host that holds the agent data.
 
@@ -9,7 +9,7 @@ Two facts to carry through the whole setup:
 
 If you have not run the demo yet, run [Quick start (demo)](../README.md#quick-start-demo) first. The demo proves the client, the socket, and the theme work, so anything that breaks after this point is your data or your webhook.
 
-You can hand this whole setup to a Grok Bot instead. [Setup prompt](prompts/bot-space-setup.md) is one block to paste into a chat with a bot running on the same host, and it covers the same steps in the same order.
+You can hand this whole setup to a Grok Bot instead. [Setup prompt](prompts/lorien-stack-setup.md) is one block to paste into a chat with a bot running on the same host, and it covers the same steps in the same order.
 
 ## Before you start
 
@@ -44,8 +44,8 @@ export PATH="$HOME/.local/node22/bin:$PATH"
 After Node passes the version check, clone the repo and install the dependencies:
 
 ```bash
-git clone https://github.com/yuri-poliantsev/bot-space.git
-cd bot-space
+git clone https://github.com/yuri-poliantsev/lorien-stack.git
+cd lorien-stack
 npm install
 ```
 
@@ -225,7 +225,7 @@ The gateway runs a plain Node server with no host check, so both forms reach it 
 - `http://<hostname>.<tailnet>.ts.net:8040/api/bots`
 - `http://100.x.x.x:8040/api/bots`
 
-Use HTTP. Add HTTPS only if you want it. If this host already runs an online Tailscale node, use that node. Do not create a second hostname for bot-space.
+Use HTTP. Add HTTPS only if you want it. If this host already runs an online Tailscale node, use that node. Do not create a second hostname for lorien-stack.
 
 Every tailnet peer that reaches port 8040 can read the roster and the activity stream, because only `POST /api/prompt` is authenticated. Port 5173 carries the same data, because Vite proxies `/api` and `/ws` to the gateway. If that is wider than you want, bind the gateway with `--listen 127.0.0.1:8040`, leave the dev server on its default `127.0.0.1`, and reach the UI through an SSH tunnel.
 
@@ -248,7 +248,7 @@ Every tailnet peer that reaches port 8040 can read the roster and the activity s
 
 ## Related docs
 
-- [Setup prompt](prompts/bot-space-setup.md) to hand these steps to a Grok Bot on the host.
+- [Setup prompt](prompts/lorien-stack-setup.md) to hand these steps to a Grok Bot on the host.
 - [Gateway](../apps/gateway/README.md) for endpoints, flags, and tail behavior.
 - [Client](../apps/client/README.md) for the Vite shell and the theme host.
 - [Wire contracts](contracts.md) for the roster, activity, and wake payload schema.

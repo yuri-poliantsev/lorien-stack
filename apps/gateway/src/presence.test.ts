@@ -12,7 +12,7 @@ import {
   type ActivityEvent,
   type BotId,
   type IsoTimestamp,
-} from "@bot-space/contracts";
+} from "@lorien-stack/contracts";
 
 import { parseGatewayCli, startGateway } from "./main.ts";
 import {

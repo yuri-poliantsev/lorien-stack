@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { parseBotId, parseIsoTimestamp } from "@bot-space/contracts";
+import { parseBotId, parseIsoTimestamp } from "@lorien-stack/contracts";
 
 import {
   advanceRevision,

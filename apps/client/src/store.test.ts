@@ -8,7 +8,7 @@ import {
   type ActivityEvent,
   type BotRecord,
   type RosterSnapshot,
-} from "@bot-space/contracts";
+} from "@lorien-stack/contracts";
 
 import {
   activityFor,

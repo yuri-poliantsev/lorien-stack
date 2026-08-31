@@ -19,7 +19,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@bot-space/contracts": path.resolve(
+      "@lorien-stack/contracts": path.resolve(
         here,
         "../../packages/contracts/src/index.ts",
       ),

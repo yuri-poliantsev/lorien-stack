@@ -4,7 +4,7 @@ import {
   type BotId,
   type IsoTimestamp,
   type PresenceHint,
-} from "@bot-space/contracts";
+} from "@lorien-stack/contracts";
 
 export const DEFAULT_PRESENCE_WORK_MS = 12_000;
 export const DEFAULT_PRESENCE_SLEEP_MS = 22_000;

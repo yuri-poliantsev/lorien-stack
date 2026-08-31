@@ -8,7 +8,7 @@ import {
   type BotId,
   type BotRecord,
   type IsoTimestamp,
-} from "@bot-space/contracts";
+} from "@lorien-stack/contracts";
 
 import { grokDriver } from "./tail.ts";
 

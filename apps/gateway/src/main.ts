@@ -14,7 +14,7 @@ import {
   type IsoTimestamp,
   type PresenceHint,
   type RosterSnapshot,
-} from "@bot-space/contracts";
+} from "@lorien-stack/contracts";
 
 import { authorizePrompt, extractBearerToken, type AuthConfig } from "./auth.ts";
 import {
@@ -235,7 +235,7 @@ export async function startGateway(options: GatewayOptions = {}): Promise<Gatewa
   let workRoot = options.data ?? process.env.AGENT_DATA;
   let tmpRoot: string | undefined;
   if (demo) {
-    tmpRoot = await mkdtemp(path.join(os.tmpdir(), "bot-space-demo-"));
+    tmpRoot = await mkdtemp(path.join(os.tmpdir(), "lorien-stack-demo-"));
     workRoot = tmpRoot;
   }
   if (workRoot === undefined || workRoot.length === 0) {

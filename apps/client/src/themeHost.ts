@@ -1,4 +1,4 @@
-import type { ActivityEvent, BotId, BotRecord } from "@bot-space/contracts";
+import type { ActivityEvent, BotId, BotRecord } from "@lorien-stack/contracts";
 
 import { mountStarCraftTheme } from "./themes/starcraft/scene.ts";
 

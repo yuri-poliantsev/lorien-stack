@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { parseBotId } from "@bot-space/contracts";
+import { parseBotId } from "@lorien-stack/contracts";
 
 import { authorizePrompt, extractBearerToken } from "./auth.ts";
 

@@ -8,7 +8,7 @@ import {
   type ActivityEvent,
   type BotId,
   type BotRecord,
-} from "@bot-space/contracts";
+} from "@lorien-stack/contracts";
 
 export const GROK_DRIVER_NAME = "grok" as const;
 export const COALESCE_MS = 250;

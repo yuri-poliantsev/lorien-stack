@@ -1,4 +1,4 @@
-# bot-space setup prompt
+# lorien-stack setup prompt
 
 Paste the block below into a chat with a Grok Bot that runs on the machine holding `$AGENT_DATA`. The bot clones the repo, creates the webhook routine, asks you for the sender key through a card, starts both processes, and hands back a tailnet URL.
 
@@ -7,7 +7,7 @@ The webhook sender key never goes in chat. The prompt tells the bot to ask for i
 [Live setup](../live.md) is the long form. Read it if you would rather run the steps yourself, or when something breaks and you want the troubleshooting table.
 
 ````
-Set up bot-space on this machine. This machine holds the Grok Bot agent data. Work the steps in order and report at the end.
+Set up lorien-stack on this machine. This machine holds the Grok Bot agent data. Work the steps in order and report at the end.
 
 1. Install
    Check `node -v`. If it reports a version below 22.14.0, install Node 22.15.1 from the official `.tar.gz` tarball into `$HOME/.local/node22` with these commands.
@@ -26,8 +26,8 @@ Set up bot-space on this machine. This machine holds the Grok Bot agent data. Wo
      export PATH="$HOME/.local/node22/bin:$PATH"
    Keep that PATH active for every later step.
    Confirm `node -v` reports at least 22.14.0. Then:
-   git clone https://github.com/yuri-poliantsev/bot-space.git
-   cd bot-space
+   git clone https://github.com/yuri-poliantsev/lorien-stack.git
+   cd lorien-stack
    npm install
 
 2. Find the agent data

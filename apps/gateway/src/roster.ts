@@ -4,7 +4,7 @@ import {
   type BotRecord,
   type IsoTimestamp,
   type RosterSnapshot,
-} from "@bot-space/contracts";
+} from "@lorien-stack/contracts";
 
 export type Roster = {
   readonly revision: number;

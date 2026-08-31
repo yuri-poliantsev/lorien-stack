@@ -1,4 +1,4 @@
-import type { ActivityEvent, BotId, BotRecord, SpatialAnchor } from "@bot-space/contracts";
+import type { ActivityEvent, BotId, BotRecord, SpatialAnchor } from "@lorien-stack/contracts";
 
 export const WORLD_WIDTH = 960;
 export const WORLD_HEIGHT = 540;

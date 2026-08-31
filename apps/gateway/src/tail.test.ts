@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { after, describe, it } from "node:test";
 
-import type { ActivityEvent, BotId, BotRecord } from "@bot-space/contracts";
+import type { ActivityEvent, BotId, BotRecord } from "@lorien-stack/contracts";
 
 import { COALESCE_MS, createTailer, grokDriver, MAX_INITIAL_CATCHUP_BYTES } from "./tail.ts";
 

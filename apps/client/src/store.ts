@@ -4,7 +4,7 @@ import type {
   BotRecord,
   PresenceHint,
   RosterSnapshot,
-} from "@bot-space/contracts";
+} from "@lorien-stack/contracts";
 
 export type ClientStore = {
   revision: number;

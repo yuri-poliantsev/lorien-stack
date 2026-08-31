@@ -1,4 +1,4 @@
-import type { ActivityEvent } from "@bot-space/contracts";
+import type { ActivityEvent } from "@lorien-stack/contracts";
 
 export const MAX_SNIPPET_CHARS = 64;
 export const MAX_ABS_PATH_CHARS = 40;

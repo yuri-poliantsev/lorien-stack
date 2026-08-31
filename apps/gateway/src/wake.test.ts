@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { createServer } from "node:http";
 import { describe, it } from "node:test";
 
-import { parseWakeRequest } from "@bot-space/contracts";
+import { parseWakeRequest } from "@lorien-stack/contracts";
 
 import { requestWake } from "./wake.ts";
 

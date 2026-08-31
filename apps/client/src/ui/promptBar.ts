@@ -1,4 +1,4 @@
-import type { BotId } from "@bot-space/contracts";
+import type { BotId } from "@lorien-stack/contracts";
 
 import { isPromptEnabled } from "../store.ts";
 

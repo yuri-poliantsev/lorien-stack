@@ -1,4 +1,4 @@
-import { parseBotId, type ActivityEvent, type BotId, type BotRecord } from "@bot-space/contracts";
+import { parseBotId, type ActivityEvent, type BotId, type BotRecord } from "@lorien-stack/contracts";
 
 import {
   STATIONS,

@@ -16,7 +16,7 @@ const REQUIRED_HEADINGS = [
 
 const MAX_WORDS = 2500;
 
-const PROMPT_PATH = "docs/prompts/bot-space-setup.md";
+const PROMPT_PATH = "docs/prompts/lorien-stack-setup.md";
 const PROMPT_MAX_WORDS = 1200;
 
 const PROMPT_REQUIRED = [
@@ -79,7 +79,7 @@ check(
 );
 
 check(
-	live.includes("prompts/bot-space-setup.md"),
+	live.includes("prompts/lorien-stack-setup.md"),
 	`docs/live.md does not link ${PROMPT_PATH}`,
 );
 check(

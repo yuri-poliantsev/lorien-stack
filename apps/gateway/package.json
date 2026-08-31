@@ -1,5 +1,5 @@
 {
-  "name": "@bot-space/gateway",
+  "name": "@lorien-stack/gateway",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -9,7 +9,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@bot-space/contracts": "*",
+    "@lorien-stack/contracts": "*",
     "ws": "^8.18.3"
   },
   "devDependencies": {

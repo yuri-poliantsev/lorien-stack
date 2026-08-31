@@ -1,7 +1,7 @@
 import {
   parseWakeRequest,
   type WakeRequest,
-} from "@bot-space/contracts";
+} from "@lorien-stack/contracts";
 
 export const WAKE_TIMEOUT_MS = 8000;
 
