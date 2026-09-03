@@ -2,9 +2,11 @@
 
 ![Bots at play](docs/images/childrens-games.jpg)
 
-Open-source gateway and reference UI for watching Grok Bots work.
+**Lorien Bot** visualizes the user's Grok Bots: roster, activity, and a slim wake from a command view. It is a Grok Bot that installs and runs lorien-stack on the host, then helps keep that stack healthy.
 
-lorien-stack tails Grok Bot `$AGENT_DATA` on disk, streams roster and activity to a browser, and wakes a bot by POSTing a Grok webhook from the server. The default UI is a StarCraft-inspired 2D command view with an activity panel and a one-line prompt bar.
+**lorien-stack** is the core Lorien Bot runs under the hood. Gateway, contracts, and client stay here.
+
+The stack tails Grok Bot `$AGENT_DATA` on disk, streams roster and activity to a browser, and wakes a bot by POSTing a Grok webhook from the server. The default UI is a StarCraft-inspired 2D command view with an activity panel and a one-line prompt bar.
 
 It is **not** a Chat kit, a theme marketplace, or a 3D engine. Wake means the webhook acknowledged. It does not mean the bot finished the work.
 
@@ -12,7 +14,7 @@ It is **not** a Chat kit, a theme marketplace, or a 3D engine. Wake means the we
 
 One shared runtime for many looks. Keep discovery, activity, and wake stable. Let themes change freely.
 
-Inspiration is one-shot generated villages that burn tokens to rebuild the whole app. lorien-stack inverts that. The gateway and contracts stay in git. A theme is a consumer of roster and activity events, not a generated rewrite of the stack. 2D ships first. 3D stays possible later because spatial fields on the wire are optional, not because the core embeds a scene graph.
+Inspiration is one-shot generated villages that burn tokens to rebuild the whole app. Lorien Bot inverts that. The gateway and contracts stay in git inside lorien-stack. A theme is a consumer of roster and activity events, not a generated rewrite of the stack. 2D ships first. 3D stays possible later because spatial fields on the wire are optional, not because the core embeds a scene graph.
 
 The prompt bar stays an activity panel plus a slim wake. Full Grok chat waits on a real duplex API.
 
@@ -24,7 +26,7 @@ Shipped and exercised on real Grok Bot hosts.
 - Demo mode with fixture bots and compressed replay
 - Live mode against `$AGENT_DATA`, including large transcript files
 - Live presence hints from a quiet clock (heuristic, not lifecycle)
-- OSS live how-to and a paste-ready setup prompt for a Grok Bot on the host
+- OSS live how-to and a paste-ready [setup prompt](docs/prompts/lorien-stack-setup.md) for installing on a host
 - Live start refuses an empty client token. Allowlist stays explicit or `discovered`
 
 Known limits.
@@ -43,7 +45,8 @@ In priority order for maintainers and contributors.
 1. Prove wake on a live host if you have only watched the roster so far. Select a bot, send a short prompt, confirm gateway `acknowledged`, then confirm the bot actually moves.
 2. Fix friction from real runs. Reconnect, allowlist UX, presence feel, and doc gaps beat new features.
 3. Optional read-path auth for roster and `/ws` when the UI sits on a wide Tailscale ACL.
-4. A second theme only after wake and security feel solid. That is how the theme host earns its keep.
+4. Publish Lorien Bot as a Grok Bot template per [Publish a Lorien Bot template](docs/prompts/lorien-bot-template.md). Confirm a freshly added copy can see `$AGENT_DATA` before a wide share.
+5. A second theme only after wake and security feel solid. That is how the theme host earns its keep.
 
 ## Requirements
 
@@ -67,6 +70,8 @@ Open [http://127.0.0.1:5173](http://127.0.0.1:5173).
 Demo client token is `demo-token`. Without `WEBHOOK_URL` and `WEBHOOK_SENDER_KEY`, the prompt bar still sends and shows a failed wake. That is expected.
 
 ## What you get
+
+This repo is lorien-stack, the core under Lorien Bot.
 
 | Piece | Path | Role |
 | --- | --- | --- |
@@ -108,6 +113,8 @@ Default listen address is `0.0.0.0` so Tailscale peers can reach the port. Use `
 ## Docs
 
 - [Live setup](docs/live.md)
+- [Publish a Lorien Bot template](docs/prompts/lorien-bot-template.md)
+- [Setup prompt](docs/prompts/lorien-stack-setup.md)
 - [Wire contracts](docs/contracts.md)
 - [Gateway](apps/gateway/README.md)
 - [Client](apps/client/README.md)
