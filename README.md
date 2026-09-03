@@ -1,4 +1,4 @@
-# lorien-stack
+# Watch Grok Bots work
 
 ![Bots at play](docs/images/childrens-games.jpg)
 
