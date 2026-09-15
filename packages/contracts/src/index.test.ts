@@ -110,6 +110,35 @@ describe("jsonl edge parse", () => {
   }
   const botId = botIdResult.value;
 
+  it("parses real Grok transcript lines", () => {
+    const atResult = parseIsoTimestamp("2026-08-20T10:00:00.000Z");
+    assert.equal(atResult.ok, true);
+    if (!atResult.ok) {
+      throw new Error("fixture timestamp");
+    }
+    const text = [
+      `{"role":"tool","message":{"content":[{"type":"tool_result","name":"communicate_update","result":{"success":{"currentStep":"..."}}}]}}`,
+      `{"role":"assistant","message":{"content":[{"type":"tool_use","id":"tu1","name":"shell","input":{"command":"echo 4"}}]}}`,
+      `{"role":"assistant","message":{"content":[{"type":"text","text":"4"}]}}`,
+      `{"role":"user","message":{"content":"plain string is also possible"}}`,
+    ].join("\n");
+    const events = parseActivityJsonl({ text, botId, at: atResult.value });
+    assert.deepEqual(
+      events.map((event) => [
+        event.role,
+        event.role === "tool" ? event.toolName : undefined,
+        event.text,
+        event.at,
+      ]),
+      [
+        ["tool", "communicate_update", `{"success":{"currentStep":"..."}}`, atResult.value],
+        ["tool", "shell", `{"command":"echo 4"}`, atResult.value],
+        ["assistant", undefined, "4", atResult.value],
+        ["user", undefined, "plain string is also possible", atResult.value],
+      ],
+    );
+  });
+
   it("rejects unknown roles without throwing", () => {
     const text = [
       `{"role":"user","content":"hello","at":"2026-08-20T10:00:00.000Z"}`,
