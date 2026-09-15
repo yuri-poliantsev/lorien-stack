@@ -173,7 +173,7 @@ curl -s http://127.0.0.1:8040/health
 curl -s http://127.0.0.1:8040/api/bots
 ```
 
-You should see `{"ok":true}` and a roster whose `bots` array is not empty. Open the UI. The bot list, theme, and activity panel should show the same roster. Selecting a bot changes the activity detail and theme focus.
+You should see `{"ok":true}` and a roster whose `bots` array is not empty. Open the UI. The bot list and theme should show the same roster. Selecting a bot highlights the list and focuses the theme.
 
 The first WebSocket frame is a `snapshot`. Presence hints follow on the same socket. If the UI is empty while `/api/bots` has bots, the client is not reaching `/ws`.
 

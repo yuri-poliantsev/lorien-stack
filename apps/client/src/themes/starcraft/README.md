@@ -2,7 +2,7 @@
 
 2D command view for the client floor. Original canvas drawing only. No Blizzard art, no sprite sheets, no CDN.
 
-The host passes roster and activity. This folder does not import the gateway or the websocket client. Click a unit or its building and the host selects that bot. The existing activity panel then follows that id.
+The host passes roster and activity. This folder does not import the gateway or the websocket client. Click a unit or its building and the host selects that bot. The bot list highlight and theme focus follow that id.
 
 ## Layout
 
