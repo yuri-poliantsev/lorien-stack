@@ -8,7 +8,7 @@
 
 lorien-stack observes Grok Bots; it does not wake bots or provide chat.
 
-The stack tails Grok Bot `$AGENT_DATA` on disk and streams roster, activity, and presence to a browser. The default UI is a StarCraft-inspired 2D command view with an activity panel.
+The stack tails Grok Bot `$AGENT_DATA` on disk and streams roster, activity, and presence to a browser. The default UI is a StarCraft-inspired 2D command view.
 
 It is **not** a Chat kit, a theme marketplace, or a 3D engine.
 
@@ -74,7 +74,7 @@ This repo is lorien-stack, the core under Lorien Bot.
 | --- | --- | --- |
 | Contracts | `packages/contracts` | Versioned wire types and parsers |
 | Gateway | `apps/gateway` | Disk tail, roster, presence, WebSocket fan-out |
-| Client | `apps/client` | Vite UI, activity panel, StarCraft canvas |
+| Client | `apps/client` | Vite UI, bot list, StarCraft canvas |
 | Demo data | `fixtures/demo` | Eight fake bots in the on-disk `$AGENT_DATA` layout |
 
 Themes consume roster and activity only. Swap the mount in `apps/client/src/themeHost.ts`. Do not import the gateway from a theme.

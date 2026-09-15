@@ -1,12 +1,10 @@
 import {
-  activityFor,
   applyMessage,
   emptyStore,
   rosterList,
   selectBot,
 } from "./store.ts";
 import { mountThemeHost } from "./themeHost.ts";
-import { mountActivityPanel } from "./ui/activityPanel.ts";
 import { mountBotList } from "./ui/botList.ts";
 import { connectGateway, gatewayWsUrl } from "./ws.ts";
 import "./styles.css";
@@ -22,9 +20,7 @@ botListEl.className = "bot-list";
 const themeEl = document.createElement("section");
 themeEl.className = "theme-host";
 themeEl.id = "theme-mount";
-const activityEl = document.createElement("section");
-activityEl.className = "activity-panel";
-app.append(botListEl, themeEl, activityEl);
+app.append(botListEl, themeEl);
 
 const store = emptyStore();
 const paintOrigin = performance.now();
@@ -42,7 +38,6 @@ const bots = mountBotList(botListEl, {
     render();
   },
 });
-const activity = mountActivityPanel(activityEl);
 
 function render(): void {
   const roster = rosterList(store);
@@ -50,14 +45,6 @@ function render(): void {
     bots: roster,
     selectedBotId: store.selectedBotId,
     presence: store.presence,
-  });
-  const selected =
-    store.selectedBotId === undefined
-      ? undefined
-      : store.bots.get(store.selectedBotId);
-  activity.update({
-    bot: selected,
-    events: activityFor(store, store.selectedBotId),
   });
   theme.render({
     roster,
