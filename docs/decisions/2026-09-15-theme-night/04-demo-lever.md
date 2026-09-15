@@ -53,6 +53,17 @@ I viewed every PNG with the Read tool after regenerating at the rebased head wit
 
 `html[data-theme]` was absent, as expected until step 2. `document.documentElement.dataset.avgFrameMs` was absent, as expected until step 3. Manifest printed `avgFrameMs=n/a`. Canvas still had `data-avg-frame-ms` from the current StarCraft loop.
 
+Superseded at `75bba6b` after rebase onto `75b9284`. The byte counts above are the pre-header stills. `ls -l docs/images/themes` at that head:
+
+- `starcraft-1.png` 72672 bytes
+- `starcraft-8.png` 95914 bytes
+- `starcraft-18.png` 133468 bytes
+- `starcraft-40.png` 189934 bytes
+- `starcraft-8-asleep.png` 113303 bytes
+- `starcraft.mp4` 2471642 bytes
+
+`html[data-theme]` is present since that rebase. Manifest `avgFrameMs` stays `n/a` until step 3 lands. The stills show the step 2 header. The scenes (Ivo WORK at N=1, eight fixture names at N=8, clones at N=18, crowded twelve stations at N=40, all-asleep SLEEP and REST) are unchanged.
+
 ## What was rejected and why
 
 Waiting for the live quiet clock to produce the all-asleep still. Demo does not run that timer. A 22-second wait would also make the still a race. `--replay-idle` is explicit.
