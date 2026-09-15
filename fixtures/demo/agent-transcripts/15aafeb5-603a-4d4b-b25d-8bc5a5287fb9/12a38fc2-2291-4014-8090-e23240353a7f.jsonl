@@ -1,4 +1,7 @@
 {"role":"user","message":{"content":[{"type":"text","text":"How stale is Lauren?"}]},"at":"2026-08-27T09:30:00.000Z","seatId":"lab-3"}
 {"role":"assistant","message":{"content":[{"type":"text","text":"Presence is a hint from the quiet clock."}]},"at":"2026-08-27T09:30:01.000Z"}
-{"role":"tool","message":{"content":[{"type":"tool_result","name":"read_file","result":"lastActivityAt=2026-08-27T09:00:03.000Z"}]},"at":"2026-08-27T09:30:02.000Z"}
+{"role":"assistant","message":{"content":[{"type":"tool_use","id":"tu-read","name":"Read","input":{"path":"apps/gateway/src/presence.ts"}}]},"at":"2026-08-27T09:30:01.400Z"}
+{"role":"tool","message":{"content":[{"type":"tool_result","name":"Read","result":"export const DEFAULT_PRESENCE_WORK_MS = 12000"}]},"at":"2026-08-27T09:30:01.700Z"}
+{"role":"assistant","message":{"content":[{"type":"tool_use","id":"tu-read-file","name":"read_file","input":{"path":"apps/client/src/store.ts"}}]},"at":"2026-08-27T09:30:02.000Z"}
+{"role":"tool","message":{"content":[{"type":"tool_result","name":"read_file","result":"lastActivityAt=2026-08-27T09:00:03.000Z"}]},"at":"2026-08-27T09:30:02.400Z"}
 {"role":"assistant","message":{"content":[{"type":"text","text":"freshnessMs is wall time since last transcript line. Not a lifecycle state."}]},"at":"2026-08-27T09:30:03.000Z"}

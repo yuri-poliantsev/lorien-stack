@@ -1,4 +1,5 @@
 {"role":"user","message":{"content":[{"type":"text","text":"Unknown roles must not throw."}]},"at":"2026-08-27T09:20:00.000Z"}
 {"role":"assistant","message":{"content":[{"type":"text","text":"I will drop system and function lines."}]},"at":"2026-08-27T09:20:01.000Z"}
+{"role":"assistant","message":{"content":[{"type":"tool_use","id":"tu-shell","name":"shell","input":{"command":"node --test packages/contracts/src/index.test.ts"}}]},"at":"2026-08-27T09:20:01.400Z"}
 {"role":"tool","message":{"content":[{"type":"tool_result","name":"shell","result":"role=system skipped"}]},"at":"2026-08-27T09:20:02.000Z"}
 {"role":"assistant","message":{"content":[{"type":"text","text":"Parser returned user and assistant only."}]},"at":"2026-08-27T09:20:03.000Z"}

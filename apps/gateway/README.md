@@ -8,9 +8,13 @@ From the repo root:
 
 ```
 npm run gateway -- --demo --listen :8040
+npm run gateway -- --demo --bots 18 --listen :8040
+npm run gateway -- --demo --bots 8 --replay-idle --listen :8040
 ```
 
-`--listen :8040` binds `0.0.0.0:8040`. Loopback-only bind is opt-in (`--listen 127.0.0.1:8040`). Demo copies fixture profiles into a temp tree, then appends transcript lines on a compressed clock. Sleeps follow event timestamps divided by `--multiplier` (default 1000), not wall time. After the last line, bots stay on the roster and the socket gets a `presence` hint with reason `sleep`.
+`--listen :8040` binds `0.0.0.0:8040`. Loopback-only bind is opt-in (`--listen 127.0.0.1:8040`). Demo copies fixture profiles into a temp tree, then appends transcript lines on a compressed clock. `--bots N` (1 to 40, default 8) sets the roster size. Extra bots clone fixture profiles with deterministic ids and names (`Ivo 2`, `Lauren 2`). Sleeps follow event timestamps divided by `--multiplier` (default 1000), not wall time, with a 800ms floor so a line stays visible. Each bot starts on a stagger, loops its tape, and emits a `presence` hint with reason `sleep` between cycles. `--replay-idle` skips the tape and sleeps every bot, which is the all-asleep still.
+
+Live mode emits the same `presence` messages from a quiet clock. Last activity comes from roster spawn and tailed transcript lines. `--presence-tick-ms` (default 1000, or `GATEWAY_PRESENCE_TICK_MS`) is the emit interval. Reason is `recent` below `--presence-work-ms` (default 12000, or `GATEWAY_PRESENCE_WORK_MS`), `quiet` until `--presence-sleep-ms` (default 22000, or `GATEWAY_PRESENCE_SLEEP_MS`), then `sleep`. Those defaults match `WORK_MS` and `SLEEP_MS` on the StarCraft floor. A hint is not lifecycle. Quiet bots stay on the roster.
 
 Live mode emits the same `presence` messages from a quiet clock. Last activity comes from roster spawn and tailed transcript lines. `--presence-tick-ms` (default 1000, or `GATEWAY_PRESENCE_TICK_MS`) is the emit interval. Reason is `recent` below `--presence-work-ms` (default 12000, or `GATEWAY_PRESENCE_WORK_MS`), `quiet` until `--presence-sleep-ms` (default 22000, or `GATEWAY_PRESENCE_SLEEP_MS`), then `sleep`. Those defaults match `WORK_MS` and `SLEEP_MS` on the StarCraft floor. A hint is not lifecycle. Quiet bots stay on the roster.
 
@@ -49,4 +53,4 @@ Live presence is a quiet-clock hint. `freshnessMs` is wall time since last activ
 | `--presence-sleep-ms` | `GATEWAY_PRESENCE_SLEEP_MS` | 22000 | `sleep` at or above this |
 | `--presence-tick-ms` | `GATEWAY_PRESENCE_TICK_MS` | 1000 | emit interval |
 
-Demo does not run that timer. It still flushes `sleep` after the tape.
+Demo does not run that timer. Looping replay flushes `sleep` at the end of each bot's cycle. `--replay-idle` flushes `sleep` for the whole roster and logs `demo replay complete`.

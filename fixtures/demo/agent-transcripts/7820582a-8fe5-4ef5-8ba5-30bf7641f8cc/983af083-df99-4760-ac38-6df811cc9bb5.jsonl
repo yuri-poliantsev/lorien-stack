@@ -1,4 +1,5 @@
 {"role":"user","message":{"content":[{"type":"text","text":"Empty wake prompt?"}]},"at":"2026-08-27T09:25:00.000Z"}
 {"role":"assistant","message":{"content":[{"type":"text","text":"Fail closed. No wake."}]},"at":"2026-08-27T09:25:01.000Z"}
-{"role":"tool","message":{"content":[{"type":"tool_result","name":"shell","result":"parseWakeRequest prompt=\"\""}]},"at":"2026-08-27T09:25:02.000Z"}
+{"role":"assistant","message":{"content":[{"type":"tool_use","id":"tu-shell","name":"run_terminal_cmd","input":{"command":"rg parseWakeRequest apps/gateway/src","workdir":"/repo"}}]},"at":"2026-08-27T09:25:01.400Z"}
+{"role":"tool","message":{"content":[{"type":"tool_result","name":"run_terminal_cmd","result":"parseWakeRequest prompt=\"\""}]},"at":"2026-08-27T09:25:02.000Z"}
 {"role":"assistant","message":{"content":[{"type":"text","text":"ok is false. The caller does not send."}]},"at":"2026-08-27T09:25:03.000Z"}

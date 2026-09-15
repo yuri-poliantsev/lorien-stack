@@ -492,10 +492,11 @@ describe("live presence emission", () => {
     }
   });
 
-  it("keeps demo post-tape sleep and does not tick live reasons during replay", async () => {
+  it("keeps demo idle sleep and does not tick live reasons during replay", async () => {
     const gw = await startGateway({
       listen: "127.0.0.1:0",
       demo: true,
+      replayIdle: true,
       coalesceMs: 20,
       multiplier: 50_000,
       presenceTickMs: 20,
@@ -522,7 +523,7 @@ describe("live presence emission", () => {
         hints.some((item) => item.hint.reason === PRESENCE_REASON_RECENT),
         false,
       );
-      assert.equal(gw.getRoster().snapshot.bots.length > 0, true);
+      assert.equal(gw.getRoster().snapshot.bots.length, 8);
     } finally {
       sock.close();
       await gw.close();
