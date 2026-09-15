@@ -1,0 +1,20 @@
+{
+  "name": "lorien-stack",
+  "install": "npm ci",
+  "terminals": [
+    {
+      "name": "gateway (demo)",
+      "command": "npm run gateway -- --demo --listen :8040",
+      "description": "lorien-stack gateway in demo mode. Copies fixtures to a temp agent-data tree, replays activity, and serves roster/presence over HTTP + WebSocket on port 8040."
+    },
+    {
+      "name": "client",
+      "command": "npm run dev -w apps/client",
+      "description": "Vite dev server for the client UI on http://127.0.0.1:5173. Proxies /ws to the gateway (GATEWAY_ORIGIN, default http://127.0.0.1:8040)."
+    }
+  ],
+  "ports": [
+    { "name": "gateway", "port": 8040 },
+    { "name": "client", "port": 5173 }
+  ]
+}
