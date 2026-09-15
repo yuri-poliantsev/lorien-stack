@@ -112,6 +112,25 @@ describe("gateway boot", () => {
     }
   });
 
+  it("demo --bots 1 seeds Ivo only", async () => {
+    const gw = await startGateway({
+      listen: "127.0.0.1:0",
+      demo: true,
+      bots: 1,
+      replayIdle: true,
+      coalesceMs: 60_000,
+      log: () => undefined,
+    });
+    try {
+      const snapshot = gw.getRoster().snapshot;
+      assert.equal(snapshot.bots.length, 1);
+      assert.equal(snapshot.bots[0]?.id, "15aafeb5-603a-4d4b-b25d-8bc5a5287fb9");
+      assert.equal(snapshot.bots[0]?.name, "Ivo");
+    } finally {
+      await gw.close();
+    }
+  });
+
   it("rejects leftover CLI flags as unknown", () => {
     assert.throws(() => parseGatewayCli(["--token", "t"]), /unknown flag: --token/);
     assert.throws(

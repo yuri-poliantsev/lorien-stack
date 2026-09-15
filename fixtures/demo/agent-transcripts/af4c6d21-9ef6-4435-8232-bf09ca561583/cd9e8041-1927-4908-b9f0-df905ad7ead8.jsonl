@@ -1,4 +1,7 @@
 {"role":"user","message":{"content":[{"type":"text","text":"Who is blocked on contracts?"}]},"at":"2026-08-27T09:00:00.000Z","seatId":"desk-a1"}
 {"role":"assistant","message":{"content":[{"type":"text","text":"Checking the roster and last transcripts."}]},"at":"2026-08-27T09:00:01.000Z","seatId":"desk-a1"}
+{"role":"assistant","message":{"content":[{"type":"tool_use","id":"tu-read-file","name":"read_file","input":{"path":"packages/contracts/src/index.ts"}}]},"at":"2026-08-27T09:00:01.400Z"}
 {"role":"tool","message":{"content":[{"type":"tool_result","name":"read_file","result":"packages/contracts/src/index.ts not found yet"}]},"at":"2026-08-27T09:00:02.000Z"}
+{"role":"assistant","message":{"content":[{"type":"tool_use","id":"tu-read","name":"Read","input":{"path":"docs/contracts.md"}}]},"at":"2026-08-27T09:00:02.500Z"}
+{"role":"tool","message":{"content":[{"type":"tool_result","name":"Read","result":"# Contracts\nRosterSnapshot, ActivityEvent, PresenceHint"}]},"at":"2026-08-27T09:00:02.800Z"}
 {"role":"assistant","message":{"content":[{"type":"text","text":"Nobody owns the schema yet. I will file the wake."}]},"at":"2026-08-27T09:00:03.000Z"}

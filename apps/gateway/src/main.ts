@@ -37,12 +37,17 @@ import {
   type PresenceClock,
 } from "./presence.ts";
 import {
+  DEFAULT_DEMO_BOTS,
   DEFAULT_DEMO_MULTIPLIER,
+  DEMO_BOT_MAX,
+  DEMO_BOT_MIN,
   loadReplayPlan,
   runReplay,
   seedDemoWorkspace,
   type ReplaySleep,
 } from "./replay.ts";
+
+export { DEFAULT_DEMO_BOTS, DEMO_BOT_MAX, DEMO_BOT_MIN };
 
 export type GatewayMessage =
   | { type: "snapshot"; revision: number; snapshot: RosterSnapshot }
@@ -58,6 +63,8 @@ export type GatewayOptions = {
   listen?: string;
   data?: string;
   demo?: boolean;
+  bots?: number;
+  replayIdle?: boolean;
   multiplier?: number;
   coalesceMs?: number;
   presenceWorkMs?: number;
@@ -189,6 +196,7 @@ export async function startGateway(options: GatewayOptions = {}): Promise<Gatewa
   });
   const clock: PresenceClock | undefined = demo ? undefined : createPresenceClock();
   let presenceTimer: ReturnType<typeof setInterval> | undefined;
+  const lastDemoHints = new Map<BotId, PresenceHint>();
 
   function snapshotMessage(): GatewayMessage {
     const snapshot = toSnapshot({ roster, capturedAt: nowIso() });
@@ -274,6 +282,7 @@ export async function startGateway(options: GatewayOptions = {}): Promise<Gatewa
       now: nowIso(),
       reason: PRESENCE_REASON_SLEEP,
     });
+    lastDemoHints.set(step.botId, hint);
     broadcast({
       type: "presence",
       revision: roster.revision,
@@ -282,15 +291,28 @@ export async function startGateway(options: GatewayOptions = {}): Promise<Gatewa
     });
   }
 
+  function emitDemoPresence(target: WebSocket): void {
+    for (const [botId, hint] of lastDemoHints) {
+      send(target, {
+        type: "presence",
+        revision: roster.revision,
+        botId,
+        hint,
+      });
+    }
+  }
+
   const demoPlan = demo
     ? await loadReplayPlan({
         fixtureRoot,
         workRoot,
         multiplier,
+        botCount: options.bots ?? DEFAULT_DEMO_BOTS,
+        idle: options.replayIdle === true,
       })
     : undefined;
   if (demoPlan !== undefined) {
-    await seedDemoWorkspace({ fixtureRoot, workRoot, bots: demoPlan.bots });
+    await seedDemoWorkspace({ workRoot, bots: demoPlan.seed });
   }
 
   const tailer: Tailer = createTailer({
@@ -325,6 +347,7 @@ export async function startGateway(options: GatewayOptions = {}): Promise<Gatewa
     sockets.add(ws);
     send(ws, snapshotMessage());
     emitPresence(ws);
+    emitDemoPresence(ws);
     ws.on("close", () => {
       sockets.delete(ws);
     });
@@ -383,23 +406,14 @@ export async function startGateway(options: GatewayOptions = {}): Promise<Gatewa
       await runReplay({
         plan: demoPlan,
         signal: abort.signal,
-        onSleep: () => undefined,
+        onSleep: handleSleep,
       });
       if (abort.signal.aborted) {
         return;
       }
-      await new Promise((resolve) => {
-        setTimeout(resolve, coalesceMs * 2);
-      });
-      if (abort.signal.aborted) {
-        return;
+      if (!demoPlan.loop) {
+        log({ msg: "demo replay complete" });
       }
-      for (const step of demoPlan.steps) {
-        if (step.kind === "sleep") {
-          handleSleep(step);
-        }
-      }
-      log({ msg: "demo replay complete" });
     })();
   }
 
@@ -456,6 +470,14 @@ function requireFiniteFlag(flag: string, raw: string): number {
   return value;
 }
 
+function requireBotCount(raw: string): number {
+  const value = Number(raw);
+  if (!Number.isInteger(value) || value < DEMO_BOT_MIN || value > DEMO_BOT_MAX) {
+    throw new Error("--bots must be an integer from 1 to 40");
+  }
+  return value;
+}
+
 function equalsValue(arg: string, flag: string): string {
   const value = arg.slice(`${flag}=`.length);
   if (value.length === 0) {
@@ -473,6 +495,19 @@ export function parseGatewayCli(argv: string[]): GatewayOptions {
     }
     if (arg === "--demo") {
       options.demo = true;
+      continue;
+    }
+    if (arg === "--replay-idle") {
+      options.replayIdle = true;
+      continue;
+    }
+    if (arg === "--bots") {
+      options.bots = requireBotCount(requireFlagValue("--bots", argv[i + 1]));
+      i += 1;
+      continue;
+    }
+    if (arg.startsWith("--bots=")) {
+      options.bots = requireBotCount(equalsValue(arg, "--bots"));
       continue;
     }
     if (arg === "--listen") {
@@ -560,6 +595,15 @@ export function parseGatewayCli(argv: string[]): GatewayOptions {
   }
   if (options.multiplier !== undefined && options.demo !== true) {
     throw new Error("--multiplier requires --demo");
+  }
+  if (options.bots !== undefined && options.demo !== true) {
+    throw new Error("--bots requires --demo");
+  }
+  if (options.replayIdle === true && options.demo !== true) {
+    throw new Error("--replay-idle requires --demo");
+  }
+  if (options.demo === true && options.bots === undefined) {
+    options.bots = DEFAULT_DEMO_BOTS;
   }
   return options;
 }

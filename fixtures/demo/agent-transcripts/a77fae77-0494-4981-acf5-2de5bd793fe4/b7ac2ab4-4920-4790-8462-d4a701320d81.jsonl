@@ -1,4 +1,7 @@
 {"role":"user","message":{"content":[{"type":"text","text":"Parse the JSONL without crashing on a partial write."}]},"at":"2026-08-27T09:10:00.000Z"}
 {"role":"assistant","message":{"content":[{"type":"text","text":"Last line can be truncated. I will skip it."}]},"at":"2026-08-27T09:10:01.000Z"}
-{"role":"tool","message":{"content":[{"type":"tool_result","name":"read_file","result":"{\"role\":\"user\",\"content\":\"hello\""}]},"at":"2026-08-27T09:10:02.000Z"}
+{"role":"assistant","message":{"content":[{"type":"tool_use","id":"tu-write","name":"Write","input":{"path":"apps/gateway/src/tail.ts","contents":"export const COALESCE_MS = 250;"}}]},"at":"2026-08-27T09:10:01.400Z"}
+{"role":"tool","message":{"content":[{"type":"tool_result","name":"Write","result":"wrote apps/gateway/src/tail.ts"}]},"at":"2026-08-27T09:10:01.700Z"}
+{"role":"assistant","message":{"content":[{"type":"tool_use","id":"tu-edit","name":"edit_file","input":{"path":"apps/gateway/src/tail.ts","old_string":"pending: \"\"","new_string":"pending: cursor.pending"}}]},"at":"2026-08-27T09:10:02.000Z"}
+{"role":"tool","message":{"content":[{"type":"tool_result","name":"edit_file","result":"{\"role\":\"user\",\"content\":\"hello\""}]},"at":"2026-08-27T09:10:02.400Z"}
 {"role":"assistant","message":{"content":[{"type":"text","text":"Prior complete lines stay. Truncated last line is dropped."}]},"at":"2026-08-27T09:10:03.000Z"}

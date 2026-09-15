@@ -15,6 +15,13 @@ export default defineConfig({
       "/ws": { target: gatewayOrigin, ws: true, changeOrigin: true },
     },
   },
+  preview: {
+    host: "127.0.0.1",
+    strictPort: true,
+    proxy: {
+      "/ws": { target: gatewayOrigin, ws: true, changeOrigin: true },
+    },
+  },
   resolve: {
     alias: {
       "@lorien-stack/contracts": path.resolve(
