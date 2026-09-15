@@ -67,44 +67,70 @@ export function parseSpec(file) {
 	return { require, forbid, text };
 }
 
+// Whole-term matching, not substring: "staggered heights" contains "eight" and
+// would otherwise pass a count check the image plainly fails.
+export function mentions(description, term) {
+	const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+	return new RegExp(`(?<![a-z0-9])${escaped}(?![a-z0-9])`, "i").test(description);
+}
+
 export function diffAgainstSpec(description, spec) {
-	const lower = description.toLowerCase();
 	const checks = [];
 	for (const group of spec.require) {
 		checks.push({
 			kind: "require",
 			label: group.join(" | "),
-			pass: group.some((term) => lower.includes(term)),
+			pass: group.some((term) => mentions(description, term)),
 		});
 	}
 	for (const term of spec.forbid) {
-		checks.push({ kind: "forbid", label: term, pass: !lower.includes(term) });
+		checks.push({ kind: "forbid", label: term, pass: !mentions(description, term) });
 	}
-	const hedges = HEDGES.filter((hedge) => lower.includes(hedge));
+	const hedges = HEDGES.filter((hedge) => mentions(description, hedge));
 	for (const hedge of hedges) {
 		checks.push({ kind: "hedge", label: hedge, pass: false });
 	}
 	return { checks, hedges, verdict: checks.every((check) => check.pass) ? "pass" : "fail" };
 }
 
-export async function readback({ image, specPath }) {
+export function describedFile(image) {
+	return image.replace(/\.[^.]+$/, ".readback.txt");
+}
+
+// The describer opens with a line about what it is about to do; the description
+// proper starts after it, and letting it through would pollute the term checks.
+function stripPreamble(text) {
+	return text.replace(/^\s*I(?:'|\u2019)ll[^.]*\.\s*/i, "").trim();
+}
+
+export async function readback({ image, specPath, offline = false }) {
 	const spec = parseSpec(specPath);
+	const outPath = describedFile(image);
+	if (offline) {
+		const saved = stripPreamble(readFileSync(outPath, "utf8").split("\n--- checked against")[0]);
+		const diff = diffAgainstSpec(saved, spec);
+		writeSummary(outPath, saved, specPath, diff);
+		return { ...diff, description: saved, outPath, offline: true };
+	}
 	assertUnderCaps(0);
 	const prompt = readbackPrompt(image);
 	const result = await runGrok(prompt, { maxTurns: 6 });
 	logCall({ id: path.basename(image), op: "readback", images: 0, exit: result.exit, seconds: result.seconds });
-	const description = result.text.trim();
+	const description = stripPreamble(result.text.trim());
 	if (description.length === 0 && looksLikeAuthFailure(`${result.stdout}\n${result.stderr}`)) {
 		return { authFailure: true, instruction: LOGIN_INSTRUCTION, stderr: result.stderr };
 	}
 	if (description.length === 0) return { verdict: "fail", description, checks: [], reason: "empty read-back" };
-	const outPath = image.replace(/\.[^.]+$/, ".readback.txt");
 	const diff = diffAgainstSpec(description, spec);
+	writeSummary(outPath, description, specPath, diff);
+	return { ...diff, description, outPath, seconds: result.seconds };
+}
+
+function writeSummary(outPath, description, specPath, diff) {
 	writeFileSync(
 		outPath,
 		`${description}\n\n--- checked against ${path.basename(specPath)} ---\n${diff.checks
 			.map((check) => `${check.pass ? "pass" : "FAIL"} ${check.kind} ${check.label}`)
 			.join("\n")}\nverdict ${diff.verdict}\n`,
 	);
-	return { ...diff, description, outPath, seconds: result.seconds };
 }

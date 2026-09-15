@@ -46,7 +46,7 @@ export function wrapperPrompt(request, outPath) {
 }
 
 export async function generate(request, { outDir = defaultOutDir(request), dryRun = false } = {}) {
-	const discards = discardsFor(request.id);
+	const discards = discardsFor(request.theme, request.id);
 	if (discards >= MAX_DISCARDS) {
 		const row = logManifest(
 			{
@@ -78,7 +78,13 @@ export async function generate(request, { outDir = defaultOutDir(request), dryRu
 	const result = await runGrok(wrapper);
 	const combined = `${result.stdout}\n${result.stderr}`;
 	const landed = existsSync(outPath) ? outPath : resolveLanded(result.text, outPath);
-	logCall({ id: request.id, op: request.reference ? "image_edit" : "image_gen", images: landed ? 1 : 0, exit: result.exit, seconds: result.seconds });
+	logCall({
+		id: `${request.theme}/${request.id}`,
+		op: request.reference ? "image_edit" : "image_gen",
+		images: landed ? 1 : 0,
+		exit: result.exit,
+		seconds: result.seconds,
+	});
 
 	if (!landed && looksLikeAuthFailure(combined)) {
 		const row = logManifest(

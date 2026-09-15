@@ -1,0 +1,7 @@
+id	theme	kind	path	sha256	promptPath	source	attempts	readback	verdict
+01	lorien	concept	docs/images/concepts/lorien/01.jpg	d3549eedda5621c2268c773e915fcd966fb6d9db901c4b9e46dae749b25647c8	docs/images/concepts/lorien/01.prompt.txt	grok	1		unread
+01	aquarium	concept	docs/images/concepts/aquarium/01.jpg	b910daa34b11c1530bb5a3f0a9a187be09e096e08e8a6791e9af7316d7a0dcb8	docs/images/concepts/aquarium/01.prompt.txt	grok	1		unread
+01	mission-control	concept	docs/images/concepts/mission-control/01.jpg	571431a0dd4cedd9b7e79af6d930146dc7d308354a1b2422c257b968e5064624	docs/images/concepts/mission-control/01.prompt.txt	grok	1		unread
+01	bruegel	concept	docs/images/concepts/bruegel/01.jpg	02d46f646971025d9cc4f8e425d50020051b31ce0396313632789bc1adb83758	docs/images/concepts/bruegel/01.prompt.txt	grok	1		unread
+01	night-city	concept	docs/images/concepts/night-city/01.jpg	4b9e44a5a517e02610d1f5bb07ab9055f2af70efd5c3e7f87779aa4b27160772	docs/images/concepts/night-city/01.prompt.txt	grok	1		unread
+01	isometric-office	concept	docs/images/concepts/isometric-office/01.jpg	f83d84ad28a8fdc7fd17ae3769d75595f83da6e6ca40c577eb98697071ed966a	docs/images/concepts/isometric-office/01.prompt.txt	grok	1		unread

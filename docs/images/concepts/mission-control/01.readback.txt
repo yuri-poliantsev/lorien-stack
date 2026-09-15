@@ -1,0 +1,19 @@
+A straight-on front view of a dark interface fills the frame. A vertical sidebar occupies the left edge with seven stacked cream labels reading OVERVIEW, METRICS, ACQUISITION, ENGAGEMENT, MONETIZATION, RETENTION, and EXPORT; METRICS sits on a darker band with an orange underline. Eight rectangular cards occupy the remaining space in two rows of four. The four cards on the left carry cream titles Q3 REVENUE, USER GROWTH, CONVERSION, and AVG SESSION, each with a solid orange bar on the left edge, an orange line of connected dots, and a row of small cream figures at the bottom that read, in order, an upward arrow then 38.4% • $2.84M • vs prev 2.1M; +2.9k • 41.2% MoM • 14.8k total; an upward arrow then 12.7% • 3.9% rate • 1.2k conv; and 4m 38s • +47s • 2.8k sessions. The four cards on the right are empty dark fields; the top pair has a thin orange border and an orange dot in the upper-right corner, and the bottom pair has a thin grey border and a grey dot in the upper-right corner. The palette is black and charcoal with orange and cream. The filled cards hold a warm orange glow along the charts while the empty cards stay flat and unlit.
+
+--- checked against 01.spec.md ---
+pass require dark | black | near-black | dark background
+pass require eight | 8
+pass require card | cards | panel | panels | tile | tiles | module | modules
+pass require grid | rows | columns | arranged | laid out
+pass require chart | graph | line | sparkline | plot | waveform
+pass require text | type | label | labels | heading | monospace | lettering
+pass forbid crt
+pass forbid scanline
+pass forbid scanlines
+pass forbid curved screen
+pass forbid phosphor
+pass forbid cathode
+pass forbid pixel art
+pass forbid game
+pass forbid sprite
+verdict pass

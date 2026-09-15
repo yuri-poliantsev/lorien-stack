@@ -86,10 +86,11 @@ export function repoRelative(file) {
 	return path.relative(REPO_ROOT, file).split(path.sep).join("/");
 }
 
-export function attemptsFor(id) {
-	return readManifest().filter((row) => row.id === id).length;
+// Frame ids restart at 01 per theme, so an asset is only identified by the pair.
+export function attemptsFor(theme, id) {
+	return readManifest().filter((row) => row.theme === theme && row.id === id).length;
 }
 
-export function discardsFor(id) {
-	return readManifest().filter((row) => row.id === id && row.verdict === "fail").length;
+export function discardsFor(theme, id) {
+	return readManifest().filter((row) => row.theme === theme && row.id === id && row.verdict === "fail").length;
 }

@@ -1,0 +1,2 @@
+id	theme	kind	path	sha256	promptPath	source	attempts	readback	verdict
+01	mission-control	concept	docs/images/concepts/mission-control/01.jpg	571431a0dd4cedd9b7e79af6d930146dc7d308354a1b2422c257b968e5064624	docs/images/concepts/mission-control/01.prompt.txt	grok	1		unread

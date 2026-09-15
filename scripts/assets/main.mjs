@@ -19,7 +19,7 @@ import { parseRequests } from "./lib/shape.mjs";
 const USAGE = `usage:
   assets gen --request <file.json> [--out-dir <dir>] [--parallel 4] [--dry-run]
   assets key --in <img> --out <png> --key <#rrggbb> --tolerance <n> --grid <px> [--levels 16]
-  assets readback --in <img> --spec <file>
+  assets readback --in <img> --spec <file> [--offline]
   assets ledger [--verify]
   assets selftest`;
 
@@ -128,7 +128,7 @@ async function cmdKey() {
 
 async function cmdReadback() {
 	const image = resolve(need("in"));
-	const result = await readback({ image, specPath: resolve(need("spec")) });
+	const result = await readback({ image, specPath: resolve(need("spec")), offline: flags.offline === true });
 	if (result.authFailure) {
 		process.stderr.write(`assets readback: AUTH FAILURE\n  run: ${result.instruction}\n`);
 		process.exitCode = 3;

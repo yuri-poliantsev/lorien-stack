@@ -1,0 +1,52 @@
+{
+	"requests": [
+		{
+			"id": "01",
+			"theme": "lorien",
+			"kind": "concept",
+			"size": "16:9",
+			"spec": "docs/images/concepts/lorien/01.spec.md",
+			"prompt": "A dusk forest of colossal silver-barked mallorn trees seen straight from the side, with eight wooden elven platforms built onto the branches at staggered heights, four platforms in the near layer and four further back between the trunks. Some platforms burn with warm gold lantern light and a slender figure stands at a writing stand on them, while the others sit dark with a single pale firefly glimmering at the rail. Painterly stylised 2D game art with layered parallax depth, deep teal and violet dusk sky behind the canopy, warm gold accents. A small carved wooden sign hangs beneath every platform."
+		},
+		{
+			"id": "01",
+			"theme": "bruegel",
+			"kind": "concept",
+			"size": "16:9",
+			"spec": "docs/images/concepts/bruegel/01.spec.md",
+			"prompt": "A snowbound Flemish village seen from a low hill, eight cottage workshops in all, four along the near lane and four across the frozen pond behind them. Warm smoke curls from some chimneys while villagers work in their yards, and the other cottages stand with closed shutters, cold chimneys, and a single candle behind a window. Oil painting in the manner of a sixteenth-century Netherlandish winter panorama, muted ochre and slate palette, crisp low winter light, high horizon with bare black trees. A painted wooden signboard hangs over every door."
+		},
+		{
+			"id": "01",
+			"theme": "mission-control",
+			"kind": "concept",
+			"size": "16:9",
+			"spec": "docs/images/concepts/mission-control/01.spec.md",
+			"prompt": "A dark editorial dashboard filling the frame, eight rectangular cards on a near-black surface, four across the top row and four across the bottom row with generous gutters between them. Some cards carry a bright amber bar down the left edge and a rising line chart inside, and the rest are reduced to thin grey outlines with one small dot in the corner. Modern print-design digital interface, flat vector rendering, large confident sans-serif headings with small monospace rows beneath, restrained palette of near-black, warm grey and a single amber accent, even soft light. A narrow left rail lists short names in the same typeface."
+		},
+		{
+			"id": "01",
+			"theme": "night-city",
+			"kind": "concept",
+			"size": "16:9",
+			"spec": "docs/images/concepts/night-city/01.spec.md",
+			"prompt": "A night skyline seen straight on from across the water, eight towers of clearly different heights and widths standing shoulder to shoulder, four tall ones grouped at the centre and four lower ones at the edges. Some towers blaze with rows of lit windows and a burning beacon on the roof, and the others stand almost black against the sky with a single red aircraft light at the crown. Stylised 2D game art, flat graphic shapes, deep indigo sky, cyan and warm amber window light, faint haze along the waterline. A lit sign band crosses the lower floors of every tower."
+		},
+		{
+			"id": "01",
+			"theme": "aquarium",
+			"kind": "concept",
+			"size": "16:9",
+			"spec": "docs/images/concepts/aquarium/01.spec.md",
+			"prompt": "A planted reef tank seen straight through the glass, eight rounded rocks resting on pale sand along the floor, four in the near row and four set back, each rock carrying its own anemone. Some anemones are open wide in vivid orange and violet with a small striped fish swimming above them, and the others are drawn closed into pale knots with their fish tucked down against the rock. Stylised 2D game art with soft cel shading, deep teal water and a shaft of cool light from above, fine drifting bubbles. A small brass plate is fixed to the glass beneath every rock."
+		},
+		{
+			"id": "01",
+			"theme": "isometric-office",
+			"kind": "concept",
+			"size": "16:9",
+			"spec": "docs/images/concepts/isometric-office/01.spec.md",
+			"prompt": "An isometric cutaway of one open-plan office floor, eight desk pods on a regular diagonal grid, four pods along the near aisle and four along the far aisle, with clear walkways between them. Some pods have a glowing monitor, a lit desk lamp, and a small figure typing in the chair, and the others have a black monitor, an unlit lamp, and a chair pushed neatly in. Clean stylised 2D game art, flat isometric projection, muted grey-green carpet and pale wood desks, one cool blue accent from the screens, soft even ambient light. A small nameplate stands on each desk divider."
+		}
+	]
+}

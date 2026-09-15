@@ -1,0 +1,12 @@
+The image is seen from a raised three-quarter viewpoint looking down across a village from the near left toward hills at the left and bare trees at the right. Snow covers the ground, the roofs, and the distant slopes, and a frozen grey pond sits in the middle of the yard. Ten distinct timber houses with steep snow-laden roofs occupy the main cluster: five stand in a connected row along the lower left and centre, and five stand further back around the pond, with more small houses on the hills beyond. White snow, brown wood, a pale tan sky, grey-blue ice, brick-red chimneys, green shutters, and orange fire dominate the picture. Daylight is even and overcast, and orange fire glows in an open doorway at the left, in a round hearth to the right, and in a small opening among the centre houses, while grey smoke rises from several chimneys. Wooden hanging signs on the front row show a boot, a horseshoe, an anvil, and a pitcher. Houses that look active show orange fire in their openings, smoke at the chimneys, and people at the doors; houses that look dormant show dark unlit openings and no fire or smoke.
+
+--- checked against 01.spec.md ---
+pass require village | hamlet | town | settlement
+FAIL require eight | 8
+pass require cottage | cottages | house | houses | building | buildings | hut | huts
+pass require smoke | chimney | chimneys
+pass require snow | winter | frozen | frost
+pass require figure | figures | people | person | villager | villagers
+pass forbid photograph
+pass forbid photorealistic
+verdict fail

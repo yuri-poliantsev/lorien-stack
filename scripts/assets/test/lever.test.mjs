@@ -7,7 +7,7 @@ import sharp from "sharp";
 import { defaultOutDir, wrapperPrompt } from "../lib/gen.mjs";
 import { lastPathLike, looksLikeAuthFailure } from "../lib/grok.mjs";
 import { describeHeader, readImageHeader } from "../lib/header.mjs";
-import { diffAgainstSpec, parseSpec } from "../lib/readback.mjs";
+import { diffAgainstSpec, mentions, parseSpec } from "../lib/readback.mjs";
 import { aspectRatio, parseRequests } from "../lib/shape.mjs";
 
 const REQUEST = {
@@ -126,6 +126,27 @@ test("parseSpec collects require groups and forbid terms", () => {
 	const empty = path.join(dir, "empty.spec.md");
 	writeFileSync(empty, "# Spec\nno checks here\n");
 	assert.throws(() => parseSpec(empty), /no "- require:" lines/);
+});
+
+test("mentions matches whole terms, so a count check cannot pass on a substring", () => {
+	assert.equal(mentions("Six platforms at staggered heights.", "eight"), false);
+	assert.equal(mentions("Eight platforms in the canopy.", "eight"), true);
+	assert.equal(mentions("A grid of 8 cards.", "8"), true);
+	assert.equal(mentions("Rendered at 1080p.", "8"), false);
+	assert.equal(mentions("Eighteen platforms.", "eight"), false, "a count term does not match a longer number word");
+	assert.equal(mentions("A near-black surface.", "near-black"), true);
+	assert.equal(
+		mentions("Seen from a raised three-quarter viewpoint.", "three-quarter view"),
+		false,
+		"the trailing boundary is strict, so specs must name the stem",
+	);
+	assert.equal(mentions("Seen from a raised three-quarter viewpoint.", "three-quarter"), true);
+});
+
+test("diffAgainstSpec fails a count check when the describer counts something else", () => {
+	const spec = { require: [["eight", "8"]], forbid: [] };
+	assert.equal(diffAgainstSpec("Ten distinct timber houses at staggered heights.", spec).verdict, "fail");
+	assert.equal(diffAgainstSpec("Eight distinct timber houses.", spec).verdict, "pass");
 });
 
 test("diffAgainstSpec passes a flat description and fails a hedged one", () => {

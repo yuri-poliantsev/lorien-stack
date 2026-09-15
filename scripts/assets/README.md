@@ -107,3 +107,10 @@ best of the three, or build the layer procedurally.
 `~/.grok/bin/grok login --device-auth` command, and exits 3 for that request without
 stopping the others in the batch. The script never reaches for Cursor's image tool; only
 the root coordinator has it.
+
+Read-back terms match as whole words, so a spec names the stem: `three-quarter`, not
+`three-quarter view`, because the describer writes "three-quarter viewpoint". The strict
+boundary is what stops `eight` from passing on "staggered heights" or "eighteen".
+
+`readback --offline` re-runs the spec diff against the saved description without spending
+a call, which is how a tightened spec gets re-applied to frames that already exist.

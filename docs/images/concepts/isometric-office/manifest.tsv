@@ -1,0 +1,2 @@
+id	theme	kind	path	sha256	promptPath	source	attempts	readback	verdict
+01	isometric-office	concept	docs/images/concepts/isometric-office/01.jpg	f83d84ad28a8fdc7fd17ae3769d75595f83da6e6ca40c577eb98697071ed966a	docs/images/concepts/isometric-office/01.prompt.txt	grok	1		unread
