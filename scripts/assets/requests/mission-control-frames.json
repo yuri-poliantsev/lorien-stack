@@ -1,0 +1,52 @@
+{
+	"requests": [
+		{
+			"id": "02",
+			"theme": "mission-control",
+			"kind": "concept",
+			"size": "16:9",
+			"spec": "docs/images/concepts/mission-control/02.spec.md",
+			"prompt": "A dark editorial dashboard filling the frame. Across the top runs a wide strip carrying three very large numerals side by side with a small word beneath each, and a fourth smaller figure at its right end. Below the strip sit eight rectangular cards on a near-black surface, four across the upper row and four across the lower row, with generous gutters between them; four cards carry a bright amber bar down the left edge and a small rising line inside, and the other four are thin grey outlines with one dot in the corner. Modern print-design digital interface, flat vector rendering, confident sans-serif display type in the strip and small monospace rows in the cards, restrained palette of near-black, warm grey and a single amber accent, even soft light."
+		},
+		{
+			"id": "03",
+			"theme": "mission-control",
+			"kind": "concept",
+			"size": "16:9",
+			"spec": "docs/images/concepts/mission-control/03.spec.md",
+			"prompt": "A dark editorial dashboard filling the frame, eight rectangular cards on a near-black surface, four across the upper row and four across the lower row with generous even gutters, every single card reduced to a thin cool grey outline with one small grey dot in its top corner and a short pale name in its upper left. No card has an accent bar, a chart, or any colour in it, and the whole frame is calm, spacious and deliberate rather than empty or broken. Modern print-design digital interface, flat vector rendering, restrained palette of near-black and two greys with no warm accent anywhere, even soft light, a narrow left rail of small pale names."
+		},
+		{
+			"id": "04",
+			"theme": "mission-control",
+			"kind": "concept",
+			"size": "16:9",
+			"spec": "docs/images/concepts/mission-control/04.spec.md",
+			"prompt": "A dark editorial dashboard filling the frame, eight rectangular cards on a near-black surface, four across the upper row and four across the lower row. Each card is dominated by one enormous numeral set in a heavy sans-serif that nearly fills it, with a short name in small type above it and one thin horizontal activity bar beneath. Four cards have a bright white numeral and a warm amber bar, and the other four have a deep grey numeral and no bar at all. There are no line charts, graphs or plotted curves anywhere in the frame. Modern print-design digital interface, flat vector rendering, restrained palette of near-black, warm grey and a single amber accent, even soft light."
+		},
+		{
+			"id": "05",
+			"theme": "mission-control",
+			"kind": "concept",
+			"size": "16:9",
+			"spec": "docs/images/concepts/mission-control/05.spec.md",
+			"prompt": "A dark editorial dashboard filling the frame, with a tall drawer occupying the right third and a card grid filling the rest. The drawer holds a long vertical tape of narrow rows, each row a single line of small monospace text with a short word at the left, a longer path in the middle and a time at the right. To its left sit eight rectangular cards on the same near-black surface, four across the upper row and four across the lower row; four cards carry a bright amber bar down the left edge and the other four are thin grey outlines with one dot. Modern print-design digital interface, flat vector rendering, restrained palette of near-black, warm grey and a single amber accent, even soft light."
+		},
+		{
+			"id": "06",
+			"theme": "mission-control",
+			"kind": "concept",
+			"size": "16:9",
+			"spec": "docs/images/concepts/mission-control/06.spec.md",
+			"prompt": "A dark editorial dashboard filling the frame, built as eight full-width horizontal rows stacked from top to bottom on a near-black surface with generous space between them. Each row carries a short name set large in a confident sans-serif at the left and a thin flat activity line at the right. Four of the rows have a bright amber bar running down their extreme left edge, and the other four have a deep grey edge and a faint flat line, so the amber bars read as a single broken column of colour down the left side of the frame. There is no grid of cards anywhere. Modern print-design digital interface, flat vector rendering, restrained palette of near-black, warm grey and a single amber accent, even soft light."
+		},
+		{
+			"id": "07",
+			"theme": "mission-control",
+			"kind": "concept",
+			"size": "16:9",
+			"spec": "docs/images/concepts/mission-control/07.spec.md",
+			"prompt": "A dark editorial dashboard application window filling the frame, in three clear horizontal bands. A slim header runs across the very top with a small wordmark at the left, a compact segmented control of three short labelled buttons in the centre, and two small round buttons at the right. Beneath it a thin strip shows three large numerals with small words under them. The rest of the frame is a card grid of eight rectangular cards, four across the upper row and four across the lower row, with a narrow left rail listing eight short names; four cards carry a bright amber bar down the left edge and the other four are thin grey outlines with one dot. Modern print-design digital interface, flat vector rendering, restrained palette of near-black, warm grey and a single amber accent, even soft light."
+		}
+	]
+}

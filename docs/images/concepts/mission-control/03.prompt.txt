@@ -1,0 +1,15 @@
+A dark editorial dashboard filling the frame, eight rectangular cards on a near-black surface, four across the upper row and four across the lower row with generous even gutters, every single card reduced to a thin cool grey outline with one small grey dot in its top corner and a short pale name in its upper left. No card has an accent bar, a chart, or any colour in it, and the whole frame is calm, spacious and deliberate rather than empty or broken. Modern print-design digital interface, flat vector rendering, restrained palette of near-black and two greys with no warm accent anywhere, even soft light, a narrow left rail of small pale names.
+
+--- wrapper handed to /Users/iuriipoliantsev/.grok/bin/grok ---
+Produce exactly one image file and stop.
+
+Step 1. Call image_gen exactly once. Pass aspect_ratio "16:9". Pass this prompt text verbatim, with no additions, no rewording, and no style notes of your own:
+<<<PROMPT
+A dark editorial dashboard filling the frame, eight rectangular cards on a near-black surface, four across the upper row and four across the lower row with generous even gutters, every single card reduced to a thin cool grey outline with one small grey dot in its top corner and a short pale name in its upper left. No card has an accent bar, a chart, or any colour in it, and the whole frame is calm, spacious and deliberate rather than empty or broken. Modern print-design digital interface, flat vector rendering, restrained palette of near-black and two greys with no warm accent anywhere, even soft light, a narrow left rail of small pale names.
+PROMPT
+
+Step 2. Copy the resulting image to exactly this absolute path, creating parent directories if they are missing: /Users/iuriipoliantsev/Documents/projects/lorien-worktrees/05a-asset-lever/docs/images/concepts/mission-control/03.jpg
+
+Step 3. Print that absolute path as your entire final message. No prose, no markdown, no code fences, no trailing text.
+
+Hard rules. Exactly one image call, and no second attempt even if the result looks wrong. Do not call image_edit if you called image_gen, or image_gen if you called image_edit. Do not write, move, or delete any file outside /Users/iuriipoliantsev/Documents/projects/lorien-worktrees/05a-asset-lever/docs/images/concepts/mission-control. Do not run git. Do not ask questions.

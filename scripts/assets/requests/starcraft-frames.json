@@ -1,0 +1,52 @@
+{
+	"requests": [
+		{
+			"id": "01",
+			"theme": "starcraft",
+			"kind": "concept",
+			"size": "16:9",
+			"spec": "docs/images/concepts/starcraft/01.spec.md",
+			"prompt": "An isometric view of a small science-fiction industrial outpost on dusty ochre rock, eight prefabricated buildings each standing on its own flat plot with bare ground between the plots, four plots along the near diagonal and four along the far diagonal. Four buildings glow warm amber from their windows and doorways with a stocky worker robot standing at each one holding a tool, and the other four sit dark and shuttered with a single small red beacon blinking on the roof. Clean stylised 2D game art with crisp cel shading, original industrial design of ribbed panels and blunt shapes, muted ochre and steel palette, warm amber light against cool shadow. A small lit plate is fixed to the front face of every building."
+		},
+		{
+			"id": "02",
+			"theme": "starcraft",
+			"kind": "concept",
+			"size": "16:9",
+			"spec": "docs/images/concepts/starcraft/02.spec.md",
+			"prompt": "An isometric view of a small science-fiction industrial outpost at night, eight prefabricated buildings each on its own flat plot, four along the near diagonal and four along the far diagonal, every single building dark and shuttered with its windows unlit. One small red beacon burns on each roof, eight beacons in all, and the front plate of each building is faintly lit. The buildings are plainly intact and maintained, standing on swept plots with no damage anywhere. Clean stylised 2D game art with crisp cel shading, original industrial design of ribbed panels and blunt shapes, deep blue-grey night palette, red beacons the only strong colour."
+		},
+		{
+			"id": "03",
+			"theme": "starcraft",
+			"kind": "concept",
+			"size": "16:9",
+			"spec": "docs/images/concepts/starcraft/03.spec.md",
+			"prompt": "A close isometric view of eight prefabricated science-fiction buildings arranged in two rows of four on dusty ochre rock, the camera near enough that each building fills a good share of the frame. Four buildings glow warm amber inside and have a stocky worker robot standing right at the doorway in a clear working pose, bent over a crate or holding a welding tool, and the other four are dark and shuttered with a single red roof beacon and no robot anywhere near them. Clean stylised 2D game art with crisp cel shading, original industrial design of ribbed panels and blunt shapes, muted ochre and steel palette, strong warm amber pools of light on the ground."
+		},
+		{
+			"id": "04",
+			"theme": "starcraft",
+			"kind": "concept",
+			"size": "16:9",
+			"spec": "docs/images/concepts/starcraft/04.spec.md",
+			"prompt": "An isometric view of a small science-fiction industrial outpost on a pale blue ice shelf under a cold white sky, eight prefabricated buildings each on its own cleared plot, four along the near diagonal and four along the far diagonal. Four buildings pour warm amber light from their windows onto the ice with a stocky worker robot at each, and the other four sit dark with a single red roof beacon. Clean stylised 2D game art with crisp cel shading, original industrial design of ribbed panels and blunt shapes, icy blue and white palette with drifting snow, warm amber interiors reading strongly against the cold ground."
+		},
+		{
+			"id": "05",
+			"theme": "starcraft",
+			"kind": "concept",
+			"size": "16:9",
+			"spec": "docs/images/concepts/starcraft/05.spec.md",
+			"prompt": "An isometric view of eight prefabricated science-fiction buildings on dusty ochre rock, four along the near diagonal and four along the far diagonal, each building carrying a large lit plate across its front face with a short name on the upper line and a shorter status word on the line below, all plates clearly readable. Four buildings glow warm amber inside with a stocky worker robot at the door, and the other four are dark and shuttered with a single red roof beacon while their plates stay faintly lit. Clean stylised 2D game art with crisp cel shading, original industrial design of ribbed panels and blunt shapes, muted ochre and steel palette."
+		},
+		{
+			"id": "06",
+			"theme": "starcraft",
+			"kind": "concept",
+			"size": "16:9",
+			"spec": "docs/images/concepts/starcraft/06.spec.md",
+			"prompt": "A wide isometric view of a science-fiction outpost spread across dusty ochre rock, showing a large field of flat cleared plots, most of them plainly bare and empty with only paint markings and anchor bolts on the ground. Eight prefabricated buildings stand on eight of those plots, scattered rather than lined up, four of them glowing warm amber with a stocky worker robot alongside and four of them dark with a single red roof beacon. Clean stylised 2D game art with crisp cel shading, original industrial design of ribbed panels and blunt shapes, muted ochre and steel palette, low sun raking across the empty ground."
+		}
+	]
+}

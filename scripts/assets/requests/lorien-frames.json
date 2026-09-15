@@ -1,0 +1,52 @@
+{
+	"requests": [
+		{
+			"id": "02",
+			"theme": "lorien",
+			"kind": "concept",
+			"size": "16:9",
+			"spec": "docs/images/concepts/lorien/02.spec.md",
+			"prompt": "A flat side elevation of a forest of colossal silver-barked mallorn trees at dusk, with two long horizontal branches crossing the frame and eight wooden elven platforms built onto them, four evenly spaced along the high branch and four evenly spaced along the low branch, none overlapping. Four of the platforms burn with warm gold lantern light where a slender robed figure stands at a writing stand, and the other four sit dark and unlit with a single pale firefly spark at the rail. Painterly stylised 2D game art seen straight on from the side with no perspective foreshortening, deep teal and violet dusk sky filling the gaps between trunks, warm gold accents. A small carved wooden sign hangs beneath every platform."
+		},
+		{
+			"id": "03",
+			"theme": "lorien",
+			"kind": "concept",
+			"size": "16:9",
+			"spec": "docs/images/concepts/lorien/03.spec.md",
+			"prompt": "A side elevation of a mallorn forest at dusk built in three clear depth layers, pale mist separating each layer from the next. Eight wooden elven platforms sit on branches, five on the crisp near layer and three on the softer middle layer, while the far layer is only trunks fading into mist with no platforms on it. Half the platforms glow with warm gold lantern light and a robed figure at a writing stand, and the rest are dark with one pale firefly spark at the rail. Painterly stylised 2D game art with strong atmospheric perspective, deep teal and violet sky, warm gold accents against cool mist."
+		},
+		{
+			"id": "04",
+			"theme": "lorien",
+			"kind": "concept",
+			"size": "16:9",
+			"spec": "docs/images/concepts/lorien/04.spec.md",
+			"prompt": "A flat side elevation of a mallorn forest deep in the night, with eight wooden elven platforms on two long branches, four along the high branch and four along the low branch, every single lantern out and every platform dark. Each dark platform is marked by one pale firefly spark hovering at its rail, and a small carved wooden sign hangs beneath it catching the faintest starlight. The platforms read as clear silhouettes against a deep indigo star-flecked sky, no figures standing on any of them. Painterly stylised 2D game art, near-monochrome indigo and silver palette, cool moonlight from above, warm sparks the only points of warmth."
+		},
+		{
+			"id": "05",
+			"theme": "lorien",
+			"kind": "concept",
+			"size": "16:9",
+			"spec": "docs/images/concepts/lorien/05.spec.md",
+			"prompt": "A flat side elevation of a mallorn forest in clear early morning light, with eight wooden elven platforms on two long branches, four along the high branch and four along the low branch. Four platforms have a lantern burning bright gold with a robed figure standing at a writing stand, and the other four have dark unlit lanterns and shuttered stands, still plainly visible in the daylight. Painterly stylised 2D game art, pale gold and fresh green palette against a bright washed sky, long low sunbeams cutting between the trunks, crisp shadows on the planks. A small carved wooden sign hangs beneath every platform."
+		},
+		{
+			"id": "06",
+			"theme": "lorien",
+			"kind": "concept",
+			"size": "16:9",
+			"spec": "docs/images/concepts/lorien/06.spec.md",
+			"prompt": "Looking straight down from above onto the crown of one colossal mallorn tree, its branches fanning outward across the whole frame like the spokes of a wheel, with eight round wooden elven platforms built along them, one platform per branch and clear open canopy between each. Four platforms glow with warm gold lantern light and hold a small robed figure seen from above, and the other four are dark with a single pale firefly spark at the rim. Painterly stylised 2D game art, top-down orthographic view, deep green and silver canopy filling the background, warm gold accents. Empty leaf space beside every platform leaves room for a name."
+		},
+		{
+			"id": "07",
+			"theme": "lorien",
+			"kind": "concept",
+			"size": "16:9",
+			"spec": "docs/images/concepts/lorien/07.spec.md",
+			"prompt": "A close side elevation of four wooden elven platforms in the near branches and four more just behind them, at dusk, the camera near enough that the large carved wooden signs hanging beneath each platform dominate their share of the frame, each sign carrying a short name on its upper line and a shorter status word on the line below. Four platforms burn with warm gold lantern light and a robed figure at a writing stand, and the other four are dark with a firefly spark at the rail, their signs still catching enough light to be read. Painterly stylised 2D game art, warm gold on deep teal and violet, shallow depth with soft trunks behind."
+		}
+	]
+}

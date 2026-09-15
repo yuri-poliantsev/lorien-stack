@@ -7,6 +7,7 @@ import sharp from "sharp";
 import { defaultOutDir, wrapperPrompt } from "../lib/gen.mjs";
 import { lastPathLike, looksLikeAuthFailure } from "../lib/grok.mjs";
 import { describeHeader, readImageHeader } from "../lib/header.mjs";
+import { authoritativeRows } from "../lib/ledger.mjs";
 import { diffAgainstSpec, mentions, parseSpec } from "../lib/readback.mjs";
 import { aspectRatio, parseRequests } from "../lib/shape.mjs";
 
@@ -126,6 +127,24 @@ test("parseSpec collects require groups and forbid terms", () => {
 	const empty = path.join(dir, "empty.spec.md");
 	writeFileSync(empty, "# Spec\nno checks here\n");
 	assert.throws(() => parseSpec(empty), /no "- require:" lines/);
+});
+
+test("authoritativeRows keeps the newest row per theme and id and marks the rest superseded", () => {
+	const rows = [
+		{ theme: "lorien", id: "01", sha256: "a" },
+		{ theme: "starcraft", id: "01", sha256: "b" },
+		{ theme: "lorien", id: "01", sha256: "c" },
+		{ theme: "lorien", id: "02", sha256: "d" },
+	];
+	assert.deepEqual(
+		authoritativeRows(rows).map((entry) => [entry.row.theme, entry.row.id, entry.row.sha256, entry.superseded]),
+		[
+			["lorien", "01", "a", true],
+			["starcraft", "01", "b", false],
+			["lorien", "01", "c", false],
+			["lorien", "02", "d", false],
+		],
+	);
 });
 
 test("mentions matches whole terms, so a count check cannot pass on a substring", () => {

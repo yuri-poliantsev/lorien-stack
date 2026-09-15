@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { appendFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { CALL_COLUMNS, MANIFEST_COLUMNS, validateManifestRow } from "./shape.mjs";
@@ -76,6 +76,33 @@ export function logManifest(row, outDir) {
 	appendRow(ROOT_MANIFEST, MANIFEST_COLUMNS, checked);
 	if (outDir) appendRow(path.join(outDir, "manifest.tsv"), MANIFEST_COLUMNS, checked);
 	return checked;
+}
+
+// The manifest is append-only, so an id that was generated again keeps its old
+// rows. Only the newest row per theme and id still describes a file on disk.
+export function authoritativeRows(rows = readManifest()) {
+	const newest = new Map();
+	for (const [index, row] of rows.entries()) newest.set(`${row.theme}\t${row.id}`, index);
+	return rows.map((row, index) => ({ row, superseded: newest.get(`${row.theme}\t${row.id}`) !== index }));
+}
+
+export const LOCK_PATH = path.join(ASSETS_DIR, ".gen.lock");
+
+// Two concurrent gen runs would both spend from a shared cap and overwrite each
+// other's outputs, which is how six duplicate frames got generated once already.
+export function takeLock() {
+	mkdirSync(ASSETS_DIR, { recursive: true });
+	try {
+		writeFileSync(LOCK_PATH, `${String(process.pid)} ${new Date().toISOString()}\n`, { flag: "wx" });
+	} catch (error) {
+		if (error.code !== "EEXIST") throw error;
+		throw new Error(
+			`another assets gen run holds ${repoRelative(LOCK_PATH)} (${readFileSync(LOCK_PATH, "utf8").trim()}); delete it if that run is gone`,
+		);
+	}
+	return () => {
+		rmSync(LOCK_PATH, { force: true });
+	};
 }
 
 export function sha256(file) {

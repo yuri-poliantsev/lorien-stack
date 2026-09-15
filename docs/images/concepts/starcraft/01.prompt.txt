@@ -1,0 +1,15 @@
+An isometric view of a small science-fiction industrial outpost on dusty ochre rock, eight prefabricated buildings each standing on its own flat plot with bare ground between the plots, four plots along the near diagonal and four along the far diagonal. Four buildings glow warm amber from their windows and doorways with a stocky worker robot standing at each one holding a tool, and the other four sit dark and shuttered with a single small red beacon blinking on the roof. Clean stylised 2D game art with crisp cel shading, original industrial design of ribbed panels and blunt shapes, muted ochre and steel palette, warm amber light against cool shadow. A small lit plate is fixed to the front face of every building.
+
+--- wrapper handed to /Users/iuriipoliantsev/.grok/bin/grok ---
+Produce exactly one image file and stop.
+
+Step 1. Call image_gen exactly once. Pass aspect_ratio "16:9". Pass this prompt text verbatim, with no additions, no rewording, and no style notes of your own:
+<<<PROMPT
+An isometric view of a small science-fiction industrial outpost on dusty ochre rock, eight prefabricated buildings each standing on its own flat plot with bare ground between the plots, four plots along the near diagonal and four along the far diagonal. Four buildings glow warm amber from their windows and doorways with a stocky worker robot standing at each one holding a tool, and the other four sit dark and shuttered with a single small red beacon blinking on the roof. Clean stylised 2D game art with crisp cel shading, original industrial design of ribbed panels and blunt shapes, muted ochre and steel palette, warm amber light against cool shadow. A small lit plate is fixed to the front face of every building.
+PROMPT
+
+Step 2. Copy the resulting image to exactly this absolute path, creating parent directories if they are missing: /Users/iuriipoliantsev/Documents/projects/lorien-worktrees/05a-asset-lever/docs/images/concepts/starcraft/01.jpg
+
+Step 3. Print that absolute path as your entire final message. No prose, no markdown, no code fences, no trailing text.
+
+Hard rules. Exactly one image call, and no second attempt even if the result looks wrong. Do not call image_edit if you called image_gen, or image_gen if you called image_edit. Do not write, move, or delete any file outside /Users/iuriipoliantsev/Documents/projects/lorien-worktrees/05a-asset-lever/docs/images/concepts/starcraft. Do not run git. Do not ask questions.

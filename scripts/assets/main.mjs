@@ -8,9 +8,11 @@ import {
 	NIGHT_CAP_CALLS,
 	NIGHT_CAP_IMAGES,
 	REPO_ROOT,
+	authoritativeRows,
 	capLine,
 	readManifest,
 	sha256,
+	takeLock,
 	totals,
 } from "./lib/ledger.mjs";
 import { readback } from "./lib/readback.mjs";
@@ -72,6 +74,15 @@ async function cmdGen() {
 	const requests = parseRequests(JSON.parse(readFileSync(file, "utf8")), path.basename(file));
 	const parallel = Math.min(4, Number(flags.parallel ?? 3));
 	process.stdout.write(`assets gen: ${String(requests.length)} requests, ${String(parallel)} in parallel, ${capLine()}\n`);
+	const releaseLock = flags["dry-run"] === true ? () => {} : takeLock();
+	try {
+		await runBatch(requests, parallel);
+	} finally {
+		releaseLock();
+	}
+}
+
+async function runBatch(requests, parallel) {
 	const outcomes = await pool(requests, parallel, async (request) => {
 		const outDir = typeof flags["out-dir"] === "string" ? resolve(flags["out-dir"]) : defaultOutDir(request);
 		try {
@@ -149,21 +160,27 @@ function cmdLedger() {
 	);
 	if (flags.verify !== true) return;
 	let bad = 0;
-	for (const row of rows) {
-		if (row.path.length === 0) continue;
-		const absolute = path.join(REPO_ROOT, row.path);
+	let superseded = 0;
+	for (const entry of authoritativeRows(rows)) {
+		if (entry.row.path.length === 0) continue;
+		if (entry.superseded) {
+			superseded += 1;
+			continue;
+		}
+		const absolute = path.join(REPO_ROOT, entry.row.path);
 		try {
-			const actual = sha256(absolute);
 			const header = readImageHeader(absolute);
-			const ok = actual === row.sha256;
+			const ok = sha256(absolute) === entry.row.sha256;
 			if (!ok) bad += 1;
-			process.stdout.write(`  ${ok ? "ok" : "MISMATCH"} ${row.path} ${describeHeader(header)}\n`);
+			process.stdout.write(`  ${ok ? "ok" : "MISMATCH"} ${entry.row.path} ${describeHeader(header)}\n`);
 		} catch (error) {
 			bad += 1;
-			process.stdout.write(`  MISSING ${row.path} ${error.message}\n`);
+			process.stdout.write(`  MISSING ${entry.row.path} ${error.message}\n`);
 		}
 	}
-	process.stdout.write(`assets ledger: ${String(bad)} bad rows\n`);
+	process.stdout.write(
+		`assets ledger: ${String(bad)} bad rows, ${String(superseded)} superseded rows skipped\n`,
+	);
 	if (bad > 0) process.exitCode = 1;
 }
 

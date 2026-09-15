@@ -1,0 +1,7 @@
+id	theme	kind	path	sha256	promptPath	source	attempts	readback	verdict
+02	starcraft	concept	docs/images/concepts/starcraft/02.jpg	8742e3f557825149d0eb586f8346c2062bb7f550c80579f8a34bf7869c224898	docs/images/concepts/starcraft/02.prompt.txt	grok	1		unread
+04	starcraft	concept	docs/images/concepts/starcraft/04.jpg	2e502d4740132e8d2120e9609eeac02a1af0d90d4227b9adafc02607ec4610c5	docs/images/concepts/starcraft/04.prompt.txt	grok	1		unread
+01	starcraft	concept	docs/images/concepts/starcraft/01.jpg	dbed099ec5d83851680a3364607aee733ccb975a242f8904ced573124ecbd0e5	docs/images/concepts/starcraft/01.prompt.txt	grok	1		unread
+03	starcraft	concept	docs/images/concepts/starcraft/03.jpg	2476eff62e67206c7727f60e63ef4d1643e01b065720ab541560fd525687f069	docs/images/concepts/starcraft/03.prompt.txt	grok	1		unread
+05	starcraft	concept	docs/images/concepts/starcraft/05.jpg	413826376c33d59db9db7d3d68bcd409ee037c7ce731322e0e9e1f85acc94f79	docs/images/concepts/starcraft/05.prompt.txt	grok	1		unread
+06	starcraft	concept	docs/images/concepts/starcraft/06.jpg	29aee01418c54c85ca6e19f0e493947eee7792747f4fe4b1195f18fbaf64213b	docs/images/concepts/starcraft/06.prompt.txt	grok	1		unread

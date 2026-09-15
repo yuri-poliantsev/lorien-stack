@@ -3,3 +3,4 @@ node_modules/
 *.tsbuildinfo
 decisions.tsv
 .audit/
+scripts/assets/.gen.lock
