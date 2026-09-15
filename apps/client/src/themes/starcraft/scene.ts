@@ -20,10 +20,11 @@ export type StarCraftRenderInput = {
 
 export type StarCraftHandle = {
   render: (input: StarCraftRenderInput) => void;
+  unmount: () => void;
 };
 
 const STYLE = `
-[data-theme="starcraft"] {
+.theme-host[data-theme="starcraft"] {
   position: relative;
   padding: 0 !important;
   flex: 1 1 auto;
@@ -33,19 +34,19 @@ const STYLE = `
   background: #070a06;
   overflow: hidden;
 }
-[data-theme="starcraft"] canvas[data-testid="starcraft-canvas"] {
+.theme-host[data-theme="starcraft"] canvas[data-testid="starcraft-canvas"] {
   display: block;
   width: 100%;
   height: 100%;
   min-height: 0;
   cursor: pointer;
 }
-[data-theme="starcraft"] .sc-hits {
+.theme-host[data-theme="starcraft"] .sc-hits {
   position: absolute;
   inset: 0;
   pointer-events: none;
 }
-[data-theme="starcraft"] .sc-hit {
+.theme-host[data-theme="starcraft"] .sc-hit {
   position: absolute;
   pointer-events: auto;
   border: 0;
@@ -313,7 +314,7 @@ export function mountStarCraftTheme(
     }
   }
 
-  canvas.addEventListener("click", (event) => {
+  function onCanvasClick(event: MouseEvent): void {
     const rect = canvas.getBoundingClientRect();
     const cssW = Math.max(1, rect.width);
     const cssH = Math.max(1, rect.height);
@@ -348,9 +349,10 @@ export function mountStarCraftTheme(
       localSelected = best.botId;
       input.onSelect?.(best.botId);
     }
-  });
+  }
+  canvas.addEventListener("click", onCanvasClick);
 
-  root.addEventListener("sc-stale-probe", () => {
+  function onStaleProbe(): void {
     const parsed = parseBotId("00000000-0000-4000-8000-000000000099");
     if (!parsed.ok) {
       root.dataset.staleSafe = "true";
@@ -363,13 +365,19 @@ export function mountStarCraftTheme(
     };
     root.dataset.staleProbe = "true";
     paint();
-  });
-
-  function loop(): void {
-    paint();
-    window.requestAnimationFrame(loop);
   }
-  window.requestAnimationFrame(loop);
+  root.addEventListener("sc-stale-probe", onStaleProbe);
+
+  let raf = 0;
+  let alive = true;
+  function loop(): void {
+    if (!alive) {
+      return;
+    }
+    paint();
+    raf = window.requestAnimationFrame(loop);
+  }
+  raf = window.requestAnimationFrame(loop);
 
   return {
     render(next) {
@@ -384,6 +392,29 @@ export function mountStarCraftTheme(
         }
       }
       paint();
+    },
+    unmount() {
+      alive = false;
+      window.cancelAnimationFrame(raf);
+      canvas.removeEventListener("click", onCanvasClick);
+      root.removeEventListener("sc-stale-probe", onStaleProbe);
+      canvas.remove();
+      hits.remove();
+      for (const el of unitHits.values()) {
+        el.remove();
+      }
+      for (const el of buildingHits.values()) {
+        el.remove();
+      }
+      unitHits.clear();
+      buildingHits.clear();
+      delete root.dataset.theme;
+      delete root.dataset.themeHost;
+      delete root.dataset.themeDefault;
+      delete root.dataset.unitCount;
+      delete root.dataset.staleSafe;
+      delete root.dataset.staleProbe;
+      delete root.dataset.avgFrameMs;
     },
   };
 }
