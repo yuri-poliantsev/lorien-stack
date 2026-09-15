@@ -322,7 +322,7 @@ export async function runReplay(input: {
         signal: input.signal,
         sleep,
         onSleep: input.onSleep,
-        onAppend: input.onAppend,
+        ...(input.onAppend !== undefined ? { onAppend: input.onAppend } : {}),
       }),
     ),
   );
