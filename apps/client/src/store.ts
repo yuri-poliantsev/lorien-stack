@@ -112,7 +112,3 @@ export function selectBot(store: ClientStore, botId: BotId): void {
   }
   store.selectedBotId = botId;
 }
-
-export function isPromptEnabled(selectedBotId: BotId | undefined): boolean {
-  return selectedBotId !== undefined;
-}

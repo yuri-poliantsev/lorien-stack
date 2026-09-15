@@ -8,15 +8,8 @@ import {
 import { mountThemeHost } from "./themeHost.ts";
 import { mountActivityPanel } from "./ui/activityPanel.ts";
 import { mountBotList } from "./ui/botList.ts";
-import { mountPromptBar, type WakeStatus } from "./ui/promptBar.ts";
 import { connectGateway, gatewayWsUrl } from "./ws.ts";
 import "./styles.css";
-
-const token =
-  import.meta.env.VITE_GATEWAY_TOKEN === undefined ||
-  import.meta.env.VITE_GATEWAY_TOKEN.length === 0
-    ? "demo-token"
-    : import.meta.env.VITE_GATEWAY_TOKEN;
 
 const appNode = document.querySelector("#app");
 if (!(appNode instanceof HTMLElement)) {
@@ -31,41 +24,25 @@ themeEl.className = "theme-host";
 themeEl.id = "theme-mount";
 const activityEl = document.createElement("section");
 activityEl.className = "activity-panel";
-const promptEl = document.createElement("footer");
-promptEl.className = "prompt-bar";
-app.append(botListEl, themeEl, activityEl, promptEl);
+app.append(botListEl, themeEl, activityEl);
 
 const store = emptyStore();
-let wakeStatus: WakeStatus = { kind: "idle" };
 const paintOrigin = performance.now();
 let rosterPainted = false;
 
 const theme = mountThemeHost(themeEl, {
   onSelect(botId) {
     selectBot(store, botId);
-    wakeStatus = { kind: "idle" };
     render();
   },
 });
 const bots = mountBotList(botListEl, {
   onSelect(botId) {
     selectBot(store, botId);
-    wakeStatus = { kind: "idle" };
     render();
   },
 });
 const activity = mountActivityPanel(activityEl);
-const prompt = mountPromptBar(promptEl, {
-  token,
-  promptUrl: "/api/prompt",
-  selectedBotId() {
-    return store.selectedBotId;
-  },
-  onStatus(status) {
-    wakeStatus = status;
-    render();
-  },
-});
 
 function render(): void {
   const roster = rosterList(store);
@@ -81,10 +58,6 @@ function render(): void {
   activity.update({
     bot: selected,
     events: activityFor(store, store.selectedBotId),
-  });
-  prompt.update({
-    selectedBotId: store.selectedBotId,
-    status: wakeStatus,
   });
   theme.render({
     roster,

@@ -16,7 +16,6 @@ import {
   applyMessage,
   applySnapshot,
   emptyStore,
-  isPromptEnabled,
   rosterList,
   selectBot,
 } from "./store.ts";
@@ -138,23 +137,10 @@ describe("ws delta apply", () => {
   });
 });
 
-describe("prompt disabled state", () => {
-  it("stays disabled until a roster bot is selected", () => {
-    const store = emptyStore();
-    assert.equal(isPromptEnabled(store.selectedBotId), false);
-    applySnapshot(store, {
-      revision: 1,
-      snapshot: snapshotOf([lauren]),
-    });
-    assert.equal(isPromptEnabled(store.selectedBotId), false);
-    selectBot(store, lauren.id);
-    assert.equal(isPromptEnabled(store.selectedBotId), true);
-  });
-
+describe("selection", () => {
   it("does not select an unknown bot id", () => {
     const store = emptyStore();
     selectBot(store, lauren.id);
     assert.equal(store.selectedBotId, undefined);
-    assert.equal(isPromptEnabled(store.selectedBotId), false);
   });
 });

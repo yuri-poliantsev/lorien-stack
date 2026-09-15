@@ -4,7 +4,6 @@ export type BotId = string & { readonly __brand: "BotId" };
 export type SeatId = string & { readonly __brand: "SeatId" };
 export type EventId = string & { readonly __brand: "EventId" };
 export type IsoTimestamp = string & { readonly __brand: "IsoTimestamp" };
-export type WakePrompt = string & { readonly __brand: "WakePrompt" };
 
 export type SpatialAnchor =
   | { kind: "seat"; seatId: SeatId }
@@ -39,12 +38,6 @@ export type PresenceHint = {
   reason: string;
 };
 
-export type WakeRequest = {
-  schemaVersion: typeof CONTRACTS_SCHEMA_VERSION;
-  botId: BotId;
-  prompt: WakePrompt;
-};
-
 export type ParseResult<T> =
   | { ok: true; value: T }
   | { ok: false; error: string };
@@ -60,8 +53,6 @@ export const EXPORTED_TYPE_NAMES = [
   "RosterSnapshot",
   "SeatId",
   "SpatialAnchor",
-  "WakePrompt",
-  "WakeRequest",
 ] as const;
 
 const UUID_RE =
@@ -339,45 +330,6 @@ export function parseActivityJsonl(input: {
     events.push(event);
   }
   return events;
-}
-
-function parseWakePrompt(input: unknown): ParseResult<WakePrompt> {
-  if (typeof input !== "string") {
-    return fail("prompt must be a non-empty string");
-  }
-  const trimmed = input.trim();
-  if (trimmed.length === 0) {
-    return fail("prompt must be a non-empty string");
-  }
-  return { ok: true, value: trimmed as WakePrompt };
-}
-
-export function parseWakeRequest(input: unknown): ParseResult<WakeRequest> {
-  if (!isRecord(input)) {
-    return fail("wake request must be an object");
-  }
-  const botId = parseBotId(input.botId);
-  if (!botId.ok) {
-    return botId;
-  }
-  const prompt = parseWakePrompt(input.prompt);
-  if (!prompt.ok) {
-    return prompt;
-  }
-  if (
-    input.schemaVersion !== undefined &&
-    input.schemaVersion !== CONTRACTS_SCHEMA_VERSION
-  ) {
-    return fail("unsupported schemaVersion");
-  }
-  return {
-    ok: true,
-    value: {
-      schemaVersion: CONTRACTS_SCHEMA_VERSION,
-      botId: botId.value,
-      prompt: prompt.value,
-    },
-  };
 }
 
 export function presenceHintFromQuietClock(input: {
