@@ -14,7 +14,7 @@ Capture is the lever. `npm run capture` builds the client once, then for each N 
 
 Ports. Gateway binds the first free port in 8044-8049. Preview binds 5184-5189. Those ranges are this step's isolation from other owners.
 
-Playwright is pinned to 1.62.1 because that release's Chromium revision is 1234. 1.63.0 rolls to 1243. Headless launch still looks for `chromium_headless_shell-1234`, which is not cached, so capture passes `executablePath` to `~/Library/Caches/ms-playwright/chromium-1234/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing`.
+Playwright is pinned to 1.62.1 because that release's Chromium revision is 1234. 1.63.0 rolls to 1243. Capture resolves Chromium as `CAPTURE_CHROME` if set, else the mac cache path when that file exists, else Playwright's own installed browser. ffmpeg is `FFMPEG` if set, else `ffmpeg` on PATH, else `/opt/homebrew/bin/ffmpeg`. SIGINT and SIGTERM close the browser and kill every registered child.
 
 ## Data shape
 
@@ -49,7 +49,7 @@ I viewed every PNG with the Read tool after `npm run capture -- --theme starcraf
 - `starcraft-18.png` (132570 bytes). Roster lists clones (`Ivo 2`, `Ivo 3`, `Wren 2`). Units stack on the twelve stations. Ivo, Ivo 2, Ivo 3 show WORK. Clones are real bots, not a second paint of the originals.
 - `starcraft-40.png` (189603 bytes). Roster scrolls through Anouk 2-5, Ivo 2-5, Lauren 2-5. Nametags overlap. That is the 12-station layout crowding Q4 accepted for tonight. Units are present. Not empty.
 - `starcraft-8-asleep.png` (112204 bytes). Every roster row has a SLEEP badge. Every unit shows REST and a Z. `--replay-idle` produced the all-asleep still.
-- `starcraft-record.png` (594638 bytes) and `starcraft.mp4` (2200781 bytes). Frame at 8s of the N=18 recording. Mix of WORK, IDLE, and SLEEP. Ivo, Ivo 2, Ivo 3, Wren have SLEEP badges. Several units are WORKING. This is the product frame Q25 asked for.
+- `starcraft.mp4` (2200781 bytes). Twenty seconds of the N=18 recording. Mix of WORK, IDLE, and SLEEP. The extracted `starcraft-record.png` still is not committed. It was a second N=18 frame next to `starcraft-18.png`.
 
 `html[data-theme]` was absent, as expected until step 2. `document.documentElement.dataset.avgFrameMs` was absent, as expected until step 3. Manifest printed `avgFrameMs=n/a`. Canvas still had `data-avg-frame-ms` from the current StarCraft loop.
 
@@ -61,7 +61,7 @@ Appending clone transcripts onto the original timeline with no stagger. Forty cl
 
 Pinning Playwright 1.63.0. That release rolls Chromium to 1243. The machine has 1234.
 
-Letting Playwright's default headless shell download. The cache already has Chromium 1234. Capture points at that binary.
+Hardcoding only the laptop Homebrew ffmpeg path and the mac Playwright cache. Cloud is Linux with apt ffmpeg and Playwright's own Chromium.
 
 A fourth theme, a gallery picker, or client-side fixture replay. Those belong to later steps.
 

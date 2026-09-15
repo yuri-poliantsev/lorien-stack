@@ -10,8 +10,8 @@ import { chromium } from "playwright";
 const repoRoot = fileURLToPath(new URL("../..", import.meta.url));
 const GATEWAY_PORTS = [8044, 8045, 8046, 8047, 8048, 8049];
 const PREVIEW_PORTS = [5184, 5185, 5186, 5187, 5188, 5189];
-const FFMPEG = "/opt/homebrew/bin/ffmpeg";
-const CHROME = path.join(
+const HOMEBREW_FFMPEG = "/opt/homebrew/bin/ffmpeg";
+const MAC_CHROME = path.join(
 	os.homedir(),
 	"Library/Caches/ms-playwright/chromium-1234/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
 );
@@ -19,10 +19,14 @@ const VIEWPORT = { width: 1920, height: 1080 };
 const DEFAULT_BOTS = [1, 8, 18, 40];
 const ASLEEP_N = 8;
 const RECORD_N = 18;
+const KILL_GRACE_MS = 1500;
 
 const children = [];
 const artifacts = [];
-let failed = false;
+let browserRef = null;
+let browserServerRef = null;
+let shuttingDown = false;
+let ffmpegBin = "ffmpeg";
 
 function usage() {
 	process.stderr.write(
@@ -102,19 +106,110 @@ function parseBots(raw) {
 	return bots;
 }
 
-function spawnTracked(command, args, options) {
-	const child = spawn(command, args, {
-		...options,
-		stdio: ["ignore", "pipe", "pipe"],
+function isLive(child) {
+	return child.exitCode === null && child.signalCode === null;
+}
+
+function registerChild(child) {
+	if (!children.includes(child)) {
+		children.push(child);
+	}
+	child.once("exit", () => {
+		const index = children.indexOf(child);
+		if (index >= 0) {
+			children.splice(index, 1);
+		}
 	});
-	children.push(child);
-	child.stdout.on("data", () => undefined);
-	child.stderr.on("data", () => undefined);
 	return child;
 }
 
+function spawnTracked(command, args, options) {
+	const child = spawn(command, args, {
+		...options,
+		stdio: options?.stdio ?? ["ignore", "pipe", "pipe"],
+	});
+	registerChild(child);
+	if (child.stdout !== null) {
+		child.stdout.on("data", () => undefined);
+	}
+	if (child.stderr !== null) {
+		child.stderr.on("data", () => undefined);
+	}
+	return child;
+}
+
+async function fileExists(filePath) {
+	try {
+		await stat(filePath);
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+function canRun(bin, args) {
+	return new Promise((resolve) => {
+		const child = spawn(bin, args, { stdio: ["ignore", "pipe", "pipe"] });
+		child.on("error", () => {
+			resolve(false);
+		});
+		child.on("exit", (code) => {
+			resolve(code === 0);
+		});
+	});
+}
+
+async function resolveFfmpeg() {
+	const fromEnv = process.env.FFMPEG;
+	if (fromEnv !== undefined && fromEnv.length > 0) {
+		return fromEnv;
+	}
+	if (await canRun("ffmpeg", ["-version"])) {
+		return "ffmpeg";
+	}
+	if ((await fileExists(HOMEBREW_FFMPEG)) && (await canRun(HOMEBREW_FFMPEG, ["-version"]))) {
+		return HOMEBREW_FFMPEG;
+	}
+	throw new Error(
+		"ffmpeg not found. Checked env FFMPEG, PATH via `ffmpeg -version`, and /opt/homebrew/bin/ffmpeg.",
+	);
+}
+
+async function resolveChrome() {
+	const fromEnv = process.env.CAPTURE_CHROME;
+	if (fromEnv !== undefined && fromEnv.length > 0) {
+		return fromEnv;
+	}
+	if (await fileExists(MAC_CHROME)) {
+		return MAC_CHROME;
+	}
+	return undefined;
+}
+
+async function launchBrowser() {
+	const executablePath = await resolveChrome();
+	const launch = {
+		headless: true,
+		args: ["--disable-dev-shm-usage"],
+	};
+	if (executablePath !== undefined) {
+		launch.executablePath = executablePath;
+	}
+	try {
+		const server = await chromium.launchServer(launch);
+		browserServerRef = server;
+		registerChild(server.process());
+		const browser = await chromium.connect(server.wsEndpoint());
+		browserRef = browser;
+		return browser;
+	} catch (error) {
+		process.stderr.write("capture: Chromium launch failed. Run `npx playwright install chromium`.\n");
+		throw error;
+	}
+}
+
 async function killTracked(child) {
-	if (child.exitCode !== null || child.signalCode !== null) {
+	if (!isLive(child)) {
 		return;
 	}
 	child.kill("SIGTERM");
@@ -123,18 +218,62 @@ async function killTracked(child) {
 			child.once("exit", resolve);
 		}),
 		new Promise((resolve) => {
-			setTimeout(resolve, 1500);
+			setTimeout(resolve, KILL_GRACE_MS);
 		}),
 	]);
-	if (child.exitCode === null && child.signalCode === null) {
+	if (isLive(child)) {
 		child.kill("SIGKILL");
+		await Promise.race([
+			new Promise((resolve) => {
+				child.once("exit", resolve);
+			}),
+			new Promise((resolve) => {
+				setTimeout(resolve, 500);
+			}),
+		]);
 	}
 }
 
 async function killAll() {
-	const live = [...children];
-	children.length = 0;
+	const live = children.filter((child) => isLive(child));
 	await Promise.all(live.map((child) => killTracked(child)));
+	children.length = 0;
+}
+
+async function closeBrowser() {
+	const browser = browserRef;
+	const server = browserServerRef;
+	browserRef = null;
+	browserServerRef = null;
+	if (browser !== null) {
+		await Promise.race([
+			browser.close().catch(() => undefined),
+			new Promise((resolve) => {
+				setTimeout(resolve, KILL_GRACE_MS);
+			}),
+		]);
+	}
+	if (server !== null) {
+		await Promise.race([
+			server.close().catch(() => undefined),
+			new Promise((resolve) => {
+				setTimeout(resolve, KILL_GRACE_MS);
+			}),
+		]);
+	}
+}
+
+async function shutdown(code) {
+	if (shuttingDown) {
+		return;
+	}
+	shuttingDown = true;
+	try {
+		await closeBrowser();
+		await killAll();
+	} finally {
+		process.exit(code);
+	}
 }
 
 function portFree(port) {
@@ -403,17 +542,22 @@ async function captureStill(input) {
 
 function runFfmpeg(args) {
 	return new Promise((resolve, reject) => {
-		const child = spawn(FFMPEG, args, { stdio: ["ignore", "pipe", "pipe"] });
+		const child = spawnTracked(ffmpegBin, args);
 		let err = "";
-		child.stderr.on("data", (chunk) => {
-			err += String(chunk);
-		});
+		if (child.stderr !== null) {
+			child.stderr.on("data", (chunk) => {
+				err += String(chunk);
+			});
+		}
 		child.on("exit", (code) => {
 			if (code === 0) {
 				resolve();
 				return;
 			}
 			reject(new Error(`ffmpeg exited ${String(code)}: ${err.slice(-400)}`));
+		});
+		child.on("error", (error) => {
+			reject(error);
 		});
 	});
 }
@@ -462,25 +606,8 @@ async function captureRecord(input) {
 			input.mp4Path,
 		]);
 		await assertFile(input.mp4Path);
-		await runFfmpeg([
-			"-y",
-			"-ss",
-			"00:00:08",
-			"-i",
-			input.mp4Path,
-			"-frames:v",
-			"1",
-			input.stillPath,
-		]);
-		await assertFile(input.stillPath);
 		printManifest({
 			path: input.mp4Path,
-			n: RECORD_N,
-			theme: input.theme,
-			avgFrameMs: avg.source === "html" ? avg.value : "n/a",
-		});
-		printManifest({
-			path: input.stillPath,
 			n: RECORD_N,
 			theme: input.theme,
 			avgFrameMs: avg.source === "html" ? avg.value : "n/a",
@@ -492,7 +619,7 @@ async function captureRecord(input) {
 
 function buildClient() {
 	return new Promise((resolve, reject) => {
-		const child = spawn("npm", ["run", "build", "-w", "apps/client"], {
+		const child = spawnTracked("npm", ["run", "build", "-w", "apps/client"], {
 			cwd: repoRoot,
 			stdio: "inherit",
 		});
@@ -515,12 +642,11 @@ async function main() {
 		throw error;
 	}
 	await mkdir(options.out, { recursive: true });
+	if (options.record !== undefined) {
+		ffmpegBin = await resolveFfmpeg();
+	}
 	await buildClient();
-	const browser = await chromium.launch({
-		headless: true,
-		executablePath: CHROME,
-		args: ["--disable-dev-shm-usage"],
-	});
+	const browser = await launchBrowser();
 	try {
 		for (const bots of options.bots) {
 			await captureStill({
@@ -546,11 +672,10 @@ async function main() {
 				theme: options.theme,
 				seconds: options.record,
 				mp4Path: path.join(options.out, `${options.theme}.mp4`),
-				stillPath: path.join(options.out, `${options.theme}-record.png`),
 			});
 		}
 	} finally {
-		await browser.close();
+		await closeBrowser();
 	}
 	for (const filePath of artifacts) {
 		await assertFile(filePath);
@@ -558,22 +683,34 @@ async function main() {
 }
 
 process.on("SIGINT", () => {
-	failed = true;
-	void killAll().finally(() => {
-		process.exit(130);
-	});
+	void shutdown(130);
+});
+process.on("SIGTERM", () => {
+	void shutdown(143);
+});
+process.on("unhandledRejection", (reason) => {
+	const msg = reason instanceof Error ? reason.message : String(reason);
+	process.stderr.write(`capture: unhandled rejection: ${msg}\n`);
+	void shutdown(1);
+});
+process.on("beforeExit", (code) => {
+	if (shuttingDown) {
+		return;
+	}
+	if (browserRef !== null || browserServerRef !== null || children.some((child) => isLive(child))) {
+		void shutdown(code === 0 ? 1 : code);
+	}
 });
 
 try {
 	await main();
 } catch (error) {
-	failed = true;
 	const msg = error instanceof Error ? error.message : String(error);
 	process.stderr.write(`capture: ${msg}\n`);
-	process.exitCode = 1;
+	await shutdown(1);
 } finally {
-	await killAll();
-	if (failed && process.exitCode === undefined) {
-		process.exitCode = 1;
+	if (!shuttingDown) {
+		await closeBrowser();
+		await killAll();
 	}
 }
