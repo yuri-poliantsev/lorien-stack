@@ -311,6 +311,7 @@ export async function runReplay(input: {
   signal: AbortSignal;
   sleep?: (ms: number) => Promise<void>;
   onSleep: (step: ReplaySleep) => void;
+  onAppend?: (step: ReplayAppend) => void;
 }): Promise<void> {
   const sleep = input.sleep ?? ((ms: number) => delay(ms, input.signal));
   await Promise.all(
@@ -321,6 +322,7 @@ export async function runReplay(input: {
         signal: input.signal,
         sleep,
         onSleep: input.onSleep,
+        onAppend: input.onAppend,
       }),
     ),
   );
@@ -332,6 +334,7 @@ async function runTape(input: {
   signal: AbortSignal;
   sleep: (ms: number) => Promise<void>;
   onSleep: (step: ReplaySleep) => void;
+  onAppend?: (step: ReplayAppend) => void;
 }): Promise<void> {
   const opened = new Set<string>();
   if (input.tape.startOffsetMs > 0) {
@@ -358,6 +361,7 @@ async function runTape(input: {
       } else {
         await appendFile(step.filePath, `${step.line}\n`);
       }
+      input.onAppend?.(step);
     }
     input.onSleep({
       kind: "sleep",

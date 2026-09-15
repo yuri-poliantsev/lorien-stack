@@ -16,8 +16,6 @@ npm run gateway -- --demo --bots 8 --replay-idle --listen :8040
 
 Live mode emits the same `presence` messages from a quiet clock. Last activity comes from roster spawn and tailed transcript lines. `--presence-tick-ms` (default 1000, or `GATEWAY_PRESENCE_TICK_MS`) is the emit interval. Reason is `recent` below `--presence-work-ms` (default 12000, or `GATEWAY_PRESENCE_WORK_MS`), `quiet` until `--presence-sleep-ms` (default 22000, or `GATEWAY_PRESENCE_SLEEP_MS`), then `sleep`. Those defaults match `WORK_MS` and `SLEEP_MS` on the StarCraft floor. A hint is not lifecycle. Quiet bots stay on the roster.
 
-Live mode emits the same `presence` messages from a quiet clock. Last activity comes from roster spawn and tailed transcript lines. `--presence-tick-ms` (default 1000, or `GATEWAY_PRESENCE_TICK_MS`) is the emit interval. Reason is `recent` below `--presence-work-ms` (default 12000, or `GATEWAY_PRESENCE_WORK_MS`), `quiet` until `--presence-sleep-ms` (default 22000, or `GATEWAY_PRESENCE_SLEEP_MS`), then `sleep`. Those defaults match `WORK_MS` and `SLEEP_MS` on the StarCraft floor. A hint is not lifecycle. Quiet bots stay on the roster.
-
 Live data. This form is copy-paste complete. Live boot needs `AGENT_DATA` (or `--data`) and nothing else.
 
 ```
