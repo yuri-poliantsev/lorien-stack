@@ -1,13 +1,10 @@
 # How to run lorien-stack against live Grok Bots
 
-You have a Grok Bot host with real agent data on disk. This guide points the gateway at that data, wires a webhook so the prompt bar can wake a bot, and puts the UI on your tailnet. Run every step on the host that holds the agent data.
+You have a Grok Bot host with real agent data on disk. This guide points the gateway at that data and puts the UI on your tailnet. Run every step on the host that holds the agent data.
 
-Two facts to carry through the whole setup:
+The stack observes Grok Bots. It does not send commands. `GET /health`, `GET /api/bots`, and `GET /ws` answer anyone who can open the port. The bind address plus your Tailscale ACL are the access control. Use `--listen 127.0.0.1:8040` when you want loopback only.
 
-- A wake is an acknowledged webhook POST. It is not bot completion. The gateway logs `acknowledged` when the routine answers HTTP 200, and it claims nothing about the work.
-- `GET /api/bots` and `GET /ws` stay open to anyone who can reach the port. Only `POST /api/prompt` checks the client token and the allowlist. Treat the roster and the activity stream as readable by every peer that can open a socket to your port.
-
-If you have not run the demo yet, run [Quick start (demo)](../README.md#quick-start-demo) first. The demo proves the client, the socket, and the theme work, so anything that breaks after this point is your data or your webhook.
+If you have not run the demo yet, run [Quick start (demo)](../README.md#quick-start-demo) first. The demo proves the client, the socket, and the theme work, so anything that breaks after this point is your data path or your network.
 
 You can hand this whole setup to a Grok Bot instead. [Setup prompt](prompts/lorien-stack-setup.md) is one block to paste into a chat with a bot running on the same host, and it covers the same steps in the same order.
 
@@ -87,37 +84,6 @@ ls "$AGENT_DATA/agents" | head
 cat "$AGENT_DATA/agents/<uuid>/profile.json"
 ```
 
-Copy one bot id out of that listing. The allowlist needs it later.
-
-## Create the webhook
-
-A wake is a POST to a webhook routine on the Grok Bot side. The bot receives that JSON as untrusted input and decides what to do.
-
-Create a routine with a webhook trigger. Write its prompt to treat the POST body as data, to read the fields `botId` and `prompt`, and to do the matching work. If the routine has nothing to report, it sends no message.
-
-Copy the URL and the key by hand. The create result does not include the sender key.
-
-1. Click the agent's name in the chat header, or press **Cmd+Shift+I**.
-2. Find the **Routines** list under the computer preview.
-3. Open the webhook routine.
-4. Copy the webhook URL. That URL is safe to paste in chat.
-5. Copy the sender key. Never paste the sender key in chat, in a commit, in a log, or in an issue.
-
-The URL looks like `https://api2.cursor.sh/automations/webhook/<id>` with no query string. Copy it from the routine panel. Do not guess the id.
-
-If an agent runs this setup for you, hand over the key through a secret-request card, never through a message:
-
-```
-type: secret-request
-secret.label: webhook sender key
-secret.connector: <routine folder slug>
-secret.field: key
-```
-
-The slug is the kebab-case form of the routine name. After you submit the card, the value lands in that connector's credential file and the agent never reads it back. If you run the setup yourself, paste the key into your local `.env` and nowhere else.
-
-The key stays in the gateway process. The gateway sends it as `Authorization: Bearer <key>` and `X-Automation-Key: <key>`, with an 8 second timeout and one try. The browser never receives it, and the gateway redacts it from logs.
-
 ## Configure env
 
 Copy the template:
@@ -126,7 +92,7 @@ Copy the template:
 cp .env.example .env
 ```
 
-Fill in the five values. The gateway reads its environment and never reads a file, so export the values into the shell that starts each process:
+Set `AGENT_DATA` to the absolute path from Find agent data. `--data` overrides it. The gateway reads its environment and never reads a file, so export the value into the shell that starts each process:
 
 ```bash
 set -a
@@ -137,40 +103,18 @@ set +a
 | Variable | Read by | What it holds |
 | --- | --- | --- |
 | `AGENT_DATA` | gateway | Absolute path from Find agent data. `--data` overrides it. |
-| `GATEWAY_CLIENT_TOKEN` | gateway | Bearer token that `POST /api/prompt` requires. `--token` overrides it. |
-| `VITE_GATEWAY_TOKEN` | client | The same token, as the browser sends it. |
-| `WEBHOOK_URL` | gateway | Webhook URL of the routine. `--webhook-url` overrides it. |
-| `WEBHOOK_SENDER_KEY` | gateway | Sender key of the routine. Server side only, no flag. |
 
-`GATEWAY_CLIENT_TOKEN` and `VITE_GATEWAY_TOKEN` must hold the same string. One token needs two names because the gateway reads its process environment while Vite exposes only `VITE_` variables to the browser. When the two differ, every wake returns 401.
-
-Vite is the one process that reads a file, and it reads `.env` from its own root, `apps/client`, not from the repo root. Exporting `VITE_GATEWAY_TOKEN` before you start the dev server works. A copy in `apps/client/.env` works too. The root `.gitignore` covers both paths.
-
-Generate a token you do not use anywhere else:
-
-```bash
-openssl rand -hex 24
-```
-
-The allowlist is the second gate. `POST /api/prompt` returns 403 for any bot id outside it. A live run starts with an empty allowlist, which denies every wake, so pass the ids you accept:
-
-```bash
---allowlist <bot-uuid>,<bot-uuid>
-```
-
-`--allowlist discovered` or `GATEWAY_ALLOWLIST=discovered` allowlists every bot id present after the first roster scan. Live does not discover by default. Bots that appear later stay off the list until you restart.
-
-Keep `.env` out of git. Commit `.env.example` with empty values and nothing else.
+Keep `.env` out of git. Commit `.env.example` with an empty value and nothing else.
 
 ## Start
 
 Two processes. Gateway first:
 
 ```bash
-npm run gateway -- --listen :8040 --allowlist <bot-uuid>
+npm run gateway -- --listen :8040
 ```
 
-That command reads `AGENT_DATA`, `GATEWAY_CLIENT_TOKEN`, `WEBHOOK_URL`, and `WEBHOOK_SENDER_KEY` from the environment you exported. If `GATEWAY_CLIENT_TOKEN` and `--token` are both empty, the process exits without listening, and the error names the token. The [gateway README](../apps/gateway/README.md) shows the same command with every variable spelled out inline.
+That command reads `AGENT_DATA` from the environment you exported. If `AGENT_DATA` and `--data` are both empty, the process exits without listening with `set --data, $AGENT_DATA, or --demo`. The [gateway README](../apps/gateway/README.md) shows the same command with the variable spelled out inline.
 
 Check the gateway before you open a browser:
 
@@ -189,16 +133,7 @@ Client second, in another terminal:
 npm run dev -w apps/client
 ```
 
-Open [http://127.0.0.1:5173](http://127.0.0.1:5173). Vite proxies `/api`, `/health`, and `/ws` to `http://127.0.0.1:8040`. Set `GATEWAY_ORIGIN` when the gateway runs on another host.
-
-Send a prompt from the bar to a bot you allowlisted. The bar reports `acknowledged` once the routine answers 200. You can send the same wake without the browser:
-
-```bash
-curl -si -X POST http://127.0.0.1:8040/api/prompt \
-  -H "Authorization: Bearer $GATEWAY_CLIENT_TOKEN" \
-  -H 'Content-Type: application/json' \
-  -d '{"botId":"<bot-uuid>","prompt":"status check"}'
-```
+Open [http://127.0.0.1:5173](http://127.0.0.1:5173). Vite proxies `/ws` to `http://127.0.0.1:8040`. Set `GATEWAY_ORIGIN` when the gateway runs on another host.
 
 ## Tailscale
 
@@ -227,28 +162,36 @@ The gateway runs a plain Node server with no host check, so both forms reach it 
 
 Use HTTP. Add HTTPS only if you want it. If this host already runs an online Tailscale node, use that node. Do not create a second hostname for lorien-stack.
 
-Every tailnet peer that reaches port 8040 can read the roster and the activity stream, because only `POST /api/prompt` is authenticated. Port 5173 carries the same data, because Vite proxies `/api` and `/ws` to the gateway. If that is wider than you want, bind the gateway with `--listen 127.0.0.1:8040`, leave the dev server on its default `127.0.0.1`, and reach the UI through an SSH tunnel.
+Every peer that reaches the bind address can read the roster and the activity stream. Port 5173 carries the same data, because Vite proxies `/ws` to the gateway. If that is wider than you want, bind the gateway with `--listen 127.0.0.1:8040`, leave the dev server on its default `127.0.0.1`, and reach the UI through an SSH tunnel.
+
+## Verify observation
+
+Confirm the read path before you walk away:
+
+```bash
+curl -s http://127.0.0.1:8040/health
+curl -s http://127.0.0.1:8040/api/bots
+```
+
+You should see `{"ok":true}` and a roster whose `bots` array is not empty. Open the UI. The bot list, theme, and activity panel should show the same roster. Selecting a bot changes the activity detail and theme focus.
+
+The first WebSocket frame is a `snapshot`. Presence hints follow on the same socket. If the UI is empty while `/api/bots` has bots, the client is not reaching `/ws`.
 
 ## Troubleshoot
 
 | Symptom | Cause | Fix |
 | --- | --- | --- |
 | `node -v` is below 22.14.0, or `npm run gateway` dies with `bad option: --experimental-strip-types` | The process is still using a Node older than 22.6. The gateway runs TypeScript through `--experimental-strip-types`. | Install the user-local Node 22 from [Before you start](#before-you-start). Run `export PATH="$HOME/.local/node22/bin:$PATH"` in the shell, then start again. |
-| The gateway process exits and the message names the token | `GATEWAY_CLIENT_TOKEN` and `--token` were both empty. Live start refuses to listen without a token. | Set `GATEWAY_CLIENT_TOKEN` or pass `--token`, then start again. Demo still defaults to `demo-token`. |
-| `POST /api/prompt` returns 401 `unauthorized` | The request carried no bearer token, or the token did not match `GATEWAY_CLIENT_TOKEN`. | Set `GATEWAY_CLIENT_TOKEN` and `VITE_GATEWAY_TOKEN` to the same string. Restart both processes. |
-| `POST /api/prompt` returns 403 `bot not allowlisted` | The bot id is not in the allowlist, which is empty on a live run unless you pass `--allowlist` or `GATEWAY_ALLOWLIST=discovered`. | Restart the gateway with `--allowlist <bot-uuid>` or `--allowlist discovered`. Use the id from `GET /api/bots`, not the bot's name. |
-| `POST /api/prompt` returns 503 `failed` | `WEBHOOK_URL` or `WEBHOOK_SENDER_KEY` is missing or empty, so the gateway refused to POST anything. | Export both, then restart the gateway. The gateway logs this as `wake failed` with reason `not configured`. |
-| `POST /api/prompt` returns 502 `failed` | The routine answered a status other than 200. | Re-copy the URL and the sender key from the routine panel. A rotated key fails this way. |
-| `POST /api/prompt` returns 504 `indeterminate` | The POST hit the 8 second timeout, or the network failed. The bot may still have woken. | Read the routine's own runs before you send the wake again. |
+| The gateway process exits and the message names `--data` or `$AGENT_DATA` | Live start has no data root. | Set `AGENT_DATA` or pass `--data`, then start again. Demo still uses `--demo`. |
 | Roster is empty while `/health` answers 200 | The gateway is reading a directory with no parseable profile, often one level above or below the real root. | Confirm `$AGENT_DATA/agents/<uuid>/profile.json` exists, holds one JSON object with `name`, and sits in a directory named with a UUID. |
 | Bots appear, activity stays empty | Transcript directory names are not bot UUIDs, or the files do not end in `.jsonl`. | Rename to `agent-transcripts/<bot-uuid>/<name>.jsonl`. The tailer skips anything else. |
+| Presence looks asleep during a long tool call | Presence is a quiet-time hint. It tracks JSONL growth, not process lifecycle. | Wait for a new transcript line, or treat the hint as stale until then. |
 | The client answers `Blocked request. This host is not allowed.` | Vite refuses a Host header it does not know, and `server.allowedHosts` is empty in this repo. | Open the UI at `http://100.x.x.x:5173`, or add the tailnet name to `server.allowedHosts` in `apps/client/vite.config.ts`. |
-| `curl` wakes the bot, the browser gets 401 | `VITE_GATEWAY_TOKEN` was unset when Vite started, so the client fell back to `demo-token`. | Export `VITE_GATEWAY_TOKEN` and restart the dev server. Vite reads the variable at startup, not per request. |
-| The bar shows `acknowledged` and the bot does nothing | Acknowledged means the routine answered 200. Bot work is a separate step that the gateway cannot see. | Read that routine's run. The usual cause is a prompt that ignores the fields the gateway sends, which are `botId`, `prompt`, and `schemaVersion`. |
+| The UI is empty while `/api/bots` has bots | The browser never received the WebSocket snapshot. Vite proxies `/ws` only. | Confirm the gateway is on `:8040`, or set `GATEWAY_ORIGIN` and restart the dev server. |
 
 ## Related docs
 
 - [Setup prompt](prompts/lorien-stack-setup.md) to hand these steps to a Grok Bot on the host.
 - [Gateway](../apps/gateway/README.md) for endpoints, flags, and tail behavior.
 - [Client](../apps/client/README.md) for the Vite shell and the theme host.
-- [Wire contracts](contracts.md) for the roster, activity, and wake payload schema.
+- [Wire contracts](contracts.md) for the roster, activity, and presence schema.

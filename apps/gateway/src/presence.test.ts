@@ -364,8 +364,6 @@ describe("live presence emission", () => {
     const gw = await startGateway({
       listen: "127.0.0.1:0",
       data,
-      token: "presence-token",
-      allowlist: [lauren],
       coalesceMs: 40,
       presenceWorkMs: 50,
       presenceSleepMs: 80,
@@ -396,8 +394,6 @@ describe("live presence emission", () => {
     const gw = await startGateway({
       listen: "127.0.0.1:0",
       data,
-      token: "presence-token",
-      allowlist: [lauren],
       coalesceMs: 40,
       presenceWorkMs: 50,
       presenceSleepMs: 80,
@@ -439,8 +435,6 @@ describe("live presence emission", () => {
     const gw = await startGateway({
       listen: "127.0.0.1:0",
       data,
-      token: "presence-token",
-      allowlist: "discovered",
       coalesceMs: 40,
       presenceWorkMs: 50,
       presenceSleepMs: 80,

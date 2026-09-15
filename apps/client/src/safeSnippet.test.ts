@@ -29,14 +29,13 @@ describe("safe snippets", () => {
       text: JSON.stringify({
         path: "/opt/cursor/agents/very/long/absolute/host/path/to/secret.ts",
         bytes: 120000,
-        content: "function leak() { return process.env.WEBHOOK_SENDER_KEY }",
+        content: "function leak() { return process.env.HOME }",
       }),
     };
     const row = summarizeEvent(event);
     assert.equal(row.role, "tool");
     assert.equal(row.toolName, "read_file");
     assert.equal(row.snippet.includes("/opt/cursor/agents/very/long/absolute"), false);
-    assert.equal(row.snippet.includes("WEBHOOK_SENDER_KEY"), false);
     const longs = (row.snippet.match(
       /(?:\/(?:home|opt|usr|var|tmp|Users|root|workspace)\/[^\s"'<>]{20,})/g,
     ) ?? []).filter((match) => match.length > MAX_ABS_PATH_CHARS);

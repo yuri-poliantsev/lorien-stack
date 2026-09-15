@@ -5,13 +5,11 @@ import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 
 import {
-  CONTRACTS_SCHEMA_VERSION,
   EXPORTED_TYPE_NAMES,
   parseActivityJsonl,
   parseAgentProfile,
   parseBotId,
   parseIsoTimestamp,
-  parseWakeRequest,
   presenceHintFromQuietClock,
   type ActivityEvent,
   type BotRecord,
@@ -148,23 +146,7 @@ describe("jsonl edge parse", () => {
   });
 });
 
-describe("wake and presence", () => {
-  it("fails closed on an empty prompt", () => {
-    const botId = "af4c6d21-9ef6-4435-8232-bf09ca561583";
-    const empty = parseWakeRequest({ botId, prompt: "" });
-    assert.equal(empty.ok, false);
-    const blank = parseWakeRequest({ botId, prompt: "   " });
-    assert.equal(blank.ok, false);
-    const missing = parseWakeRequest({ botId });
-    assert.equal(missing.ok, false);
-    const ok = parseWakeRequest({ botId, prompt: "wake up" });
-    assert.equal(ok.ok, true);
-    if (ok.ok) {
-      assert.equal(ok.value.schemaVersion, CONTRACTS_SCHEMA_VERSION);
-      assert.equal(ok.value.prompt, "wake up");
-    }
-  });
-
+describe("presence", () => {
   it("builds PresenceHint from the quiet clock", () => {
     const last = parseIsoTimestamp("2026-08-20T10:00:00.000Z");
     const now = parseIsoTimestamp("2026-08-20T10:00:05.000Z");
@@ -185,9 +167,9 @@ describe("wake and presence", () => {
 });
 
 describe("exports", () => {
-  it("lists RosterSnapshot and WakeRequest", () => {
+  it("lists RosterSnapshot among the exported types", () => {
     assert.ok(EXPORTED_TYPE_NAMES.includes("RosterSnapshot"));
-    assert.ok(EXPORTED_TYPE_NAMES.includes("WakeRequest"));
+    assert.equal(EXPORTED_TYPE_NAMES.length, 10);
   });
 
   it("keeps EXPORTED_TYPE_NAMES aligned with export type", () => {
