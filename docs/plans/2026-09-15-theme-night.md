@@ -1,6 +1,10 @@
 # Theme night, 2026-09-15
 
-Overnight program for lorien-stack. Settled in a grill session on the evening of 2026-09-15. The coordinator agent that runs this reads it first, in full, and does not stop. It runs as a Cursor Cloud Agent because the owner's laptop loses network at night.
+Overnight program for lorien-stack. Settled in a grill session on the evening of 2026-09-15. The coordinator agent that runs this reads it first, in full, and does not stop.
+
+## Local runtime
+
+When run from the owner's laptop, the poteto and pstack skills are present. Open the autopilot-full playbook and follow it. The Process section below still applies for bakeoffs, the merge gate, and the decision trail. Grok Build is signed in at `~/.grok/bin/grok`. `gh` is signed in as `yuri-poliantsev` with admin. The repo-local git config pins `credential.username` to that account because the global config names a stale one. Run first actions 2 through 4 from the Cloud runtime section, skipping the PATH export. The laptop may lose network during the night. If the run stalls, the owner resumes it in the morning with the Pickup prompt.
 
 ## Cloud runtime
 
@@ -117,8 +121,10 @@ State sources, in order. `gh pr list --state all` for what merged and what is op
 Pickup prompt for a fresh chat:
 
 ```
-Session pickup. Read docs/plans/2026-09-15-theme-night.md in full, then docs/decisions/, then gh pr list --state all. Run the Cloud runtime first actions. Find the first delivery step that is not merged and continue from there under the Process section. Don't stop.
+/poteto-mode Session pickup. Read docs/plans/2026-09-15-theme-night.md in full, then docs/decisions/, then gh pr list --state all. Run the first actions for this runtime. Find the first delivery step that is not merged and continue from there under autopilot-full and the plan's Process section. Don't stop.
 ```
+
+Drop the `/poteto-mode` prefix when the pickup runs in the cloud.
 
 The coordinator keeps its own context small. Code writing goes to subagents with file pointers. The coordinator reads diff stats, test output, and screenshots, not whole files. After each merge it appends the decision entry and the explicit next step before starting the next PR, so a pickup never has to reconstruct intent.
 
