@@ -1,12 +1,12 @@
 import { parseBotId, type ActivityEvent, type BotId, type BotRecord } from "@lorien-stack/contracts";
 
+import type { Camera } from "../../camera.ts";
 import {
   STATIONS,
   WORLD_HEIGHT,
   WORLD_WIDTH,
   assignSeats,
   eventSignature,
-  fitLetterbox,
   poseFromPulse,
   type Seat,
   type UnitPose,
@@ -64,8 +64,9 @@ type PulseState = {
 
 export function mountStarCraftTheme(
   root: HTMLElement,
-  input: { onSelect?: (botId: BotId) => void } = {},
+  input: { onSelect?: (botId: BotId) => void; camera: Camera },
 ): StarCraftHandle {
+  const camera = input.camera;
   root.dataset.theme = "starcraft";
   root.dataset.themeHost = "starcraft";
   root.dataset.themeDefault = "starcraft";
@@ -216,6 +217,23 @@ export function mountStarCraftTheme(
     }
   }
 
+  function worldBox(): {
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+    scale: number;
+  } {
+    const origin = camera.worldToScreen({ x: 0, y: 0 });
+    return {
+      x: origin.x,
+      y: origin.y,
+      w: WORLD_WIDTH * camera.zoom,
+      h: WORLD_HEIGHT * camera.zoom,
+      scale: camera.zoom,
+    };
+  }
+
   function paint(): void {
     const started = performance.now();
     const now = started;
@@ -235,12 +253,7 @@ export function mountStarCraftTheme(
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.fillStyle = PALETTE.bar;
     ctx.fillRect(0, 0, cssW, cssH);
-    const box = fitLetterbox({
-      worldW: WORLD_WIDTH,
-      worldH: WORLD_HEIGHT,
-      viewW: cssW,
-      viewH: cssH,
-    });
+    const box = worldBox();
     ctx.save();
     ctx.beginPath();
     ctx.rect(box.x, box.y, box.w, box.h);
@@ -316,21 +329,20 @@ export function mountStarCraftTheme(
 
   function onCanvasClick(event: MouseEvent): void {
     const rect = canvas.getBoundingClientRect();
-    const cssW = Math.max(1, rect.width);
-    const cssH = Math.max(1, rect.height);
-    const box = fitLetterbox({
-      worldW: WORLD_WIDTH,
-      worldH: WORLD_HEIGHT,
-      viewW: cssW,
-      viewH: cssH,
+    const world = camera.screenToWorld({
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top,
     });
-    const x = ((event.clientX - rect.left) / cssW) * cssW;
-    const y = ((event.clientY - rect.top) / cssH) * cssH;
-    if (x < box.x || y < box.y || x > box.x + box.w || y > box.y + box.h) {
+    if (
+      world.x < 0 ||
+      world.y < 0 ||
+      world.x > WORLD_WIDTH ||
+      world.y > WORLD_HEIGHT
+    ) {
       return;
     }
-    const worldX = (x - box.x) / box.scale;
-    const worldY = (y - box.y) / box.scale;
+    const worldX = world.x;
+    const worldY = world.y;
     const seats = assignSeats({ bots: model.roster });
     let best: { botId: BotId; d: number } | undefined;
     for (const bot of model.roster) {

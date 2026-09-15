@@ -1,5 +1,7 @@
 import type { ActivityEvent, BotId, BotRecord } from "@lorien-stack/contracts";
 
+import type { Camera, Viewport } from "../camera.ts";
+import { WORLD_HEIGHT, WORLD_WIDTH } from "./starcraft/layout.ts";
 import { mountStarCraftTheme } from "./starcraft/scene.ts";
 
 export type ThemeRenderInput = {
@@ -12,6 +14,20 @@ export type ThemeHandle = {
   unmount(): void;
 };
 
+export type ThemePalette = {
+  panelBg: string;
+  fg: string;
+  accent: string;
+  font: string;
+};
+
+export type ThemeMountContext = {
+  onSelect?: (botId: BotId) => void;
+  camera: Camera;
+  reducedMotion: boolean;
+  palette?: ThemePalette;
+};
+
 export type ThemePreview =
   | { kind: "url"; href: string }
   | { kind: "draw"; paint: (canvas: HTMLCanvasElement) => void };
@@ -19,11 +35,10 @@ export type ThemePreview =
 export type ThemeEntry = {
   id: string;
   label: string;
-  mount: (
-    root: HTMLElement,
-    opts: { onSelect?: (botId: BotId) => void },
-  ) => ThemeHandle;
+  mount: (root: HTMLElement, context: ThemeMountContext) => ThemeHandle;
   preview: ThemePreview;
+  world: Viewport;
+  palette?: ThemePalette;
 };
 
 export type ThemeRegistry = {
@@ -42,6 +57,13 @@ const STARCRAFT: ThemeEntry = {
   label: "StarCraft",
   mount: mountStarCraftTheme,
   preview: { kind: "url", href: STARCRAFT_PREVIEW },
+  world: { w: WORLD_WIDTH, h: WORLD_HEIGHT },
+  palette: {
+    panelBg: "rgba(10, 14, 8, 0.82)",
+    fg: "#ece7d4",
+    accent: "#e0b24a",
+    font: '"IBM Plex Mono", ui-monospace, monospace',
+  },
 };
 
 export const THEMES: ThemeRegistry = {

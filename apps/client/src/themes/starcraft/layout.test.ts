@@ -7,7 +7,6 @@ import {
   STATIONS,
   assignSeats,
   eventSignature,
-  fitLetterbox,
   poseFromPulse,
 } from "./layout.ts";
 
@@ -108,14 +107,5 @@ describe("starcraft layout pose", () => {
   it("changes the activity signature when events grow", () => {
     assert.equal(eventSignature(undefined), "0");
     assert.equal(eventSignature([]), "0");
-  });
-});
-
-describe("starcraft layout letterbox", () => {
-  it("centers a 16:9 world inside a taller view", () => {
-    const box = fitLetterbox({ worldW: 960, worldH: 540, viewW: 400, viewH: 800 });
-    assert.equal(box.w <= 400 + 1e-6, true);
-    assert.equal(box.x >= 0, true);
-    assert.equal(Math.abs(box.x * 2 + box.w - 400) < 0.01, true);
   });
 });
