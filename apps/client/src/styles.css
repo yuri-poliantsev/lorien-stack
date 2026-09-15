@@ -160,6 +160,10 @@ body {
   cursor: grabbing;
 }
 
+[data-shell-overlay] {
+  cursor: default;
+}
+
 .theme-host {
   position: absolute;
   inset: 0;
@@ -287,6 +291,12 @@ body {
 
 .roster-row[data-state="working"] .roster-action {
   color: var(--working);
+}
+
+/* An author display wins over the UA rule for [hidden], so closing the drawer
+   needs this to actually take it off the scene. */
+.inspector[hidden] {
+  display: none;
 }
 
 .inspector {

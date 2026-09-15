@@ -34,6 +34,7 @@ export function mountRosterPanel(
   const panel = document.createElement("aside");
   panel.className = "roster-panel";
   panel.dataset.testid = "roster-panel";
+  panel.dataset.shellOverlay = "true";
 
   const toggle = document.createElement("button");
   toggle.type = "button";
@@ -130,7 +131,9 @@ export function mountRosterPanel(
           cells.button.removeAttribute("aria-current");
         }
         cells.name.textContent = row.name;
-        cells.action.textContent = row.action;
+        // A wall of "unknown" reads as an error at 40 bots. The dot already carries
+        // presence, so the word is spent only on an action we actually observed.
+        cells.action.textContent = row.action === "unknown" ? "" : row.action;
         cells.age.textContent = ageLabel(row.ageMs);
         order.push(cells.item);
       }

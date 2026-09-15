@@ -38,6 +38,8 @@ type ThemeEntry = {
 
 This is a deviation from the brief's wording, which says the theme sets those custom properties on the host element. It cannot. `mountStarCraftTheme` calls `root.replaceChildren()`, so the overlay panel cannot live inside the host element, and a custom property set on the host element does not reach a sibling overlay. Declaring the palette on the registry entry keeps the values theme-owned, which is what the wording is for, and puts them on an element the overlay actually inherits from.
 
+`ThemeEntry` also gains a required `world: Viewport`. The camera cannot fit to a world it cannot measure, and a default would be a guess about a theme nobody has written yet. StarCraft declares its existing `960x540`.
+
 ### Camera
 
 `apps/client/src/camera.ts`. One module, host-owned, shared by every theme. Split into pure transform maths and a stateful controller, because the maths is what tests assert on with literal expectations.
@@ -70,9 +72,11 @@ type Camera = {
 
 `x` and `y` are the world point under the viewport centre, not a top-left offset. Centre anchoring makes `fitState` one expression (`zoom = min(viewport.w / world.w, viewport.h / world.h)`, centre on the world's middle) and makes zoom-around-cursor a subtraction rather than a chain of offset corrections. A top-left origin needs the pan offset rewritten on every zoom step, which is where off-by-a-half bugs live.
 
-`zoomAtState` holds the world point under `anchor` fixed: read the world point before the zoom change, then set `x`, `y` so `screenToWorldAt` returns it again at the new zoom. Zoom clamps to `[0.25, 8]`.
+`zoomAtState` holds the world point under `anchor` fixed. Read the world point before the zoom change, then set `x`, `y` so `screenToWorldAt` returns it again at the new zoom. Zoom clamps to `[0.25, 8]`.
 
-The host attaches drag, wheel, and `Home` to the scene element and drives the controller. Themes never touch DOM events for the camera. Zoom-to-fit runs on mount and whenever the roster count changes, so a roster growing from 8 to 40 reframes instead of cropping.
+The DOM bindings live next door in `apps/client/src/shell/cameraInput.ts` as `bindCameraInput(target, camera, { onRefit })`, so `camera.ts` stays free of DOM types and its maths runs under `node --test` without a document. The host attaches drag, wheel, and `Home` to the scene element and drives the controller. Themes never touch DOM events for the camera. Zoom-to-fit runs on mount and whenever the roster count changes, so a roster growing from 8 to 40 reframes instead of cropping.
+
+Shell controls layered over the scene carry `data-shell-overlay`, and `bindCameraInput` ignores pointer and wheel events from inside them. Without that, `setPointerCapture` on the scene swallowed the click on every roster row and the panel never selected a bot.
 
 ### ShellStats
 
@@ -155,6 +159,26 @@ Window is 2 seconds. The dataset write is throttled to once per second, so a cap
 
 Q2, Q3, Q9, Q13, Q14, Q18, Q20, Q21 in `docs/plans/2026-09-15-theme-night.md`, and step 2's merged contract in `docs/decisions/2026-09-15-theme-night/02-registry.md`.
 
+### Measured at this head
+
+Client tests went from 29 cases to 62, all passing, alongside contracts at 11 and gateway at 29. `npm run typecheck`, `npm run build -w apps/client` and `npm run docs:smoke` pass.
+
+`/tmp/theme-night/03-shell/capture.mjs` captured the StarCraft theme at 1, 8, 18 and 40 bots in a 1440x900 viewport, each against a gateway it started itself. Measured `avgFrameMs`: 0.64 at 1 bot, 0.77 at 8, 0.93 at 18, and **1.29 at 40**, against Q21's 4ms target. The run also asserted that the roster panel lists every bot and that the stats strip's working, idle and asleep counts sum to the roster size, so the two surfaces cannot disagree.
+
+At 40 bots the panel is 775px tall inside an 860px scene, so all 40 rows are visible without scrolling at a 18.6px row height. The 40-bot frame reads 7 working, 33 idle, 26 events per minute in the strip, and exactly 7 rows carry a green dot and an action word.
+
+`/tmp/theme-night/03-shell/proof.mjs` asserted the seven surfaces against the live client. `document.fonts.check` returned true for `400 14px "IBM Plex Mono"` and `500 14px "IBM Plex Mono"`. The camera fit to `x 480, y 270, zoom 1.5000`, which is the world's centre and `min(1440/960, 860/540)`. A drag moved it to `373.33, 210.00` with zoom unchanged, a wheel up raised zoom to `2.7332`, and `Home` restored the fit values exactly. Clicking a roster row opened the drawer with three tape rows, the newest showing tool `Read`, path `apps/gateway/src/presence.ts`, role `tool`, a timestamp, and one truncated text line. Collapsing the roster and reloading kept `data-collapsed="true"`. A context with `reducedMotion: "reduce"` set `data-reduced-motion="true"` and computed the panel's `transition-duration` as `0s`.
+
+### What the screenshot caught that an assertion did not
+
+The first 40-bot capture showed the inspector drawer painted over a quarter of the frame while its own `data-open` read `false`. An author `display: flex` outranks the user-agent rule for `[hidden]`, so the element was flagged closed and still on screen. The dataset assertion had passed. `.inspector[hidden] { display: none }` fixes it, and the proof now asserts computed `display` and a zero width rather than the flag.
+
+The same capture showed the action column printing `unknown` on 33 of 40 rows, which reads as an error rather than as silence. The roster now spends that column only on an observed action and lets the presence dot carry the rest. `data-action` still holds the real value for the capture lever.
+
+### A note for step 4
+
+The demo gateway streams its replay live and keeps no history, so a browser that connects more than about two seconds after boot receives a roster snapshot and no events. Both proof scripts therefore start the gateway themselves and navigate immediately. Q22's replay tuning is what makes this unnecessary.
+
 `apps/client/src/themes/starcraft/scene.ts` on `75b9284` calls `root.replaceChildren()` at mount and already writes `root.dataset.avgFrameMs` from its own per-paint timing. That forced the palette decision above and means two `avgFrameMs` values exist: the theme's paint cost on the host element, and the host's frame cost on `document.documentElement`. The capture lever reads the host's.
 
 `apps/gateway/src/presence.ts` lines 13 to 15 define the reason strings as `recent`, `quiet`, `sleep`.
@@ -171,7 +195,13 @@ Importing the gateway's presence reason constants. It would put a server module 
 
 Rendering the overlay panel inside `.theme-host`. The StarCraft mount clears that element.
 
-Restyling the StarCraft scene. Step 5 owns it.
+Restyling the StarCraft scene. Step 5 owns it. Nametags still crowd at 40 bots, which Q4 and Q15 fix by replacing the twelve fixed stations with a generative layout.
+
+Renaming the roster row's test hook to `roster-row`. Step 4's `scripts/capture/capture.mjs` counts `[data-testid=bot-row]`, and `scripts/**` is not this step's to edit, so the hook stays.
+
+Adding `playwright` to the root `devDependencies`. Step 4's open PR already adds it at `1.62.1`, and a second entry would collide on merge. The proof scripts resolve it from that worktree instead.
+
+Insetting the camera fit by the roster panel's width. The panel is translucent and collapsible, and both the panel and the drawer change width at runtime, so a dynamic inset would make the scene lurch every time the watcher opened a drawer.
 
 ## Next step
 

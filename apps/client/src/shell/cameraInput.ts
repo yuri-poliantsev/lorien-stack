@@ -21,8 +21,14 @@ export function bindCameraInput(
     return { x: event.clientX - rect.left, y: event.clientY - rect.top };
   }
 
+  // Panning captures the pointer to the scene, which would steal the click from
+  // any shell control layered over it. Overlays opt out of the camera entirely.
+  function overCamera(node: EventTarget | null): boolean {
+    return !(node instanceof Element) || node.closest("[data-shell-overlay]") === null;
+  }
+
   function onPointerDown(event: PointerEvent): void {
-    if (event.button !== 0 || pointerId !== undefined) {
+    if (event.button !== 0 || pointerId !== undefined || !overCamera(event.target)) {
       return;
     }
     pointerId = event.pointerId;
@@ -71,6 +77,9 @@ export function bindCameraInput(
   }
 
   function onWheel(event: WheelEvent): void {
+    if (!overCamera(event.target)) {
+      return;
+    }
     event.preventDefault();
     camera.zoomAt(localPoint(event), Math.exp(-event.deltaY * WHEEL_ZOOM_RATE));
   }

@@ -19,6 +19,7 @@ export function mountInspector(
   const drawer = document.createElement("aside");
   drawer.className = "inspector";
   drawer.dataset.testid = "inspector";
+  drawer.dataset.shellOverlay = "true";
   drawer.dataset.open = "false";
   drawer.setAttribute("aria-label", "Inspector");
 
