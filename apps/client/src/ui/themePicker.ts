@@ -7,7 +7,6 @@ import {
 } from "../themes/registry.ts";
 
 export type ThemePickerHandle = {
-  setActive: (id: string) => void;
   unmount: () => void;
 };
 
@@ -101,9 +100,6 @@ export function mountThemePicker(
   window.addEventListener("keydown", onKey);
 
   return {
-    setActive(id) {
-      paintPressed(id);
-    },
     unmount() {
       window.removeEventListener("keydown", onKey);
       group.remove();
