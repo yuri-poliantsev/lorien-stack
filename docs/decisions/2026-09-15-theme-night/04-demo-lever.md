@@ -14,7 +14,7 @@ Capture is the lever. `npm run capture` builds the client once, then for each N 
 
 Ports. Gateway binds the first free port in 8044-8049. Preview binds 5184-5189. Those ranges are this step's isolation from other owners.
 
-Playwright is pinned to 1.62.1 because that release's Chromium revision is 1234. 1.63.0 rolls to 1243. Capture resolves Chromium as `CAPTURE_CHROME` if set, else the mac cache path when that file exists, else Playwright's own installed browser. ffmpeg is `FFMPEG` if set, else `ffmpeg` on PATH, else `/opt/homebrew/bin/ffmpeg`. SIGINT and SIGTERM close the browser and kill every registered child.
+Playwright is pinned to 1.62.1 because that release's Chromium revision is 1234. 1.63.0 rolls to 1243. Capture resolves Chromium as `CAPTURE_CHROME` if set, else the mac cache path when that file exists, else Playwright's own installed browser. ffmpeg is `FFMPEG` if set, else `ffmpeg` on PATH, else `/opt/homebrew/bin/ffmpeg`. SIGINT and SIGTERM close the browser and kill every registered child. Record uses `launchServer` plus `connect`, so the video is saved with `video.saveAs` after the page closes. `video.path()` throws on a remote connection.
 
 ## Data shape
 
@@ -42,7 +42,7 @@ Q4, Q22, Q25 in `docs/plans/2026-09-15-theme-night.md`. The current demo hardcod
 
 StarCraft already writes `data-pose` on `[data-testid=sc-unit]`. Capture waits on that, not on a guess about pixels.
 
-I viewed every PNG with the Read tool after `npm run capture -- --theme starcraft --bots 1,8,18,40 --record 20`.
+I viewed every PNG with the Read tool after regenerating at the rebased head with `npm run capture -- --theme starcraft --bots 1,8,18,40 --out docs/images/themes --record 20`. The stills show the step 2 header (`StarCraft`, `Kestrel Base · Command View`).
 
 - `starcraft-1.png` (71342 bytes). One roster row, Ivo. Ivo stands at Bunker with a WORK label. The floor is painted. Not blank.
 - `starcraft-8.png` (94847 bytes). Eight roster names. Ivo at Bunker is WORK. Reed, Anouk, Mira, Wren, Koji, Sable, Lauren are IDLE. The eight fixture ids are on screen.

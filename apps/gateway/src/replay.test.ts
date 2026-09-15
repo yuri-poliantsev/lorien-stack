@@ -7,7 +7,6 @@ import { after, describe, it } from "node:test";
 import { repoRootFromModule } from "./main.ts";
 import {
   DEMO_SLEEP_HOLD_MS,
-  DEMO_STAGGER_MS,
   cloneBotId,
   expandDemoRoster,
   loadFixtureAgents,
@@ -235,7 +234,7 @@ describe("runReplay", () => {
     });
     assert.deepEqual(
       [firstNow.get(ivo), firstNow.get(wren), firstNow.get(sable)],
-      [0, DEMO_STAGGER_MS, DEMO_STAGGER_MS * 2],
+      [0, 3500, 7000],
     );
   });
 

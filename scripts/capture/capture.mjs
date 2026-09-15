@@ -592,7 +592,8 @@ async function captureRecord(input) {
 		if (video === null) {
 			throw new Error("playwright did not record a video");
 		}
-		const webm = await video.path();
+		const webm = path.join(tmpDir, `${input.theme}.webm`);
+		await video.saveAs(webm);
 		await runFfmpeg([
 			"-y",
 			"-i",
