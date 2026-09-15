@@ -88,7 +88,9 @@ The picker is a compact segmented control in `<header class="app-header">`. Keyb
 
 ## What evidence decided it
 
-Q7, Q8, Q14, Q18, Q19 in `docs/plans/2026-09-15-theme-night.md`. Fixture tool names in `fixtures/demo/agent-transcripts/**` are `read_file`, `shell`, `grep`, `list_dir`. `tool_use` text is `JSON.stringify(block.input)` from `packages/contracts/src/index.ts`, so JSON keys are the path source for live Grok events. `themeHost.ts` today is a one-line StarCraft wrapper with no unmount. The scene loop in `apps/client/src/themes/starcraft/scene.ts` never cancels `requestAnimationFrame`.
+Q7, Q8, Q14, Q18, Q19 in `docs/plans/2026-09-15-theme-night.md`. Fixture tool names in `fixtures/demo/agent-transcripts/**` are `read_file`, `shell`, `grep`, `list_dir`. `tool_use` text is `JSON.stringify(block.input)` from `packages/contracts/src/index.ts`, so JSON keys are the path source for live Grok events. `themeHost.ts` on main was a one-line StarCraft wrapper with no unmount. The scene loop in `apps/client/src/themes/starcraft/scene.ts` never cancelled `requestAnimationFrame`.
+
+Client tests at this head pass 29 cases, including a literal row for every mapped tool name, the unknown default, JSON path extraction, fixture free-text path extraction, and NFKC nametags. Playwright against `http://127.0.0.1:5182/?theme=starcraft` set `html[data-theme="starcraft"]` after `html[data-roster-ready="true"]`, wrote `lorien.theme`, showed the hover thumbnail, and a fresh context with only localStorage set reproduced the same theme and wrote `?theme=starcraft` back onto the URL. Screenshots: `/tmp/theme-night/02-registry/starcraft.png`, `starcraft-hover.png`, `starcraft-from-storage.png`.
 
 ## What was rejected and why
 
@@ -106,4 +108,4 @@ Reduced-motion and camera utilities. Those are step 3.
 
 ## Next step
 
-Prove the picker, URL param, and localStorage on a live demo at ports 8042 and 5182. Then step 3 owns the shell redesign.
+Step 3. Shell redesign. Overlay roster, header, inspector drawer, stats strip, camera utility, bundled fonts, reduced motion. Keep this header's picker. Do not restyle the StarCraft scene.

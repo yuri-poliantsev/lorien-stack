@@ -77,8 +77,9 @@ body {
 
 .theme-preview {
   position: absolute;
-  left: 0;
-  top: calc(100% + 0.35rem);
+  left: 100%;
+  top: 0;
+  margin-left: 0.35rem;
   z-index: 4;
   display: none;
   width: 64px;
