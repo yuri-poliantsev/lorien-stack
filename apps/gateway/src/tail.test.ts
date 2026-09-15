@@ -10,7 +10,7 @@ import { COALESCE_MS, createTailer, grokDriver, MAX_INITIAL_CATCHUP_BYTES } from
 
 const botId = "af4c6d21-9ef6-4435-8232-bf09ca561583";
 const line = (n: number) =>
-  `{"role":"user","content":"line-${n}","at":"2026-08-20T10:00:0${n}.000Z"}`;
+  `{"role":"user","message":{"content":[{"type":"text","text":"line-${n}"}]}}`;
 
 async function makeRoot(): Promise<string> {
   const root = await mkdtemp(path.join(os.tmpdir(), "gateway-tail-"));
@@ -109,7 +109,7 @@ describe("tail", () => {
     const root = await makeRoot();
     roots.push(root);
     const file = jsonlPath(root);
-    await writeFile(file, `{"role":"user","content":"cut`);
+    await writeFile(file, `{"role":"user","message":{"content":[{"type":"text","text":"cut`);
     const events: ActivityEvent[][] = [];
     const tailer = createTailer({
       root,
@@ -124,7 +124,7 @@ describe("tail", () => {
     await tailer.tick();
     assert.equal(events.length, 0);
     assert.ok((tailer.cursors().get(file)?.pending.length ?? 0) > 0);
-    await appendFile(file, `","at":"2026-08-20T10:00:00.000Z"}\n`);
+    await appendFile(file, `"}]}}\n`);
     await tailer.tick();
     assert.equal(events.length, 1);
     assert.equal(events[0]?.[0]?.text, "cut");

@@ -5,6 +5,7 @@ import {
   parseActivityJsonl,
   parseAgentProfile,
   parseBotId,
+  parseIsoTimestamp,
   type ActivityEvent,
   type BotId,
   type BotRecord,
@@ -211,10 +212,17 @@ export function createTailer(input: {
     }
     const complete = text.slice(0, lastNl + 1);
     cursor.pending = text.slice(lastNl + 1);
+    const at = parseIsoTimestamp(
+      new Date(existing === undefined ? fileStat.mtimeMs : Date.now()).toISOString(),
+    );
+    if (!at.ok) {
+      throw new Error(at.error);
+    }
     const events = parseActivityJsonl({
       text: complete,
       botId,
       lineOffset: cursor.lineIndex,
+      at: at.value,
     });
     cursor.lineIndex += complete.split("\n").length - 1;
     cursors.set(filePath, cursor);

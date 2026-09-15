@@ -78,7 +78,16 @@ describe("demo fixtures", () => {
         continue;
       }
       const { text } = readTranscript(id);
-      const events: ActivityEvent[] = parseActivityJsonl({ text, botId: botId.value });
+      const at = parseIsoTimestamp("2026-08-27T09:00:00.000Z");
+      assert.equal(at.ok, true);
+      if (!at.ok) {
+        continue;
+      }
+      const events: ActivityEvent[] = parseActivityJsonl({
+        text,
+        botId: botId.value,
+        at: at.value,
+      });
       assert.ok(events.length >= 1, `expected activity for ${id}`);
       for (const event of events) {
         assert.equal(event.botId, botId.value);
@@ -109,20 +118,21 @@ describe("jsonl edge parse", () => {
     throw new Error("fixture bot id");
   }
   const botId = botIdResult.value;
+  const atResult = parseIsoTimestamp("2026-08-20T10:00:00.000Z");
+  assert.equal(atResult.ok, true);
+  if (!atResult.ok) {
+    throw new Error("fixture timestamp");
+  }
+  const at = atResult.value;
 
   it("parses real Grok transcript lines", () => {
-    const atResult = parseIsoTimestamp("2026-08-20T10:00:00.000Z");
-    assert.equal(atResult.ok, true);
-    if (!atResult.ok) {
-      throw new Error("fixture timestamp");
-    }
     const text = [
       `{"role":"tool","message":{"content":[{"type":"tool_result","name":"communicate_update","result":{"success":{"currentStep":"..."}}}]}}`,
       `{"role":"assistant","message":{"content":[{"type":"tool_use","id":"tu1","name":"shell","input":{"command":"echo 4"}}]}}`,
       `{"role":"assistant","message":{"content":[{"type":"text","text":"4"}]}}`,
       `{"role":"user","message":{"content":"plain string is also possible"}}`,
     ].join("\n");
-    const events = parseActivityJsonl({ text, botId, at: atResult.value });
+    const events = parseActivityJsonl({ text, botId, at });
     assert.deepEqual(
       events.map((event) => [
         event.role,
@@ -131,47 +141,60 @@ describe("jsonl edge parse", () => {
         event.at,
       ]),
       [
-        ["tool", "communicate_update", `{"success":{"currentStep":"..."}}`, atResult.value],
-        ["tool", "shell", `{"command":"echo 4"}`, atResult.value],
-        ["assistant", undefined, "4", atResult.value],
-        ["user", undefined, "plain string is also possible", atResult.value],
+        ["tool", "communicate_update", `{"success":{"currentStep":"..."}}`, at],
+        ["tool", "shell", `{"command":"echo 4"}`, at],
+        ["assistant", undefined, "4", at],
+        ["user", undefined, "plain string is also possible", at],
+      ],
+    );
+  });
+
+  it("skips unknown block types and keeps the first mappable block", () => {
+    const text = [
+      `{"role":"assistant","message":{"content":[{"type":"thinking","thinking":"hmm"},{"type":"text","text":"after thinking"}]}}`,
+      `{"role":"user","message":{"content":[{"type":"image","source":{}},{"type":"text","text":"see attached"}]}}`,
+      `{"role":"assistant","message":{"content":[{"type":"thinking","thinking":"only"}]}}`,
+    ].join("\n");
+    const events = parseActivityJsonl({ text, botId, at });
+    assert.deepEqual(
+      events.map((event) => [event.role, event.text]),
+      [
+        ["assistant", "after thinking"],
+        ["user", "see attached"],
       ],
     );
   });
 
   it("rejects unknown roles without throwing", () => {
     const text = [
-      `{"role":"user","content":"hello","at":"2026-08-20T10:00:00.000Z"}`,
-      `{"role":"system","content":"ignore me","at":"2026-08-20T10:00:01.000Z"}`,
-      `{"role":"assistant","content":"hi","at":"2026-08-20T10:00:02.000Z"}`,
+      `{"role":"user","message":{"content":[{"type":"text","text":"hello"}]}}`,
+      `{"role":"system","message":{"content":[{"type":"text","text":"ignore me"}]}}`,
+      `{"role":"assistant","message":{"content":[{"type":"text","text":"hi"}]}}`,
     ].join("\n");
-    const events = parseActivityJsonl({ text, botId });
+    const events = parseActivityJsonl({ text, botId, at });
     assert.deepEqual(
-      events.map((event) => event.role),
-      ["user", "assistant"],
+      events.map((event) => [event.role, event.text]),
+      [
+        ["user", "hello"],
+        ["assistant", "hi"],
+      ],
     );
   });
 
   it("skips a truncated last line and keeps prior events", () => {
     const text = [
-      `{"role":"user","content":"keep me","at":"2026-08-20T10:00:00.000Z"}`,
-      `{"role":"assistant","content":"also keep","at":"2026-08-20T10:00:01.000Z"}`,
-      `{"role":"assistant","content":"cut`,
+      `{"role":"user","message":{"content":[{"type":"text","text":"keep me"}]}}`,
+      `{"role":"assistant","message":{"content":[{"type":"text","text":"also keep"}]}}`,
+      `{"role":"assistant","message":{"content":[{"type":"text","text":"cut`,
     ].join("\n");
-    const events = parseActivityJsonl({ text, botId });
-    assert.equal(events.length, 2);
-    assert.equal(events[0]?.text, "keep me");
-    assert.equal(events[1]?.text, "also keep");
-  });
-
-  it("skips a line with no timestamp", () => {
-    const text = [
-      `{"role":"user","content":"dated","at":"2026-08-20T10:00:00.000Z"}`,
-      `{"role":"assistant","content":"undated"}`,
-    ].join("\n");
-    const events = parseActivityJsonl({ text, botId });
-    assert.equal(events.length, 1);
-    assert.equal(events[0]?.text, "dated");
+    const events = parseActivityJsonl({ text, botId, at });
+    assert.deepEqual(
+      events.map((event) => [event.role, event.text]),
+      [
+        ["user", "keep me"],
+        ["assistant", "also keep"],
+      ],
+    );
   });
 });
 
