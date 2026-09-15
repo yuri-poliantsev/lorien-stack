@@ -11,6 +11,10 @@ const repoRoot = fileURLToPath(new URL("../..", import.meta.url));
 const GATEWAY_PORTS = [8044, 8045, 8046, 8047, 8048, 8049];
 const PREVIEW_PORTS = [5184, 5185, 5186, 5187, 5188, 5189];
 const FFMPEG = "/opt/homebrew/bin/ffmpeg";
+const CHROME = path.join(
+	os.homedir(),
+	"Library/Caches/ms-playwright/chromium-1234/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+);
 const VIEWPORT = { width: 1920, height: 1080 };
 const DEFAULT_BOTS = [1, 8, 18, 40];
 const ASLEEP_N = 8;
@@ -514,6 +518,7 @@ async function main() {
 	await buildClient();
 	const browser = await chromium.launch({
 		headless: true,
+		executablePath: CHROME,
 		args: ["--disable-dev-shm-usage"],
 	});
 	try {

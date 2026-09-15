@@ -12,7 +12,9 @@ Replay is a per-bot tape, not one global sorted timeline with a single all-sleep
 
 Capture is the lever. `npm run capture` builds the client once, then for each N starts a demo gateway and a preview server on this step's ports, screenshots 1920x1080, and can record 20 seconds of video.
 
-Playwright is pinned to 1.62.1 because that release's Chromium revision is 1234, which is the binary already cached at `~/Library/Caches/ms-playwright/chromium-1234`.
+Ports. Gateway binds the first free port in 8044-8049. Preview binds 5184-5189. Those ranges are this step's isolation from other owners.
+
+Playwright is pinned to 1.62.1 because that release's Chromium revision is 1234. 1.63.0 rolls to 1243. Headless launch still looks for `chromium_headless_shell-1234`, which is not cached, so capture passes `executablePath` to `~/Library/Caches/ms-playwright/chromium-1234/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing`.
 
 ## Data shape
 
@@ -40,6 +42,17 @@ Q4, Q22, Q25 in `docs/plans/2026-09-15-theme-night.md`. The current demo hardcod
 
 StarCraft already writes `data-pose` on `[data-testid=sc-unit]`. Capture waits on that, not on a guess about pixels.
 
+I viewed every PNG with the Read tool after `npm run capture -- --theme starcraft --bots 1,8,18,40 --record 20`.
+
+- `starcraft-1.png` (71342 bytes). One roster row, Ivo. Ivo stands at Bunker with a WORK label. The floor is painted. Not blank.
+- `starcraft-8.png` (94847 bytes). Eight roster names. Ivo at Bunker is WORK. Reed, Anouk, Mira, Wren, Koji, Sable, Lauren are IDLE. The eight fixture ids are on screen.
+- `starcraft-18.png` (132570 bytes). Roster lists clones (`Ivo 2`, `Ivo 3`, `Wren 2`). Units stack on the twelve stations. Ivo, Ivo 2, Ivo 3 show WORK. Clones are real bots, not a second paint of the originals.
+- `starcraft-40.png` (189603 bytes). Roster scrolls through Anouk 2-5, Ivo 2-5, Lauren 2-5. Nametags overlap. That is the 12-station layout crowding Q4 accepted for tonight. Units are present. Not empty.
+- `starcraft-8-asleep.png` (112204 bytes). Every roster row has a SLEEP badge. Every unit shows REST and a Z. `--replay-idle` produced the all-asleep still.
+- `starcraft-record.png` (594638 bytes) and `starcraft.mp4` (2200781 bytes). Frame at 8s of the N=18 recording. Mix of WORK, IDLE, and SLEEP. Ivo, Ivo 2, Ivo 3, Wren have SLEEP badges. Several units are WORKING. This is the product frame Q25 asked for.
+
+`html[data-theme]` was absent, as expected until step 2. `document.documentElement.dataset.avgFrameMs` was absent, as expected until step 3. Manifest printed `avgFrameMs=n/a`. Canvas still had `data-avg-frame-ms` from the current StarCraft loop.
+
 ## What was rejected and why
 
 Waiting for the live quiet clock to produce the all-asleep still. Demo does not run that timer. A 22-second wait would also make the still a race. `--replay-idle` is explicit.
@@ -48,8 +61,10 @@ Appending clone transcripts onto the original timeline with no stagger. Forty cl
 
 Pinning Playwright 1.63.0. That release rolls Chromium to 1243. The machine has 1234.
 
+Letting Playwright's default headless shell download. The cache already has Chromium 1234. Capture points at that binary.
+
 A fourth theme, a gallery picker, or client-side fixture replay. Those belong to later steps.
 
 ## Next step
 
-Land `--bots` and `--replay-idle` with literal CLI tests. Enrich the eight transcripts. Loop the replay. Ship `scripts/capture`. Run it for `starcraft` at 1, 8, 18, 40 plus the 20-second recording. View every PNG. Do not merge until the root says `merge authorized at <sha>`.
+Step 5. Asset lever and the StarCraft rework, via bakeoff. The N=40 still shows twelve stations with stacked nametags. Generative layout is that step's job. Do not merge this PR until the root says `merge authorized at <sha>`.
