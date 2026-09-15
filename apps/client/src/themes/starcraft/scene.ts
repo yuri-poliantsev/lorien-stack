@@ -26,15 +26,18 @@ const STYLE = `
 [data-theme="starcraft"] {
   position: relative;
   padding: 0 !important;
-  min-height: 16rem;
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
   background: #070a06;
   overflow: hidden;
 }
 [data-theme="starcraft"] canvas[data-testid="starcraft-canvas"] {
   display: block;
   width: 100%;
-  height: min(42vh, 22rem);
-  min-height: 16rem;
+  height: 100%;
+  min-height: 0;
   cursor: pointer;
 }
 [data-theme="starcraft"] .sc-hits {
@@ -217,7 +220,7 @@ export function mountStarCraftTheme(
     const now = started;
     const dpr = Math.max(1, window.devicePixelRatio || 1);
     const cssW = Math.max(1, canvas.clientWidth || root.clientWidth || 640);
-    const cssH = Math.max(1, canvas.clientHeight || 280);
+    const cssH = Math.max(1, canvas.clientHeight || root.clientHeight || 280);
     const pixelW = Math.floor(cssW * dpr);
     const pixelH = Math.floor(cssH * dpr);
     if (canvas.width !== pixelW || canvas.height !== pixelH) {
