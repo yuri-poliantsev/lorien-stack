@@ -26,10 +26,71 @@ body {
 #app {
   display: grid;
   grid-template-columns: minmax(11rem, 16rem) minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr);
-  grid-template-areas: "bots theme";
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-areas:
+    "header header"
+    "bots theme";
   height: 100%;
   max-width: 100vw;
+}
+
+.app-header {
+  grid-area: header;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.6rem;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+  overflow: visible;
+}
+
+.theme-picker {
+  display: inline-flex;
+  isolation: isolate;
+}
+
+.theme-picker button {
+  position: relative;
+  appearance: none;
+  border: 1px solid var(--line);
+  background: #15180f;
+  color: inherit;
+  font: inherit;
+  font-size: 0.8rem;
+  line-height: 1.2;
+  padding: 0.2rem 0.55rem;
+  margin: 0;
+  cursor: pointer;
+}
+
+.theme-picker button + button {
+  margin-left: -1px;
+}
+
+.theme-picker button[aria-pressed="true"] {
+  background: #262b1b;
+  border-color: var(--accent);
+  z-index: 1;
+}
+
+.theme-preview {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 0.35rem);
+  z-index: 4;
+  display: none;
+  width: 64px;
+  height: 64px;
+  border: 1px solid var(--line);
+  background: #070a06;
+  pointer-events: none;
+}
+
+.theme-picker button:hover .theme-preview,
+.theme-picker button:focus-visible .theme-preview {
+  display: block;
 }
 
 .bot-list {
@@ -125,8 +186,9 @@ h2 {
 @media (max-width: 720px) {
   #app {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-rows: auto minmax(0, 1fr) auto;
     grid-template-areas:
+      "header"
       "theme"
       "bots";
   }

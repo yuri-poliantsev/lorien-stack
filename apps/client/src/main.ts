@@ -6,6 +6,7 @@ import {
 } from "./store.ts";
 import { mountThemeHost } from "./themeHost.ts";
 import { mountBotList } from "./ui/botList.ts";
+import { mountThemePicker } from "./ui/themePicker.ts";
 import { connectGateway, gatewayWsUrl } from "./ws.ts";
 import "./styles.css";
 
@@ -15,12 +16,14 @@ if (!(appNode instanceof HTMLElement)) {
 }
 const app: HTMLElement = appNode;
 
+const headerEl = document.createElement("header");
+headerEl.className = "app-header";
 const botListEl = document.createElement("aside");
 botListEl.className = "bot-list";
 const themeEl = document.createElement("section");
 themeEl.className = "theme-host";
 themeEl.id = "theme-mount";
-app.append(botListEl, themeEl);
+app.append(headerEl, botListEl, themeEl);
 
 const store = emptyStore();
 const paintOrigin = performance.now();
@@ -29,6 +32,15 @@ let rosterPainted = false;
 const theme = mountThemeHost(themeEl, {
   onSelect(botId) {
     selectBot(store, botId);
+    render();
+  },
+});
+mountThemePicker(headerEl, {
+  getId() {
+    return theme.themeId();
+  },
+  onSelect(id) {
+    theme.setTheme(id);
     render();
   },
 });

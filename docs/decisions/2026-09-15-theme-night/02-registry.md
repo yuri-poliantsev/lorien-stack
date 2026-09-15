@@ -58,12 +58,12 @@ type ThemeEntry = {
 };
 
 type ThemeRegistry = {
-  entries: readonly ThemeEntry[];
+  entries: readonly [ThemeEntry, ...ThemeEntry[]];
   get(id: string): ThemeEntry | undefined;
 };
 ```
 
-`mountStarCraftTheme` returns `unmount` that stops the animation frame, removes the canvas, hit layer, and listeners it attached, and clears host dataset keys it set. Scene CSS stays scoped to `.theme-host[data-theme="starcraft"]` so `html[data-theme]` does not restyle the document.
+Selection is a pure module, `apps/client/src/themes/choice.ts`, so tests do not load the StarCraft scene. `mountStarCraftTheme` returns `unmount` that stops the animation frame, removes the canvas, hit layer, and listeners it attached, and clears host dataset keys it set. Scene CSS stays scoped to `.theme-host[data-theme="starcraft"]` so `html[data-theme]` does not restyle the document.
 
 ### Theme choice
 
@@ -97,6 +97,8 @@ A mutable `register()` API. One theme this step, and later themes land as list e
 A gallery picker. Q14 forbids it.
 
 Threading `Action` through the websocket client. Themes consume roster and activity only. The table stays a pure function of `ActivityEvent`.
+
+Keeping choice helpers in `registry.ts`. That file imports the StarCraft mount, and node tests cannot load canvas.
 
 Restyling the StarCraft scene. Visual output is frozen until step 5.
 
