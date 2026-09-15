@@ -2,7 +2,6 @@ import { mkdir, readFile, readdir, writeFile, appendFile } from "node:fs/promise
 import path from "node:path";
 
 import {
-  parseActivityJsonl,
   parseAgentProfile,
   parseIsoTimestamp,
   type BotId,
@@ -66,15 +65,12 @@ export async function loadReplayPlan(input: {
     for (const file of files) {
       const text = await readFile(path.join(srcDir, file), "utf8");
       const destPath = path.join(destDir, file);
-      const events = parseActivityJsonl({ text, botId });
       const rawLines = text.endsWith("\n") ? text.slice(0, -1).split("\n") : text.split("\n");
-      for (let index = 0; index < rawLines.length; index += 1) {
-        const line = rawLines[index];
+      for (const line of rawLines) {
         if (line === undefined || line.trim() === "") {
           continue;
         }
-        const event = events.find((item) => item.id === `${botId}:${index}`);
-        const at = event?.at ?? firstTimestamp(line);
+        const at = firstTimestamp(line);
         if (at === undefined) {
           continue;
         }

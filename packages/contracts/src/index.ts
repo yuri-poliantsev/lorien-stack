@@ -32,6 +32,16 @@ export type ActivityEvent = {
   | { role: "tool"; toolName: string; text: string }
 );
 
+type GrokContentBlock =
+  | { type: "text"; text: string }
+  | { type: "tool_use"; name: string; input?: unknown }
+  | { type: "tool_result"; name?: string; result?: unknown };
+
+type GrokTranscriptLine = {
+  role: "user" | "assistant" | "tool";
+  message: { content: string | GrokContentBlock[] };
+};
+
 export type PresenceHint = {
   lastActivityAt: IsoTimestamp;
   freshnessMs: number;
@@ -54,6 +64,8 @@ export const EXPORTED_TYPE_NAMES = [
   "SeatId",
   "SpatialAnchor",
 ] as const;
+
+export const ACTIVITY_TOOL_TEXT_LIMIT = 400;
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -216,57 +228,134 @@ function parseJsonLine(line: string): unknown | undefined {
   }
 }
 
-function textFromWire(input: Record<string, unknown>): string | undefined {
-  if (typeof input.content === "string") {
-    return input.content;
+function parseGrokContentBlock(input: unknown): GrokContentBlock | undefined {
+  if (!isRecord(input)) {
+    return undefined;
   }
-  if (typeof input.text === "string") {
-    return input.text;
+  switch (input.type) {
+    case "text":
+      if (typeof input.text !== "string") {
+        return undefined;
+      }
+      return { type: "text", text: input.text };
+    case "tool_use":
+      if (typeof input.name !== "string") {
+        return undefined;
+      }
+      return {
+        type: "tool_use",
+        name: input.name,
+        ...(input.input !== undefined ? { input: input.input } : {}),
+      };
+    case "tool_result":
+      if (input.name !== undefined && typeof input.name !== "string") {
+        return undefined;
+      }
+      return {
+        type: "tool_result",
+        ...(input.name !== undefined ? { name: input.name } : {}),
+        ...(input.result !== undefined ? { result: input.result } : {}),
+      };
+    default:
+      return undefined;
   }
-  return undefined;
 }
 
-function toolNameFromWire(input: Record<string, unknown>): string | undefined {
-  if (typeof input.name === "string" && input.name.length > 0) {
-    return input.name;
+function parseGrokTranscriptLine(input: unknown): ParseResult<GrokTranscriptLine> {
+  if (!isRecord(input)) {
+    return fail("transcript line must be an object");
   }
-  if (typeof input.toolName === "string" && input.toolName.length > 0) {
-    return input.toolName;
+  if (input.role !== "user" && input.role !== "assistant" && input.role !== "tool") {
+    return fail("unsupported transcript role");
   }
-  return undefined;
+  if (!isRecord(input.message)) {
+    return fail("transcript message must be an object");
+  }
+  const content = input.message.content;
+  if (typeof content === "string") {
+    return {
+      ok: true,
+      value: { role: input.role, message: { content } },
+    };
+  }
+  if (!Array.isArray(content)) {
+    return fail("transcript content must be a string or array");
+  }
+  const blocks: GrokContentBlock[] = [];
+  for (const block of content) {
+    const parsed = parseGrokContentBlock(block);
+    if (parsed !== undefined) {
+      blocks.push(parsed);
+    }
+  }
+  return {
+    ok: true,
+    value: { role: input.role, message: { content: blocks } },
+  };
 }
 
-function timestampFromWire(input: Record<string, unknown>): ParseResult<IsoTimestamp> | undefined {
-  if (input.at !== undefined) {
-    return parseIsoTimestamp(input.at);
-  }
-  if (input.timestamp !== undefined) {
-    return parseIsoTimestamp(input.timestamp);
-  }
-  return undefined;
+function compactJson(value: unknown): string {
+  return (JSON.stringify(value) ?? "").slice(0, ACTIVITY_TOOL_TEXT_LIMIT);
+}
+
+type ActivityEventBase = Pick<ActivityEvent, "id" | "botId" | "at" | "spatial">;
+type GrokBlockType = GrokContentBlock["type"];
+type GrokBlockMapper<K extends GrokBlockType> = (
+  block: Extract<GrokContentBlock, { type: K }>,
+  line: GrokTranscriptLine,
+  base: ActivityEventBase,
+) => ActivityEvent | undefined;
+type GrokBlockMappers = {
+  [K in GrokBlockType]: GrokBlockMapper<K>;
+};
+
+const GROK_BLOCK_MAPPERS: GrokBlockMappers = {
+  text(block, line, base) {
+    if (line.role === "tool") {
+      return undefined;
+    }
+    return { ...base, role: line.role, text: block.text };
+  },
+  tool_use(block, _line, base) {
+    return {
+      ...base,
+      role: "tool",
+      toolName: block.name,
+      text: compactJson(block.input),
+    };
+  },
+  tool_result(block, _line, base) {
+    return {
+      ...base,
+      role: "tool",
+      toolName: block.name ?? "unknown",
+      text: compactJson(block.result),
+    };
+  },
+};
+
+function activityEventFromBlock(
+  block: GrokContentBlock,
+  line: GrokTranscriptLine,
+  base: ActivityEventBase,
+): ActivityEvent | undefined {
+  const mapper = GROK_BLOCK_MAPPERS[block.type] as GrokBlockMapper<typeof block.type>;
+  return mapper(block, line, base);
 }
 
 function activityEventFromUnknown(
   input: unknown,
   botId: BotId,
   index: number,
+  at: IsoTimestamp,
 ): ActivityEvent | undefined {
   if (!isRecord(input)) {
     return undefined;
   }
-  const role = input.role;
-  if (role !== "user" && role !== "assistant" && role !== "tool") {
+  const line = parseGrokTranscriptLine(input);
+  if (!line.ok) {
     return undefined;
   }
-  const text = textFromWire(input);
-  if (text === undefined) {
-    return undefined;
-  }
-  const atResult = timestampFromWire(input);
-  if (atResult === undefined || !atResult.ok) {
-    return undefined;
-  }
-  const at = atResult.value;
   const idResult =
     input.id === undefined
       ? { ok: true as const, value: eventIdForJsonlLine({ botId, index }) }
@@ -284,29 +373,24 @@ function activityEventFromUnknown(
     at,
     ...(spatial.value !== undefined ? { spatial: spatial.value } : {}),
   };
-  switch (role) {
-    case "user":
-      return { ...base, role: "user", text };
-    case "assistant":
-      return { ...base, role: "assistant", text };
-    case "tool": {
-      const toolName = toolNameFromWire(input);
-      if (toolName === undefined) {
-        return undefined;
-      }
-      return { ...base, role: "tool", toolName, text };
-    }
-    default: {
-      const _exhaustive: never = role;
-      return _exhaustive;
+  const content =
+    typeof line.value.message.content === "string"
+      ? [{ type: "text" as const, text: line.value.message.content }]
+      : line.value.message.content;
+  for (const block of content) {
+    const event = activityEventFromBlock(block, line.value, base);
+    if (event !== undefined) {
+      return event;
     }
   }
+  return undefined;
 }
 
 export function parseActivityJsonl(input: {
   text: string;
   botId: BotId;
   lineOffset?: number;
+  at: IsoTimestamp;
 }): ActivityEvent[] {
   const lineOffset = input.lineOffset ?? 0;
   const rawLines = input.text.split("\n");
@@ -323,7 +407,7 @@ export function parseActivityJsonl(input: {
     if (parsed === undefined) {
       continue;
     }
-    const event = activityEventFromUnknown(parsed, input.botId, lineOffset + index);
+    const event = activityEventFromUnknown(parsed, input.botId, lineOffset + index, input.at);
     if (event === undefined) {
       continue;
     }

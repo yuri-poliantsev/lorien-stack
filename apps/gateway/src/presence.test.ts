@@ -82,8 +82,7 @@ async function makeLiveRoot(ids: string[]): Promise<string> {
       path.join(root, "agent-transcripts", id, "tape.jsonl"),
       `${JSON.stringify({
         role: "user",
-        content: "hello",
-        at: "2026-08-20T10:00:00.000Z",
+        message: { content: [{ type: "text", text: "hello" }] },
       })}\n`,
     );
   }
@@ -406,10 +405,12 @@ describe("live presence emission", () => {
       await waitFor(() => presenceMessages(sock.messages).length > 0, 1500, "first presence");
       const before = presenceMessages(sock.messages).at(-1);
       assert.ok(before !== undefined);
-      const laterAt = new Date().toISOString();
       await appendFile(
         path.join(data, "agent-transcripts", lauren, "tape.jsonl"),
-        `${JSON.stringify({ role: "assistant", content: "ping", at: laterAt })}\n`,
+        `${JSON.stringify({
+          role: "assistant",
+          message: { content: [{ type: "text", text: "ping" }] },
+        })}\n`,
       );
       await waitFor(() => {
         const last = presenceMessages(sock.messages).at(-1);

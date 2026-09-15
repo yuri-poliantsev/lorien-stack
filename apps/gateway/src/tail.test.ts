@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdir, mkdtemp, rm, writeFile, appendFile } from "node:fs/promises";
+import { appendFile, mkdir, mkdtemp, rm, utimes, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { after, describe, it } from "node:test";
@@ -10,7 +10,7 @@ import { COALESCE_MS, createTailer, grokDriver, MAX_INITIAL_CATCHUP_BYTES } from
 
 const botId = "af4c6d21-9ef6-4435-8232-bf09ca561583";
 const line = (n: number) =>
-  `{"role":"user","content":"line-${n}","at":"2026-08-20T10:00:0${n}.000Z"}`;
+  `{"role":"user","message":{"content":[{"type":"text","text":"line-${n}"}]}}`;
 
 async function makeRoot(): Promise<string> {
   const root = await mkdtemp(path.join(os.tmpdir(), "gateway-tail-"));
@@ -68,11 +68,48 @@ describe("tail", () => {
     assert.equal(events[1]?.[0]?.text, "line-2");
   });
 
+  it("stamps catch-up events from file mtime and later events from observation time", async () => {
+    const root = await makeRoot();
+    roots.push(root);
+    const file = jsonlPath(root);
+    const catchupAt = "2021-02-03T04:05:06.000Z";
+    await writeFile(
+      file,
+      `{"role":"user","message":{"content":[{"type":"text","text":"catch-up"}]}}\n`,
+    );
+    await utimes(file, new Date(catchupAt), new Date(catchupAt));
+    const events: ActivityEvent[][] = [];
+    const tailer = createTailer({
+      root,
+      handlers: {
+        onSpawn: () => undefined,
+        onGone: () => undefined,
+        onEvents: (batch) => {
+          events.push(batch);
+        },
+      },
+    });
+
+    await tailer.tick();
+    assert.deepEqual(
+      events.flat().map((event) => [event.text, event.at]),
+      [["catch-up", catchupAt]],
+    );
+
+    await appendFile(
+      file,
+      `{"role":"assistant","message":{"content":[{"type":"text","text":"live"}]}}\n`,
+    );
+    await tailer.tick();
+    assert.equal(events[1]?.[0]?.text, "live");
+    assert.ok(Date.parse(events[1]?.[0]?.at ?? "") > Date.parse(catchupAt));
+  });
+
   it("buffers a partial last line until the newline arrives", async () => {
     const root = await makeRoot();
     roots.push(root);
     const file = jsonlPath(root);
-    await writeFile(file, `{"role":"user","content":"cut`);
+    await writeFile(file, `{"role":"user","message":{"content":[{"type":"text","text":"cut`);
     const events: ActivityEvent[][] = [];
     const tailer = createTailer({
       root,
@@ -87,7 +124,7 @@ describe("tail", () => {
     await tailer.tick();
     assert.equal(events.length, 0);
     assert.ok((tailer.cursors().get(file)?.pending.length ?? 0) > 0);
-    await appendFile(file, `","at":"2026-08-20T10:00:00.000Z"}\n`);
+    await appendFile(file, `"}]}}\n`);
     await tailer.tick();
     assert.equal(events.length, 1);
     assert.equal(events[0]?.[0]?.text, "cut");
