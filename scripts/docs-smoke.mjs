@@ -6,38 +6,61 @@ import { fileURLToPath } from "node:url";
 const repoRoot = fileURLToPath(new URL("..", import.meta.url));
 
 const REQUIRED_HEADINGS = [
+	"Before you start",
 	"Find agent data",
-	"Create the webhook",
 	"Configure env",
 	"Start",
 	"Tailscale",
+	"Verify observation",
 	"Troubleshoot",
 ];
 
 const MAX_WORDS = 2500;
 
 const PROMPT_PATH = "docs/prompts/lorien-stack-setup.md";
+const TEMPLATE_PATH = "docs/prompts/lorien-bot-template.md";
 const PROMPT_MAX_WORDS = 1200;
 
 const PROMPT_REQUIRED = [
-	"secret-request",
-	"WEBHOOK_SENDER_KEY",
 	"AGENT_DATA",
 	"npm run gateway",
 	"npm run dev -w apps/client",
-	"botId",
 	"tailscale",
 	"nodejs.org/dist",
 	"$HOME/.local/node22",
 ];
 
-const ENV_KEYS = [
-	"AGENT_DATA",
+const ENV_KEYS = ["AGENT_DATA"];
+
+const FORBIDDEN = [
 	"GATEWAY_CLIENT_TOKEN",
 	"VITE_GATEWAY_TOKEN",
+	"GATEWAY_ALLOWLIST",
 	"WEBHOOK_URL",
 	"WEBHOOK_SENDER_KEY",
+	"WEBHOOK_",
+	"secret-request",
+	"requestWake",
+	"parseWakeRequest",
+	"WakeRequest",
+	"WakePrompt",
+	"--allowlist",
+	"--webhook-url",
+	"/api/prompt",
 ];
+
+const SETUP_FILES = [
+	"docs/live.md",
+	PROMPT_PATH,
+	TEMPLATE_PATH,
+	".env.example",
+	"apps/gateway/README.md",
+	"apps/client/README.md",
+	"docs/contracts.md",
+];
+
+const OBSERVE_ONLY =
+	"lorien-stack observes Grok Bots; it does not wake bots or provide chat.";
 
 const failures = [];
 
@@ -93,17 +116,6 @@ for (const needle of PROMPT_REQUIRED) {
 	check(prompt.includes(needle), `${PROMPT_PATH} never names ${needle}`);
 }
 
-check(
-	/never (?:ask me to )?paste the sender key in chat/i.test(prompt),
-	`${PROMPT_PATH} does not forbid pasting the sender key in chat`,
-);
-
-check(
-	/automations\/webhook\/<id>/.test(prompt) &&
-		!/automations\/webhook\/(?!<id>)\S/.test(prompt),
-	`${PROMPT_PATH} hard-codes a webhook id instead of <id>`,
-);
-
 const promptWords = wordCount(prompt);
 check(
 	promptWords < PROMPT_MAX_WORDS,
@@ -123,17 +135,12 @@ for (const key of ENV_KEYS) {
 }
 
 check(
-	/GATEWAY_CLIENT_TOKEN and VITE_GATEWAY_TOKEN must hold the same string/.test(
-		example,
-	),
-	".env.example does not state that GATEWAY_CLIENT_TOKEN and VITE_GATEWAY_TOKEN must match",
-);
-check(
 	example.includes("docs/live.md"),
 	".env.example does not point at docs/live.md",
 );
 
 const readme = await read("README.md");
+check(readme.includes(OBSERVE_ONLY), "README.md is missing the observe-only sentence");
 
 const demoIndex = readme.indexOf("## Quick start (demo)");
 const liveIndex = readme.indexOf("## Live bots");
@@ -159,6 +166,31 @@ if (liveIndex !== -1) {
 		`README.md does not link ${PROMPT_PATH} from the Live bots section`,
 	);
 }
+
+for (const relativePath of SETUP_FILES) {
+	const text = await read(relativePath);
+	for (const term of FORBIDDEN) {
+		check(
+			!text.includes(term),
+			`${relativePath} still names ${term}`,
+		);
+	}
+	check(
+		!/\bwake\b/i.test(text),
+		`${relativePath} still names wake`,
+	);
+	check(!/\ballowlist\b/i.test(text), `${relativePath} still names allowlist`);
+}
+
+const readmeWithoutObserve = readme.replace(OBSERVE_ONLY, "");
+for (const term of FORBIDDEN) {
+	check(!readme.includes(term), `README.md still names ${term}`);
+}
+check(
+	!/\bwake\b/i.test(readmeWithoutObserve),
+	"README.md names wake outside the observe-only sentence",
+);
+check(!/\ballowlist\b/i.test(readme), "README.md still names allowlist");
 
 if (failures.length > 0) {
 	for (const failure of failures) {

@@ -1,6 +1,6 @@
 # Contracts
 
-Wire schema for roster, activity, presence hints, and wake. Schema version is `CONTRACTS_SCHEMA_VERSION` (`1`).
+Wire schema for roster, activity, and presence hints. Schema version is `CONTRACTS_SCHEMA_VERSION` (`1`).
 
 Presence is a hint. It is not lifecycle. A `PresenceHint` never says a bot is alive, dead, idle, or running. It only reports `lastActivityAt`, `freshnessMs`, and `reason`.
 
@@ -16,19 +16,6 @@ Demo fixtures follow the Grok Bot `$AGENT_DATA` layout:
 `profile.json` is one object. `name` is required. `id` is a UUID and may be omitted; the directory name is then the id. Optional spatial fields are `seatId`, or `gridX` and `gridY` together.
 
 JSONL is one object per line. Known `role` values are `user`, `assistant`, and `tool`. `parseActivityJsonl` skips a truncated last line, unknown roles, and lines with no timestamp. It does not throw for those cases.
-
-## Wake payload
-
-`parseWakeRequest` accepts an object:
-
-```json
-{
-  "botId": "2b40667e-d345-4db1-bbf0-9b26b7f904e9",
-  "prompt": "summarize the last hour"
-}
-```
-
-`schemaVersion` is optional and must be `1` when present. Empty and whitespace-only `prompt` values fail closed: `{ ok: false, error }`.
 
 ## Exported types
 
@@ -47,10 +34,6 @@ Non-empty branded string on `ActivityEvent.id`.
 ### `IsoTimestamp`
 
 ISO-8601 instant with a timezone. Built by `parseIsoTimestamp`.
-
-### `WakePrompt`
-
-Trimmed non-empty branded string. Built only through `parseWakeRequest`.
 
 ### `SpatialAnchor`
 
@@ -78,10 +61,6 @@ JSONL wire fields: `role`, `content` or `text`, `at` or `timestamp`, optional `i
 
 `lastActivityAt`, `freshnessMs`, `reason`. Built by `presenceHintFromQuietClock`. The quiet clock is wall time since last activity. `freshnessMs` is `max(0, now - lastActivityAt)`.
 
-### `WakeRequest`
-
-`schemaVersion`, `botId`, `prompt`. Built by `parseWakeRequest`.
-
 ### `ParseResult`
 
 `{ ok: true; value }` or `{ ok: false; error }`. Returned by every parse helper.
@@ -94,7 +73,7 @@ Literal `1`.
 
 ### `EXPORTED_TYPE_NAMES`
 
-Runtime list of the exported type names, including `RosterSnapshot` and `WakeRequest`.
+Runtime list of the exported type names, including `RosterSnapshot`.
 
 ### `parseBotId`
 
@@ -127,10 +106,6 @@ Builds `EventId` as `<botId>:<index>` when a JSONL line has no `id`.
 ### `parseActivityJsonl`
 
 Turns JSONL text plus `botId` into `ActivityEvent[]`. Skips blank lines, invalid JSON (including a truncated last line), unknown roles, lines with no timestamp, and tool lines with no name.
-
-### `parseWakeRequest`
-
-Parses a wake payload. Empty prompt fails closed.
 
 ### `presenceHintFromQuietClock`
 
