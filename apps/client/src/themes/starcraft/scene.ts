@@ -1,18 +1,23 @@
-import { parseBotId, type ActivityEvent, type BotId, type BotRecord } from "@lorien-stack/contracts";
+import type { ActivityEvent, BotId, BotRecord } from "@lorien-stack/contracts";
 
+import { actionFromEvent } from "../../actions.ts";
 import type { Camera } from "../../camera.ts";
+import { THEME_CANVAS_TESTID, THEME_UNIT_TESTID, type ThemePose } from "../hooks.ts";
+import { drawPlot, drawPlotLabel, kindFor, propFor, type PlotView } from "./building.ts";
+import { plotLabel } from "./label.ts";
 import {
-  STATIONS,
+  PLOT_ABOVE,
+  PLOT_HEIGHT,
   WORLD_HEIGHT,
   WORLD_WIDTH,
-  assignSeats,
-  eventSignature,
-  poseFromPulse,
-  type Seat,
-  type UnitPose,
+  hash32,
+  layoutFor,
+  type Layout,
+  type Plot,
 } from "./layout.ts";
-import { THEME_CANVAS_TESTID, THEME_UNIT_TESTID, type ThemePose } from "../hooks.ts";
-import { PALETTE, drawStation, drawTerrain, drawUnit, unitAccent, worldToView } from "./sprites.ts";
+import { eventSignature, poseFromPulse } from "./pose.ts";
+import { loadSprites } from "./sprites.ts";
+import { PALETTE, drawDust, drawGround, drawPad, drawSelectionRing } from "./terrain.ts";
 
 export type StarCraftRenderInput = {
   roster: readonly BotRecord[];
@@ -25,22 +30,23 @@ export type StarCraftHandle = {
   unmount: () => void;
 };
 
+const DEFAULT_FONT = '"IBM Plex Mono", ui-monospace, monospace';
+const FRAME_WINDOW = 24;
+
 const STYLE = `
 .theme-host[data-theme="starcraft"] {
   position: relative;
   padding: 0 !important;
-  flex: 1 1 auto;
   width: 100%;
   height: 100%;
   min-height: 0;
-  background: #070a06;
+  background: ${PALETTE.void};
   overflow: hidden;
 }
 .theme-host[data-theme="starcraft"] canvas[data-testid="${THEME_CANVAS_TESTID}"] {
   display: block;
   width: 100%;
   height: 100%;
-  min-height: 0;
   cursor: pointer;
 }
 .theme-host[data-theme="starcraft"] .sc-hits {
@@ -55,23 +61,34 @@ const STYLE = `
   padding: 0;
   margin: 0;
   background: transparent;
+  color: transparent;
+  font-size: 1px;
+  overflow: hidden;
   cursor: pointer;
+}
+.theme-host[data-theme="starcraft"] .sc-hit:focus-visible {
+  outline: 2px solid #f4c65f;
+  outline-offset: -2px;
 }
 `;
 
-type PulseState = {
-  signature: string;
-  at: number;
-};
+type Pulse = { signature: string; at: number };
+type Box = { x: number; y: number; w: number; h: number; scale: number };
 
 export function mountStarCraftTheme(
   root: HTMLElement,
-  input: { onSelect?: (botId: BotId) => void; camera: Camera },
+  context: {
+    onSelect?: (botId: BotId) => void;
+    camera: Camera;
+    reducedMotion?: boolean;
+    palette?: { font: string };
+  },
 ): StarCraftHandle {
-  const camera = input.camera;
+  const camera = context.camera;
+  const motion = context.reducedMotion !== true;
+  const font = context.palette?.font ?? DEFAULT_FONT;
   root.dataset.theme = "starcraft";
   root.dataset.themeHost = "starcraft";
-  root.dataset.themeDefault = "starcraft";
   root.replaceChildren();
 
   if (document.head.querySelector("style[data-starcraft-style]") === null) {
@@ -85,149 +102,62 @@ export function mountStarCraftTheme(
   canvas.dataset.testid = THEME_CANVAS_TESTID;
   canvas.dataset.unitCount = "0";
   canvas.setAttribute("role", "img");
-  canvas.setAttribute("aria-label", "StarCraft-inspired command view");
+  canvas.setAttribute("aria-label", "Isometric outpost of one building per bot");
   const hits = document.createElement("div");
   hits.className = "sc-hits";
-  hits.dataset.testid = "starcraft-hits";
   root.append(canvas, hits);
 
-  let model: StarCraftRenderInput = {
-    roster: [],
-    activity: new Map(),
-    selectedBotId: undefined,
-  };
-  const pulses = new Map<string, PulseState>();
-  const seenAt = new Map<string, number>();
-  let avgFrameMs = 16;
+  const terrain = document.createElement("canvas");
+  let terrainKey = "";
+  const sprites = loadSprites(() => {
+    terrainKey = "";
+  });
+
+  let model: StarCraftRenderInput = { roster: [], activity: new Map(), selectedBotId: undefined };
+  let layout: Layout = layoutFor([]);
+  const pulses = new Map<string, Pulse>();
+  const buttons = new Map<string, HTMLButtonElement>();
   let frameAcc = 0;
   let frameN = 0;
-  const unitHits = new Map<string, HTMLButtonElement>();
-  const buildingHits = new Map<string, HTMLButtonElement>();
 
-  function currentSelected(): BotId | undefined {
-    return model.selectedBotId;
-  }
-
-  function poseFor(bot: BotRecord, now: number): UnitPose {
+  function poseFor(bot: BotRecord, now: number): ThemePose {
     const events = model.activity.get(bot.id);
     const signature = eventSignature(events);
     const prev = pulses.get(bot.id);
     if (prev === undefined || prev.signature !== signature) {
       pulses.set(bot.id, { signature, at: now });
     }
-    if (!seenAt.has(bot.id)) {
-      seenAt.set(bot.id, now);
-    }
     const pulse = pulses.get(bot.id);
-    const origin = pulse?.at ?? seenAt.get(bot.id) ?? now;
     return poseFromPulse({
       eventCount: events?.length ?? 0,
-      msSincePulse: now - origin,
+      msSincePulse: now - (pulse?.at ?? now),
     });
   }
 
-  function bindHit(botId: BotId, el: HTMLButtonElement): void {
-    el.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      input.onSelect?.(botId);
-    });
+  function viewFor(bot: BotRecord, plot: Plot, now: number, t: number): PlotView {
+    const events = model.activity.get(bot.id);
+    const pose = poseFor(bot, now);
+    const last = events === undefined ? undefined : events[events.length - 1];
+    const kind = kindFor(bot.id);
+    return {
+      x: plot.x,
+      y: plot.y,
+      cell: layout.grid.cell,
+      kind,
+      prop: propFor(bot.id),
+      pose,
+      action: pose === "working" && last !== undefined ? actionFromEvent(last) : "unknown",
+      label: plotLabel({ name: bot.name, pose, events }),
+      selected: bot.id === model.selectedBotId,
+      phase: (hash32(bot.id) % 1000) / 1000,
+      t,
+      motion,
+      font,
+      sprite: sprites[kind],
+    };
   }
 
-  function placeHit(
-    el: HTMLButtonElement,
-    inputPos: { left: number; top: number; width: number; height: number },
-  ): void {
-    el.style.left = `${inputPos.left}px`;
-    el.style.top = `${inputPos.top}px`;
-    el.style.width = `${inputPos.width}px`;
-    el.style.height = `${inputPos.height}px`;
-  }
-
-  function syncHits(
-    seats: Map<BotId, Seat>,
-    box: { x: number; y: number; w: number; h: number; scale: number },
-    now: number,
-  ): void {
-    const live = new Set<string>();
-    for (const bot of model.roster) {
-      const seat = seats.get(bot.id);
-      if (seat === undefined) {
-        continue;
-      }
-      live.add(bot.id);
-      const pose = poseFor(bot, now);
-      const view = worldToView(seat.unitX, seat.unitY, box);
-      let btn = unitHits.get(bot.id);
-      if (btn === undefined) {
-        btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "sc-hit";
-        btn.dataset.testid = THEME_UNIT_TESTID;
-        bindHit(bot.id, btn);
-        unitHits.set(bot.id, btn);
-        hits.append(btn);
-      }
-      btn.dataset.botId = bot.id;
-      btn.dataset.botName = bot.name;
-      const hookPose: ThemePose = pose;
-      btn.dataset.pose = hookPose;
-      btn.dataset.stationId = seat.station.id;
-      btn.dataset.selected = String(bot.id === model.selectedBotId);
-      btn.style.zIndex = "2";
-      btn.setAttribute("aria-label", bot.name);
-      const size = Math.max(28, 36 * box.scale);
-      placeHit(btn, {
-        left: view.x - size / 2,
-        top: view.y - size / 2 - 8,
-        width: size,
-        height: size + 12,
-      });
-
-      let building = buildingHits.get(bot.id);
-      if (building === undefined) {
-        building = document.createElement("button");
-        building.type = "button";
-        building.className = "sc-hit";
-        building.dataset.testid = "sc-building";
-        bindHit(bot.id, building);
-        buildingHits.set(bot.id, building);
-        hits.append(building);
-      }
-      building.dataset.botId = bot.id;
-      building.dataset.stationId = seat.station.id;
-      building.style.zIndex = "1";
-      building.setAttribute("aria-label", `${seat.station.label} ${bot.name}`);
-      const bview = worldToView(seat.station.x, seat.station.y - 18, box);
-      const bsize = Math.max(28, 40 * box.scale);
-      placeHit(building, {
-        left: bview.x - bsize / 2,
-        top: bview.y - bsize / 2,
-        width: bsize,
-        height: bsize,
-      });
-    }
-    for (const [id, el] of unitHits) {
-      if (!live.has(id)) {
-        el.remove();
-        unitHits.delete(id);
-      }
-    }
-    for (const [id, el] of buildingHits) {
-      if (!live.has(id)) {
-        el.remove();
-        buildingHits.delete(id);
-      }
-    }
-  }
-
-  function worldBox(): {
-    x: number;
-    y: number;
-    w: number;
-    h: number;
-    scale: number;
-  } {
+  function worldBox(): Box {
     const origin = camera.worldToScreen({ x: 0, y: 0 });
     return {
       x: origin.x,
@@ -238,152 +168,154 @@ export function mountStarCraftTheme(
     };
   }
 
+  // Ground, rocks and pads change only with the roster and the viewport, so they are
+  // rasterised once at device resolution and blitted 1:1. Redrawing 90 scatter rocks
+  // and 40 pads per frame was the whole frame budget on its own.
+  function syncTerrain(box: Box, dpr: number, seats: readonly Plot[], hour: number): void {
+    const pixelW = Math.max(1, Math.floor(box.w * dpr));
+    const pixelH = Math.max(1, Math.floor(box.h * dpr));
+    const key = `${pixelW}x${pixelH}|${hour.toFixed(2)}|${seats
+      .map((plot) => plot.index)
+      .join(",")}|${sprites.ground === undefined ? "flat" : "art"}`;
+    if (key === terrainKey) {
+      return;
+    }
+    terrainKey = key;
+    terrain.width = pixelW;
+    terrain.height = pixelH;
+    const tctx = terrain.getContext("2d");
+    if (tctx === null) {
+      return;
+    }
+    const scale = pixelW / WORLD_WIDTH;
+    tctx.setTransform(scale, 0, 0, scale, 0, 0);
+    drawGround(tctx, { w: WORLD_WIDTH, h: WORLD_HEIGHT, hour, backdrop: sprites.ground });
+    for (const plot of seats) {
+      drawPad(tctx, plot, layout.grid.cell);
+    }
+  }
+
+  function syncButtons(box: Box, now: number): void {
+    const live = new Set<string>();
+    for (const bot of model.roster) {
+      const plot = layout.plots.get(bot.id);
+      if (plot === undefined) {
+        continue;
+      }
+      live.add(bot.id);
+      let button = buttons.get(bot.id);
+      if (button === undefined) {
+        button = document.createElement("button");
+        button.type = "button";
+        button.className = "sc-hit";
+        button.dataset.testid = THEME_UNIT_TESTID;
+        const id = bot.id;
+        button.addEventListener("click", (event) => {
+          event.preventDefault();
+          context.onSelect?.(id);
+        });
+        buttons.set(bot.id, button);
+        hits.append(button);
+      }
+      const pose = poseFor(bot, now);
+      button.dataset.botId = bot.id;
+      button.dataset.pose = pose;
+      button.dataset.selected = String(bot.id === model.selectedBotId);
+      button.setAttribute("aria-label", `${bot.name}, ${pose}`);
+      button.textContent = bot.name;
+      const centre = camera.worldToScreen({ x: plot.x, y: plot.y });
+      const w = layout.grid.cell * 0.88 * box.scale;
+      const h = layout.grid.cell * PLOT_HEIGHT * box.scale;
+      button.style.left = `${centre.x - w / 2}px`;
+      button.style.top = `${centre.y - layout.grid.cell * PLOT_ABOVE * box.scale}px`;
+      button.style.width = `${w}px`;
+      button.style.height = `${h}px`;
+    }
+    for (const [id, button] of buttons) {
+      if (!live.has(id)) {
+        button.remove();
+        buttons.delete(id);
+      }
+    }
+  }
+
   function paint(): void {
     const started = performance.now();
-    const now = started;
     const dpr = Math.max(1, window.devicePixelRatio || 1);
     const cssW = Math.max(1, canvas.clientWidth || root.clientWidth || 640);
-    const cssH = Math.max(1, canvas.clientHeight || root.clientHeight || 280);
+    const cssH = Math.max(1, canvas.clientHeight || root.clientHeight || 360);
     const pixelW = Math.floor(cssW * dpr);
     const pixelH = Math.floor(cssH * dpr);
     if (canvas.width !== pixelW || canvas.height !== pixelH) {
       canvas.width = pixelW;
       canvas.height = pixelH;
+      terrainKey = "";
     }
     const ctx = canvas.getContext("2d");
     if (ctx === null) {
       return;
     }
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.fillStyle = PALETTE.bar;
-    ctx.fillRect(0, 0, cssW, cssH);
     const box = worldBox();
+    const t = started / 1000;
+    const now = started;
+    const clock = new Date();
+    // Bucketed to a quarter hour so the cached terrain is not rebuilt every frame.
+    const hour = clock.getHours() + Math.floor(clock.getMinutes() / 15) * 0.25;
+
+    const views: PlotView[] = [];
+    const seats: Plot[] = [];
+    for (const bot of model.roster) {
+      const plot = layout.plots.get(bot.id);
+      if (plot !== undefined) {
+        views.push(viewFor(bot, plot, now, t));
+        seats.push(plot);
+      }
+    }
+    seats.sort((a, b) => a.index - b.index);
+    views.sort((a, b) => a.y - b.y || a.x - b.x);
+
+    syncTerrain(box, dpr, seats, hour);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.fillStyle = PALETTE.void;
+    ctx.fillRect(0, 0, pixelW, pixelH);
+    ctx.drawImage(terrain, Math.round(box.x * dpr), Math.round(box.y * dpr));
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.save();
     ctx.beginPath();
     ctx.rect(box.x, box.y, box.w, box.h);
     ctx.clip();
     ctx.translate(box.x, box.y);
     ctx.scale(box.scale, box.scale);
-    const t = now / 1000;
-    try {
-      drawTerrain(ctx, t);
-      const seats = assignSeats({ bots: model.roster });
-      const occupied = new Set<string>();
-      for (const seat of seats.values()) {
-        occupied.add(seat.station.id);
+
+    for (const view of views) {
+      if (view.selected) {
+        drawSelectionRing(ctx, view, view.cell);
       }
-      const selected = currentSelected();
-      const poseByStation = new Map<string, UnitPose>();
-      for (const bot of model.roster) {
-        const seat = seats.get(bot.id);
-        if (seat === undefined) {
-          continue;
-        }
-        poseByStation.set(seat.station.id, poseFor(bot, now));
-      }
-      for (const station of STATIONS) {
-        const seated = [...seats.entries()].find((entry) => entry[1].station.id === station.id);
-        drawStation(ctx, station, {
-          selected: seated !== undefined && seated[0] === selected,
-          occupied: occupied.has(station.id),
-          t,
-          pose: poseByStation.get(station.id),
-        });
-      }
-      for (const bot of model.roster) {
-        const seat = seats.get(bot.id);
-        if (seat === undefined) {
-          continue;
-        }
-        const pose = poseFor(bot, now);
-        drawUnit(ctx, {
-          x: seat.unitX,
-          y: seat.unitY,
-          name: bot.name,
-          pose,
-          selected: bot.id === selected,
-          accent: unitAccent(bot.id),
-          t,
-          stale: bot.name.trim().length === 0,
-        });
-      }
-      canvas.dataset.unitCount = String(model.roster.length);
-      canvas.dataset.theme = "starcraft";
-      if (selected === undefined) {
-        delete canvas.dataset.selectedBotId;
-      } else {
-        canvas.dataset.selectedBotId = selected;
-      }
-      root.dataset.unitCount = String(model.roster.length);
-      root.dataset.staleSafe = "true";
-      syncHits(seats, box, now);
-    } catch {
-      root.dataset.staleSafe = "true";
-      ctx.fillStyle = PALETTE.ink;
-      ctx.font = "12px sans-serif";
-      ctx.fillText("command view held", 24, 48);
+      drawPlot(ctx, view);
+    }
+    if (motion) {
+      drawDust(ctx, { w: WORLD_WIDTH, h: WORLD_HEIGHT, t });
+    }
+    for (const view of views) {
+      drawPlotLabel(ctx, view);
     }
     ctx.restore();
-    const dt = performance.now() - started;
-    frameAcc += dt;
+
+    canvas.dataset.unitCount = String(model.roster.length);
+    root.dataset.unitCount = String(model.roster.length);
+    syncButtons(box, now);
+
+    frameAcc += performance.now() - started;
     frameN += 1;
-    if (frameN >= 24) {
-      avgFrameMs = frameAcc / frameN;
+    if (frameN >= FRAME_WINDOW) {
+      const avg = (frameAcc / frameN).toFixed(2);
+      canvas.dataset.avgFrameMs = avg;
+      root.dataset.avgFrameMs = avg;
       frameAcc = 0;
       frameN = 0;
-      canvas.dataset.avgFrameMs = avgFrameMs.toFixed(2);
-      root.dataset.avgFrameMs = avgFrameMs.toFixed(2);
     }
   }
-
-  function onCanvasClick(event: MouseEvent): void {
-    const rect = canvas.getBoundingClientRect();
-    const world = camera.screenToWorld({
-      x: event.clientX - rect.left,
-      y: event.clientY - rect.top,
-    });
-    if (
-      world.x < 0 ||
-      world.y < 0 ||
-      world.x > WORLD_WIDTH ||
-      world.y > WORLD_HEIGHT
-    ) {
-      return;
-    }
-    const worldX = world.x;
-    const worldY = world.y;
-    const seats = assignSeats({ bots: model.roster });
-    let best: { botId: BotId; d: number } | undefined;
-    for (const bot of model.roster) {
-      const seat = seats.get(bot.id);
-      if (seat === undefined) {
-        continue;
-      }
-      const du = (seat.unitX - worldX) ** 2 + (seat.unitY - worldY) ** 2;
-      const db = (seat.station.x - worldX) ** 2 + (seat.station.y - worldY) ** 2;
-      const d = Math.min(du, db);
-      if (d < 55 * 55 && (best === undefined || d < best.d)) {
-        best = { botId: bot.id, d };
-      }
-    }
-    if (best !== undefined) {
-      input.onSelect?.(best.botId);
-    }
-  }
-  canvas.addEventListener("click", onCanvasClick);
-
-  function onStaleProbe(): void {
-    const parsed = parseBotId("00000000-0000-4000-8000-000000000099");
-    if (!parsed.ok) {
-      root.dataset.staleSafe = "true";
-      return;
-    }
-    const ghost: BotRecord = { id: parsed.value, name: "" };
-    model = { ...model, roster: [...model.roster, ghost] };
-    root.dataset.staleProbe = "true";
-    paint();
-  }
-  root.addEventListener("sc-stale-probe", onStaleProbe);
 
   let raf = 0;
   let alive = true;
@@ -398,11 +330,17 @@ export function mountStarCraftTheme(
 
   return {
     render(next) {
+      const resized =
+        next.roster.length !== model.roster.length ||
+        next.roster.some((bot) => !layout.plots.has(bot.id));
       model = next;
+      if (resized) {
+        layout = layoutFor(next.roster);
+        terrainKey = "";
+      }
       for (const id of [...pulses.keys()]) {
         if (!next.roster.some((bot) => bot.id === id)) {
           pulses.delete(id);
-          seenAt.delete(id);
         }
       }
       paint();
@@ -410,24 +348,15 @@ export function mountStarCraftTheme(
     unmount() {
       alive = false;
       window.cancelAnimationFrame(raf);
-      canvas.removeEventListener("click", onCanvasClick);
-      root.removeEventListener("sc-stale-probe", onStaleProbe);
       canvas.remove();
       hits.remove();
-      for (const el of unitHits.values()) {
-        el.remove();
+      for (const button of buttons.values()) {
+        button.remove();
       }
-      for (const el of buildingHits.values()) {
-        el.remove();
-      }
-      unitHits.clear();
-      buildingHits.clear();
+      buttons.clear();
       delete root.dataset.theme;
       delete root.dataset.themeHost;
-      delete root.dataset.themeDefault;
       delete root.dataset.unitCount;
-      delete root.dataset.staleSafe;
-      delete root.dataset.staleProbe;
       delete root.dataset.avgFrameMs;
     },
   };

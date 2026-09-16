@@ -1,0 +1,3 @@
+id	theme	kind	path	sha256	promptPath	source	attempts	readback	verdict
+a-vault	starcraft	building	docs/images/assets/starcraft/building/a-vault.jpg	24590dcb9c9c4b63641681c0479c60a4c7d448edf147adc0e63b62fccec9fd32	docs/images/assets/starcraft/building/a-vault.prompt.txt	grok	1		unread
+a-hut	starcraft	building	docs/images/assets/starcraft/building/a-hut.jpg	d0db40107af2d051030b55a94a2e7c7ec187260e5e1c43dcb2b7c574f015ca22	docs/images/assets/starcraft/building/a-hut.prompt.txt	grok	1		unread

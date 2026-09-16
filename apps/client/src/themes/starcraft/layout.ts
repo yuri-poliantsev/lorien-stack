@@ -4,8 +4,10 @@ export const WORLD_WIDTH = 1920;
 export const WORLD_HEIGHT = 1040;
 
 const MARGIN_X = 40;
-const MARGIN_TOP = 104;
-const MARGIN_BOTTOM = 28;
+// The back row is meant to crowd the rock wall the backdrop paints across the top, the
+// way the concept frame does, so the top margin only keeps nametags on canvas.
+const MARGIN_TOP = 56;
+const MARGIN_BOTTOM = 16;
 const CELL_MAX = 400;
 const MAX_BOTS = 40;
 
