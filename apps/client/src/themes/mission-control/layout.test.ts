@@ -128,7 +128,7 @@ describe("mission control card placement", () => {
     const one = cardRect(gridFor(1), 0);
     assert.deepEqual(
       { w: one.w, h: one.h },
-      { w: 440, h: 330 },
+      { w: 440, h: 372 },
       "single card clamps to the maximum card size",
     );
     assert.equal(one.x + one.w / 2, GRID_AREA.x + GRID_AREA.w / 2);
@@ -149,24 +149,39 @@ describe("mission control card placement", () => {
 describe("mission control type scale", () => {
   it("steps the headline down as the roster crowds and never below fifteen", () => {
     assert.deepEqual(
-      [8, 18, 24, 40].map((n) => cardScale(gridFor(n).cardW).name),
+      [8, 18, 24, 40].map((n) => cardScale(gridFor(n)).name),
       [34, 32, 26, 19],
     );
-    assert.equal(cardScale(0).name, 15);
+    assert.equal(cardScale({ cardW: 0, cardH: 0 }).name, 15);
   });
 
   it("holds the meta and path type at a readable floor at forty", () => {
-    const compact = cardScale(gridFor(40).cardW);
-    assert.deepEqual(compact, { name: 19, state: 9, meta: 10, path: 9, pad: 10 });
+    assert.deepEqual(cardScale(gridFor(40)), {
+      name: 19,
+      state: 9,
+      meta: 10,
+      path: 9,
+      pad: 10,
+      spark: 79,
+    });
   });
 
   it("caps the type at one bot so a huge card does not get a poster headline", () => {
-    assert.deepEqual(cardScale(gridFor(1).cardW), {
+    assert.deepEqual(cardScale(gridFor(1)), {
       name: 34,
       state: 13,
       meta: 15,
       path: 13,
       pad: 22,
+      spark: 156,
     });
+  });
+
+  it("grows the chart with the card so a roomy card is not mostly empty", () => {
+    assert.deepEqual(
+      [8, 24, 40].map((n) => cardScale(gridFor(n)).spark),
+      [156, 100, 79],
+    );
+    assert.equal(cardScale({ cardW: 200, cardH: 0 }).spark, 20, "chart holds a floor of twenty");
   });
 });

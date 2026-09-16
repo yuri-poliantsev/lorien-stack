@@ -14,6 +14,7 @@ import {
   SPARK_BUCKETS,
   accentForHour,
   activityBars,
+  boardClock,
   cardModel,
   poseFor,
 } from "./model.ts";
@@ -87,7 +88,10 @@ describe("mission control activity bars", () => {
       ],
       nowMs: NOW,
     });
-    assert.deepEqual([...bars], [0, 0, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 1]);
+    const expected = new Array<number>(SPARK_BUCKETS).fill(0);
+    expected[SPARK_BUCKETS - 1] = 1;
+    expected[SPARK_BUCKETS - 10] = 0.5;
+    assert.deepEqual([...bars], expected);
   });
 
   it("drops events older than the window and events dated in the future", () => {
@@ -209,5 +213,18 @@ describe("mission control accent clock", () => {
   it("wraps an out-of-range hour instead of leaving the accent undefined", () => {
     assert.equal(accentForHour(25), accentForHour(1));
     assert.equal(accentForHour(-11), accentForHour(13));
+  });
+
+  it("reads the board clock off the same curve as the accent", () => {
+    assert.deepEqual(boardClock(new Date(2026, 8, 15, 13, 5).getTime()), {
+      time: "13:05",
+      phase: "day",
+    });
+    assert.deepEqual(boardClock(new Date(2026, 8, 15, 4, 37).getTime()), {
+      time: "04:37",
+      phase: "night",
+    });
+    assert.equal(boardClock(new Date(2026, 8, 15, 8, 0).getTime()).phase, "day");
+    assert.equal(boardClock(new Date(2026, 8, 15, 20, 0).getTime()).phase, "night");
   });
 });

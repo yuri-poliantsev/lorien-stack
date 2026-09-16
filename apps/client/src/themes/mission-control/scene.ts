@@ -13,7 +13,13 @@ import {
   type CardScale,
   type Rect,
 } from "./layout.ts";
-import { SPARK_BUCKETS, accentForHour, cardModel, type CardModel } from "./model.ts";
+import {
+  SPARK_BUCKETS,
+  accentForHour,
+  boardClock,
+  cardModel,
+  type CardModel,
+} from "./model.ts";
 
 export type MissionControlRenderInput = {
   roster: readonly BotRecord[];
@@ -34,7 +40,6 @@ type MissionControlContext = {
 };
 
 const COUNT_MS = 450;
-const MIN_BAR = 0.05;
 
 const STYLE = `
 .theme-host[data-theme="mission-control"] {
@@ -49,6 +54,7 @@ const STYLE = `
   --mc-meta-size: 12px;
   --mc-path-size: 11px;
   --mc-pad: 16px;
+  --mc-spark-h: 20px;
   display: block;
   padding: 0 !important;
   overflow: hidden;
@@ -74,7 +80,30 @@ const STYLE = `
   position: absolute;
   border-right: 1px solid var(--mc-line);
   border-radius: 14px 0 0 14px;
-  background: rgba(0, 0, 0, 0.32);
+  background: rgba(255, 255, 255, 0.022);
+}
+.mc-clock {
+  position: absolute;
+  right: 24px;
+  bottom: 20px;
+  left: 24px;
+  color: #4c4c58;
+  text-align: left;
+}
+.mc-clock-time {
+  display: block;
+  font-size: 34px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+.mc-clock-phase {
+  display: block;
+  margin-top: 0.2em;
+  color: #3a3a45;
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
 }
 .mc-grid {
   position: absolute;
@@ -161,16 +190,17 @@ const STYLE = `
   flex: 1 1 auto;
   gap: 2px;
   align-items: flex-end;
-  height: 20px;
+  height: var(--mc-spark-h);
   min-width: 0;
+  border-bottom: 1px solid #35353f;
 }
 .mc-spark i {
   flex: 1 1 auto;
   min-width: 2px;
   height: 100%;
-  border-radius: 1px;
-  background: #26262e;
-  transform: scaleY(0.05);
+  border-radius: 1px 1px 0 0;
+  background: #33333e;
+  transform: scaleY(0);
   transform-origin: 50% 100%;
 }
 .mc-count {
@@ -225,8 +255,12 @@ const STYLE = `
   border-radius: 50%;
   background: var(--mc-board);
 }
+.mc-card[data-pose="sleeping"] .mc-age,
 .mc-card[data-pose="sleeping"] .mc-count {
   visibility: hidden;
+}
+.mc-card[data-pose="sleeping"] .mc-spark {
+  border-bottom-color: #2b2b34;
 }
 .mc-card[data-selected="true"] {
   outline: 1px solid var(--mc-accent);
@@ -328,6 +362,9 @@ export function mountMissionControlTheme(
   const rail = document.createElement("div");
   rail.className = "mc-rail";
   box(rail, { x: 0, y: 0, w: RAIL.w, h: RAIL.h });
+  const clock = span("mc-clock", rail);
+  const clockTime = span("mc-clock-time", clock);
+  const clockPhase = span("mc-clock-phase", clock);
   board.append(rail);
 
   const grid = document.createElement("div");
@@ -352,6 +389,7 @@ export function mountMissionControlTheme(
   let unitCount = -1;
   let selectedKey = "";
   let accentHour = -1;
+  let clockKey = "";
 
   function countAt(item: Counting, nowMs: number): number {
     const t = Math.min(1, Math.max(0, (nowMs - item.at) / COUNT_MS));
@@ -455,7 +493,7 @@ export function mountMissionControlTheme(
       }
       const bar = card.bars[i];
       if (bar !== undefined) {
-        bar.style.transform = `scaleY(${Math.max(MIN_BAR, height).toFixed(3)})`;
+        bar.style.transform = `scaleY(${height.toFixed(3)})`;
       }
     }
     card.written = next;
@@ -472,6 +510,7 @@ export function mountMissionControlTheme(
     grid.style.setProperty("--mc-meta-size", `${String(scale.meta)}px`);
     grid.style.setProperty("--mc-path-size", `${String(scale.path)}px`);
     grid.style.setProperty("--mc-pad", `${String(scale.pad)}px`);
+    grid.style.setProperty("--mc-spark-h", `${String(scale.spark)}px`);
   }
 
   function paint(): void {
@@ -481,9 +520,15 @@ export function mountMissionControlTheme(
       accentHour = hour;
       root.style.setProperty("--mc-accent", accentForHour(hour));
     }
+    const wall = boardClock(nowMs);
+    if (clockKey !== wall.time) {
+      clockKey = wall.time;
+      clockTime.textContent = wall.time;
+      clockPhase.textContent = wall.phase;
+    }
     const ordered = cardOrder(model.roster);
     const layout = gridFor(ordered.length);
-    const scale = cardScale(layout.cardW);
+    const scale = cardScale(layout);
     const nextGridKey = `${String(layout.cols)}x${String(layout.rows)}:${layout.cardW.toFixed(2)}:${layout.cardH.toFixed(2)}:${layout.originX.toFixed(2)}:${layout.originY.toFixed(2)}`;
     const reflow = nextGridKey !== gridKey;
     if (reflow) {

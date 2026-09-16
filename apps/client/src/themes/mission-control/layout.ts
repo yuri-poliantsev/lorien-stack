@@ -13,7 +13,7 @@ const RAIL_WIDTH = 296;
 const BOARD_PAD = 24;
 const GUTTER = 12;
 const MAX_CARD_W = 440;
-const MAX_CARD_H = 330;
+const MAX_CARD_H = 372;
 
 export type Rect = { x: number; y: number; w: number; h: number };
 
@@ -112,20 +112,25 @@ export type CardScale = {
   meta: number;
   path: number;
   pad: number;
+  spark: number;
 };
 
 function step(low: number, value: number, high: number): number {
   return Math.min(high, Math.max(low, Math.round(value)));
 }
 
-export function cardScale(cardW: number): CardScale {
-  const w = Number.isFinite(cardW) ? Math.max(0, cardW) : 0;
+export function cardScale(card: { cardW: number; cardH: number }): CardScale {
+  const w = Number.isFinite(card.cardW) ? Math.max(0, card.cardW) : 0;
+  const h = Number.isFinite(card.cardH) ? Math.max(0, card.cardH) : 0;
   return {
     name: step(15, w * 0.105, 34),
     state: step(9, w * 0.042, 13),
     meta: step(10, w * 0.055, 15),
     path: step(9, w * 0.05, 13),
     pad: step(10, w * 0.05, 22),
+    // The chart is the card's body, not a footnote: it takes the slack the header
+    // leaves, so a roomy card reads as a plot and a crowded one still reads as bars.
+    spark: step(20, h * 0.42, 176),
   };
 }
 

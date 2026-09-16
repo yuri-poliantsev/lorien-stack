@@ -10,8 +10,8 @@ import { ageLabel } from "../../shell/format.ts";
 
 export const WORK_MS = 12_000;
 export const SLEEP_MS = 22_000;
-export const SPARK_BUCKETS = 12;
-export const SPARK_BUCKET_MS = 5_000;
+export const SPARK_BUCKETS = 20;
+export const SPARK_BUCKET_MS = 3_000;
 
 const DASH = "\u2013";
 
@@ -99,10 +99,24 @@ export function cardModel(input: {
   };
 }
 
-export function accentForHour(hour: number): string {
+// Peaks at 13:00 and troughs at 01:00, so both the accent and the board's own
+// day-or-night word come off one curve rather than two thresholds that can disagree.
+export function dayFactor(hour: number): number {
   const h = ((Math.trunc(hour) % 24) + 24) % 24;
-  // Peaks at 13:00 and troughs at 01:00, so the one accent drifts from a bright
-  // midday gold to a deep night ember on the watcher's own clock.
-  const day = (1 + Math.cos(((h - 13) / 24) * Math.PI * 2)) / 2;
+  return (1 + Math.cos(((h - 13) / 24) * Math.PI * 2)) / 2;
+}
+
+export function accentForHour(hour: number): string {
+  const day = dayFactor(hour);
   return `hsl(${(26 + 18 * day).toFixed(1)} 88% ${(48 + 10 * day).toFixed(1)}%)`;
+}
+
+export function boardClock(nowMs: number): { time: string; phase: "day" | "night" } {
+  const at = new Date(nowMs);
+  const hours = String(at.getHours()).padStart(2, "0");
+  const minutes = String(at.getMinutes()).padStart(2, "0");
+  return {
+    time: `${hours}:${minutes}`,
+    phase: dayFactor(at.getHours()) >= 0.5 ? "day" : "night",
+  };
 }
