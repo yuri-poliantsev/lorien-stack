@@ -156,12 +156,12 @@ describe("lorien flet placement", () => {
   });
 
   it("shrinks the flet instead of letting 40 bots collide", () => {
-    assert.equal(Number(fletScale(4, 6).toFixed(4)), 0.868, "24 bots keep a near-full-size flet");
-    assert.equal(Number(fletScale(5, 8).toFixed(4)), 0.651, "40 bots shrink to 65 percent");
+    assert.equal(Number(fletScale(4, 6).toFixed(4)), 0.8171, "24 bots keep a near-full-size flet");
+    assert.equal(Number(fletScale(5, 8).toFixed(4)), 0.6398, "40 bots shrink to 64 percent");
     const forty = boxes(40);
     const box = forty[0] as FletBox;
     assert.equal(cellWidth(8).toFixed(2), "220.50");
-    assert.equal(box.width.toFixed(2), "136.71");
+    assert.equal(box.width.toFixed(2), "134.35");
     assert.equal(box.signMaxWidth.toFixed(2), "154.35");
     assert.equal(worstClearance(forty) > 20, true, "40 bots keep more than 20 world px of air");
     for (let i = 0; i < forty.length; i += 1) {

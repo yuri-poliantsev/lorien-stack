@@ -5,6 +5,7 @@ import type { ThemeHandle, ThemeMountContext, ThemeRenderInput } from "../regist
 import {
   WORLD_HEIGHT,
   WORLD_WIDTH,
+  cellCentreX,
   figureRise,
   hash32,
   layoutFlets,
@@ -28,6 +29,7 @@ import {
   drawLabel,
   drawLeafDrift,
   drawSign,
+  glowScaleFor,
   imagesReady,
   loadImages,
   paintBackdrop,
@@ -114,9 +116,12 @@ export function mountLorienTheme(root: HTMLElement, context: ThemeMountContext):
   const unitHits = new Map<string, HTMLButtonElement>();
 
   let skins: LorienSkins | undefined;
-  let skinAmbient = -1;
+  let skinAmbient = "";
+  let cachedLayout: { key: string; layout: LorienLayout } | undefined;
+  const poseNow = new Map<string, FletPose>();
   let backdrop: HTMLCanvasElement | undefined;
   let foreground: HTMLCanvasElement | undefined;
+  let foregroundTop = 0;
   let backdropKey: CacheKey = "";
   let frameAcc = 0;
   let frameN = 0;
@@ -136,6 +141,16 @@ export function mountLorienTheme(root: HTMLElement, context: ThemeMountContext):
       eventCount: events?.length ?? 0,
       msSincePulse: now - origin,
     });
+  }
+
+  // Placement is pure in the roster, so it only has to be recomputed when the
+  // roster itself changes rather than on every frame.
+  function currentLayout(): LorienLayout {
+    const key = model.roster.map((bot) => bot.id).join(",");
+    if (cachedLayout === undefined || cachedLayout.key !== key) {
+      cachedLayout = { key, layout: layoutFlets({ bots: model.roster }) };
+    }
+    return cachedLayout.layout;
   }
 
   function lastEvent(botId: BotId): ActivityEvent | undefined {
@@ -190,7 +205,7 @@ export function mountLorienTheme(root: HTMLElement, context: ThemeMountContext):
       const rect = unitRect(flet);
       button.dataset.botId = bot.id;
       button.dataset.botName = bot.name;
-      button.dataset.pose = poseFor(bot, now);
+      button.dataset.pose = poseNow.get(bot.id) ?? poseFor(bot, now);
       button.dataset.selected = String(bot.id === model.selectedBotId);
       button.setAttribute("aria-label", nametagFromBotName(bot.name));
       button.style.left = `${String(box.x + rect.x * box.scale)}px`;
@@ -227,17 +242,25 @@ export function mountLorienTheme(root: HTMLElement, context: ThemeMountContext):
     const t = now / 1000;
     const motion = !context.reducedMotion;
     const sky = currentSky();
-    const layout = layoutFlets({ bots: model.roster });
+    const layout = currentLayout();
     const box = worldBox();
+    poseNow.clear();
+    for (const bot of model.roster) {
+      poseNow.set(bot.id, poseFor(bot, now));
+    }
 
-    if (skins === undefined || skinAmbient !== sky.ambient) {
+    // Quantised so a drag or a pinch does not re-rasterise every frame.
+    const fletPx =
+      Math.round((layout.flets.values().next().value?.width ?? 210) * box.scale * dpr * 0.25) * 4;
+    const skinKey = `${String(sky.ambient)}|${String(fletPx)}`;
+    if (skins === undefined || skinKey !== skinAmbient) {
       if (imagesReady(images) || skins === undefined) {
-        skins = buildSkins(images, sky.ambient);
-        skinAmbient = imagesReady(images) ? sky.ambient : -1;
+        skins = buildSkins(images, sky.ambient, fletPx);
+        skinAmbient = imagesReady(images) ? skinKey : "";
       }
     }
 
-    const branchWidth = Math.max(3, 15 * layout.scale);
+    const branchWidth = Math.max(6, 30 * layout.scale);
     const key = [
       cssW,
       cssH,
@@ -263,6 +286,7 @@ export function mountLorienTheme(root: HTMLElement, context: ThemeMountContext):
       });
       backdrop = built.backdrop;
       foreground = built.foreground;
+      foregroundTop = built.foregroundTop;
       backdropKey = key;
     }
 
@@ -282,9 +306,10 @@ export function mountLorienTheme(root: HTMLElement, context: ThemeMountContext):
       .sort((a, b) => a.flet.deckY - b.flet.deckY);
 
     const activeSkins = skins;
+    const glowScale = glowScaleFor(model.roster.length);
     if (activeSkins !== undefined) {
       for (const { bot, flet } of ordered) {
-        const pose = poseFor(bot, now);
+        const pose = poseNow.get(bot.id) ?? "idle";
         const event = lastEvent(bot.id);
         const action = event === undefined ? "unknown" : actionFromEvent(event);
         const seed = hash32(bot.id);
@@ -298,11 +323,12 @@ export function mountLorienTheme(root: HTMLElement, context: ThemeMountContext):
           skins: activeSkins,
           flicker: motion ? 0.86 + 0.14 * Math.sin(t * 3.1 + phase) : 1,
           pulse: motion ? 0.5 + 0.5 * Math.sin(t * 0.9 + phase) : 0.5,
+          glowScale,
         });
       }
 
       for (const { bot, flet } of ordered) {
-        const pose = poseFor(bot, now);
+        const pose = poseNow.get(bot.id) ?? "idle";
         const selected = bot.id === model.selectedBotId;
         if (pose !== "sleeping") {
           const event = lastEvent(bot.id);
@@ -312,11 +338,13 @@ export function mountLorienTheme(root: HTMLElement, context: ThemeMountContext):
           const text = detailed
             ? inSceneLabel({ pose, action, path })
             : inSceneLabel({ pose, action, path: undefined });
+          const centre = cellCentreX(flet.col, layout.cols);
           drawLabel(ctx, {
             box: flet,
             text,
             font,
-            maxWidth: layout.cellWidth * (detailed ? 1.04 : 0.8),
+            cellLeft: centre - layout.cellWidth / 2,
+            cellRight: centre + layout.cellWidth / 2,
             dim: pose === "idle",
           });
         }
@@ -340,7 +368,7 @@ export function mountLorienTheme(root: HTMLElement, context: ThemeMountContext):
     ctx.restore();
 
     if (foreground !== undefined) {
-      ctx.drawImage(foreground, 0, 0);
+      ctx.drawImage(foreground, 0, foregroundTop);
     }
 
     canvas.dataset.unitCount = String(model.roster.length);
@@ -368,7 +396,7 @@ export function mountLorienTheme(root: HTMLElement, context: ThemeMountContext):
       x: event.clientX - rect.left,
       y: event.clientY - rect.top,
     });
-    const layout = layoutFlets({ bots: model.roster });
+    const layout = currentLayout();
     let best: { botId: BotId; d: number } | undefined;
     for (const bot of model.roster) {
       const flet = layout.flets.get(bot.id);

@@ -32,7 +32,7 @@ const PROPS: Record<Action, ActionProp> = {
 // two that bracket the clock, so the cycle has no visible step at a boundary.
 const ANCHORS: readonly (Sky & { hour: number })[] = [
   { hour: 0, name: "night", zenith: "#08131d", mid: "#15243a", horizon: "#0d1c26", ambient: 0.4 },
-  { hour: 6.5, name: "dawn", zenith: "#23405c", mid: "#7a6a86", horizon: "#c9926a", ambient: 0.6 },
+  { hour: 6.5, name: "dawn", zenith: "#1f3a54", mid: "#4d5570", horizon: "#9c7860", ambient: 0.58 },
   { hour: 12.5, name: "day", zenith: "#2f6a86", mid: "#6d9aa2", horizon: "#a9c3b6", ambient: 0.95 },
   { hour: 19, name: "dusk", zenith: "#1d4350", mid: "#5c4468", horizon: "#1b3b48", ambient: 0.55 },
 ];
@@ -116,14 +116,14 @@ export function skyAt(hours: number): Sky {
 }
 
 export function mixHex(a: string, b: string, t: number): string {
-  const from = parseHex(a);
-  const to = parseHex(b);
+  const [ar, ag, ab] = parseHex(a);
+  const [br, bg, bb] = parseHex(b);
   const clamped = Math.min(1, Math.max(0, t));
-  const channel = (i: number): string =>
-    Math.round(from[i] + (to[i] - from[i]) * clamped)
+  const channel = (from: number, to: number): string =>
+    Math.round(from + (to - from) * clamped)
       .toString(16)
       .padStart(2, "0");
-  return `#${channel(0)}${channel(1)}${channel(2)}`;
+  return `#${channel(ar, br)}${channel(ag, bg)}${channel(ab, bb)}`;
 }
 
 function parseHex(hex: string): [number, number, number] {

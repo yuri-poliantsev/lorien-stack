@@ -9,7 +9,7 @@ const FOREST_FLOOR = 980;
 const MAX_TIERS = 5;
 
 const FLET_BASE_WIDTH = 210;
-const FIGURE_RISE = 64;
+const FIGURE_RISE = 80;
 const SIGN_GAP = 16;
 const SIGN_HEIGHT = 34;
 const SIGN_MAX_SPAN = 1.5;
@@ -26,6 +26,15 @@ export const FLET_SPRITE = { sx: 13, sy: 88, sw: 232, sh: 113, deckFraction: 0.3
 export const LANTERN_SPRITE = { sx: 79, sy: 47, sw: 98, sh: 159, glassFraction: 0.616 } as const;
 
 const FLET_ASPECT = FLET_SPRITE.sh / FLET_SPRITE.sw;
+
+// Everything one bot occupies vertically at scale 1: the figure above the deck,
+// the part of the raster below it, the drop to the sign, and the sign.
+const UNIT_EXTENT =
+  FIGURE_RISE +
+  FLET_BASE_WIDTH * FLET_ASPECT * (1 - FLET_SPRITE.deckFraction) +
+  SIGN_GAP +
+  SIGN_HEIGHT;
+const TIER_MARGIN = 14;
 
 export type Point = { x: number; y: number };
 
@@ -94,11 +103,13 @@ export function cellCentreX(col: number, cols: number): number {
 }
 
 // A flet shrinks when its cell does, in whichever axis runs out first, so
-// crowding above 24 bots costs size rather than clearance.
+// crowding above 24 bots costs size rather than clearance. The height term
+// leaves TIER_MARGIN of air even where two branches have jittered towards
+// each other, which is the case that decides whether 40 bots collide.
 export function fletScale(tiers: number, cols: number): number {
   const byWidth = (cellWidth(cols) * CELL_FILL) / FLET_BASE_WIDTH;
-  const byHeight = (tierSpacing(tiers) * 0.52) / (FLET_BASE_WIDTH * FLET_ASPECT);
-  return Math.min(1, byWidth, byHeight);
+  const usable = tierSpacing(tiers) * (1 - 2 * Y_JITTER) - TIER_MARGIN;
+  return Math.min(1, byWidth, usable / UNIT_EXTENT);
 }
 
 function branchOffset(tier: number, col: number, spacing: number): number {

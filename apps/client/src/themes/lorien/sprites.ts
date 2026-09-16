@@ -3,8 +3,10 @@ import {
   LANTERN_SPRITE,
   WORLD_HEIGHT,
   WORLD_WIDTH,
+  branchYAt,
   figureRise,
   fletRect,
+  hash32,
   type Branch,
   type FletBox,
 } from "./layout.ts";
@@ -81,6 +83,13 @@ export function robeFor(seed: number): string {
   return ROBES[seed % ROBES.length] ?? ROBES[0];
 }
 
+// The lantern haloes are the most expensive thing in the frame, because they are
+// the only large alpha blends. Their radius falls as the roster grows, which
+// holds total blended area roughly flat instead of letting it scale with N.
+export function glowScaleFor(count: number): number {
+  return 1.4 * Math.sqrt(12 / Math.max(12, count));
+}
+
 function surface(w: number, h: number): { canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D } {
   const canvas = document.createElement("canvas");
   canvas.width = Math.max(1, Math.round(w));
@@ -137,13 +146,19 @@ function glowBlob(radius: number, core: string, edge: string): HTMLCanvasElement
   return canvas;
 }
 
+// The lantern's drawn height as a share of the flet's drawn width, so both
+// skins can be rasterised at the size they are actually blitted at.
+const LANTERN_TO_FLET = 0.282;
+
 // One skin per pose rather than a per-flet filter: at 40 bots a filter change
-// per draw call is the difference between a 1ms frame and a 20ms one.
-export function buildSkins(images: LorienImages, ambient: number): LorienSkins {
-  const fletW = FLET_SPRITE.sw * 2;
-  const fletH = FLET_SPRITE.sh * 2;
-  const lampW = LANTERN_SPRITE.sw * 2;
-  const lampH = LANTERN_SPRITE.sh * 2;
+// per draw call is the difference between a 1ms frame and a 20ms one. The skins
+// are rasterised at their drawn size too, because resampling them on every one
+// of 40 blits cost more than the filter ever did.
+export function buildSkins(images: LorienImages, ambient: number, fletPx: number): LorienSkins {
+  const fletW = Math.max(24, Math.round(fletPx));
+  const fletH = Math.round((fletW * FLET_SPRITE.sh) / FLET_SPRITE.sw);
+  const lampH = Math.max(12, Math.round(fletW * LANTERN_TO_FLET));
+  const lampW = Math.round((lampH * LANTERN_SPRITE.sw) / LANTERN_SPRITE.sh);
   return {
     flet: {
       working: skin({
@@ -192,8 +207,8 @@ export function buildSkins(images: LorienImages, ambient: number): LorienSkins {
       tint: "#16283a",
       tintAlpha: 0.45,
     }),
-    glowWarm: glowBlob(128, "rgba(255,226,170,0.95)", "rgba(255,176,96,0.34)"),
-    glowEye: glowBlob(64, "rgba(198,240,150,0.9)", "rgba(126,196,110,0.26)"),
+    glowWarm: glowBlob(Math.max(24, Math.round(fletW * 0.6)), "rgba(255,226,170,0.95)", "rgba(255,176,96,0.34)"),
+    glowEye: glowBlob(Math.max(12, Math.round(fletW * 0.2)), "rgba(198,240,150,0.9)", "rgba(126,196,110,0.26)"),
   };
 }
 
@@ -204,24 +219,50 @@ function parallax(box: ScreenBox, cssW: number, cssH: number, depth: number): { 
   };
 }
 
-function smoothPath(ctx: CanvasRenderingContext2D, points: readonly { x: number; y: number }[]): void {
-  const first = points[0];
-  if (first === undefined) {
-    return;
-  }
+// A branch is a filled ribbon rather than a stroke, so it can taper: thick where
+// it leaves the trunks at the frame edges, thin where it carries the flets.
+// Stroked at a constant width it read as a handrail.
+function branchHalfWidth(x: number, maxWidth: number): number {
+  const fromCentre = Math.abs(x - WORLD_WIDTH / 2) / (WORLD_WIDTH / 2);
+  return (maxWidth * (0.26 + 0.74 * fromCentre * fromCentre)) / 2;
+}
+
+function branchRibbon(
+  ctx: CanvasRenderingContext2D,
+  branch: Branch,
+  maxWidth: number,
+  offsetY: number,
+): void {
+  const steps = 48;
   ctx.beginPath();
-  ctx.moveTo(first.x, first.y);
-  for (let i = 1; i < points.length - 1; i += 1) {
-    const a = points[i];
-    const b = points[i + 1];
-    if (a === undefined || b === undefined) {
-      continue;
-    }
-    ctx.quadraticCurveTo(a.x, a.y, (a.x + b.x) / 2, (a.y + b.y) / 2);
+  for (let i = 0; i <= steps; i += 1) {
+    const x = (WORLD_WIDTH * i) / steps;
+    ctx.lineTo(x, branchYAt(branch, x) + offsetY - branchHalfWidth(x, maxWidth));
   }
-  const last = points[points.length - 1];
-  if (last !== undefined) {
-    ctx.lineTo(last.x, last.y);
+  for (let i = steps; i >= 0; i -= 1) {
+    const x = (WORLD_WIDTH * i) / steps;
+    ctx.lineTo(x, branchYAt(branch, x) + offsetY + branchHalfWidth(x, maxWidth));
+  }
+  ctx.closePath();
+  ctx.fill();
+}
+
+// Twigs hanging off the underside, so a bough reads as growing rather than built.
+function branchTwigs(ctx: CanvasRenderingContext2D, branch: Branch, maxWidth: number): void {
+  for (let i = 0; i < 18; i += 1) {
+    const seed = hash32(`twig:${String(branch.tier)}:${String(i)}`);
+    const x = ((seed % 1000) / 1000) * WORLD_WIDTH;
+    const y = branchYAt(branch, x) + branchHalfWidth(x, maxWidth) * 0.6;
+    const dir = seed % 2 === 0 ? -1 : 1;
+    const len = maxWidth * (1.1 + ((seed >> 4) % 100) / 60);
+    const w = Math.max(1, maxWidth * 0.14);
+    ctx.beginPath();
+    ctx.moveTo(x - w, y);
+    ctx.quadraticCurveTo(x + dir * len * 0.4, y + len * 0.5, x + dir * len * 0.5, y + len);
+    ctx.lineTo(x + dir * len * 0.5 + w * 0.6, y + len);
+    ctx.quadraticCurveTo(x + dir * len * 0.45, y + len * 0.5, x + w, y);
+    ctx.closePath();
+    ctx.fill();
   }
 }
 
@@ -233,7 +274,7 @@ export function paintBackdrop(input: {
   images: LorienImages;
   branches: readonly Branch[];
   branchWidth: number;
-}): { backdrop: HTMLCanvasElement; foreground: HTMLCanvasElement } {
+}): { backdrop: HTMLCanvasElement; foreground: HTMLCanvasElement; foregroundTop: number } {
   const { cssW, cssH, box, sky, images } = input;
   const back = surface(cssW, cssH);
   const ctx = back.ctx;
@@ -271,39 +312,47 @@ export function paintBackdrop(input: {
   ctx.save();
   ctx.translate(box.x, box.y);
   ctx.scale(box.scale, box.scale);
-  const branchTone = Math.round(96 + sky.ambient * 88);
+  // Warm grey-brown rather than near-black, with a cool lit edge along the top,
+  // so the bough belongs to the same wood as the trunks behind it.
+  const tone = 64 + sky.ambient * 96;
+  const rgb = (r: number, g: number, b: number, a: number): string =>
+    `rgba(${String(Math.round(tone * r))},${String(Math.round(tone * g))},${String(
+      Math.round(tone * b),
+    )},${String(a)})`;
   for (const branch of input.branches) {
-    ctx.lineCap = "round";
-    ctx.strokeStyle = `rgba(${String(Math.round(branchTone * 0.42))},${String(
-      Math.round(branchTone * 0.46),
-    )},${String(Math.round(branchTone * 0.5))},0.95)`;
-    ctx.lineWidth = input.branchWidth;
-    smoothPath(ctx, branch.points);
-    ctx.stroke();
-    ctx.strokeStyle = `rgba(${String(branchTone)},${String(branchTone + 12)},${String(
-      branchTone + 18,
-    )},0.55)`;
-    ctx.lineWidth = Math.max(1, input.branchWidth * 0.3);
-    ctx.stroke();
+    ctx.fillStyle = rgb(0.58, 0.52, 0.46, 0.97);
+    branchTwigs(ctx, branch, input.branchWidth);
+    branchRibbon(ctx, branch, input.branchWidth, 0);
+    ctx.fillStyle = rgb(0.34, 0.31, 0.29, 0.6);
+    branchRibbon(ctx, branch, input.branchWidth * 0.42, input.branchWidth * 0.26);
+    ctx.fillStyle = rgb(1.02, 1.04, 0.96, 0.5);
+    branchRibbon(ctx, branch, input.branchWidth * 0.2, -input.branchWidth * 0.36);
   }
   ctx.restore();
 
-  const front = surface(cssW, cssH);
+  // Only the leaf crowns clear the bottom edge. An earlier pass drew this layer
+  // at half the frame height and it buried the lowest tier of flets. The canvas
+  // is cropped to the band it actually covers, because blending a full-viewport
+  // layer every frame cost more than everything drawn into it.
+  const near = parallax(box, cssW, cssH, 1.22);
+  const frontTop = Math.max(0, Math.floor(box.y + near.dy + box.h * 0.84));
+  const front = surface(cssW, Math.max(1, cssH - frontTop));
   if (ready) {
     front.ctx.imageSmoothingQuality = "high";
-    front.ctx.filter = `brightness(${(0.16 + sky.ambient * 0.3).toFixed(3)})`;
-    const near = parallax(box, cssW, cssH, 1.22);
+    front.ctx.filter = `brightness(${(0.22 + sky.ambient * 0.34).toFixed(3)})`;
+    front.ctx.globalAlpha = 0.82;
     front.ctx.drawImage(
       images.branches,
-      box.x + near.dx - box.w * 0.08,
-      box.y + near.dy + box.h * 0.4,
-      box.w * 1.16,
-      box.h * 0.66,
+      box.x + near.dx - box.w * 0.09,
+      box.y + near.dy + box.h * 0.84 - frontTop,
+      box.w * 1.18,
+      box.h * 0.5,
     );
     front.ctx.filter = "none";
+    front.ctx.globalAlpha = 1;
   }
 
-  return { backdrop: back.canvas, foreground: front.canvas };
+  return { backdrop: back.canvas, foreground: front.canvas, foregroundTop: frontTop };
 }
 
 function roundRect(
@@ -394,10 +443,10 @@ function drawFigure(
 ): void {
   const { x, deckY, robe, seated } = input;
   const rise = input.seated ? input.rise * 0.74 : input.rise;
-  const hemW = rise * (seated ? 0.26 : 0.2);
-  const shoulderW = rise * 0.105;
-  const shoulderY = deckY - rise * 0.74;
-  const headR = rise * 0.115;
+  const hemW = rise * (seated ? 0.34 : 0.27);
+  const shoulderW = rise * 0.15;
+  const shoulderY = deckY - rise * 0.72;
+  const headR = rise * 0.145;
 
   if (!seated) {
     ctx.fillStyle = PALETTE.lectern;
@@ -411,6 +460,8 @@ function drawFigure(
   }
 
   ctx.fillStyle = robe;
+  ctx.strokeStyle = "rgba(10,18,24,0.72)";
+  ctx.lineWidth = Math.max(0.7, rise * 0.028);
   ctx.beginPath();
   ctx.moveTo(x - hemW, deckY);
   ctx.lineTo(x - shoulderW, shoulderY);
@@ -418,6 +469,7 @@ function drawFigure(
   ctx.lineTo(x + hemW, deckY);
   ctx.closePath();
   ctx.fill();
+  ctx.stroke();
 
   ctx.fillStyle = "rgba(255,236,204,0.16)";
   ctx.beginPath();
@@ -431,6 +483,7 @@ function drawFigure(
   ctx.beginPath();
   ctx.arc(x, shoulderY - headR * 1.05, headR, 0, Math.PI * 2);
   ctx.fill();
+  ctx.stroke();
   ctx.fillStyle = robe;
   ctx.beginPath();
   ctx.arc(x, shoulderY - headR * 1.2, headR * 0.92, Math.PI * 1.05, Math.PI * 2.1);
@@ -457,13 +510,14 @@ export function drawFlet(
     skins: LorienSkins;
     flicker: number;
     pulse: number;
+    glowScale: number;
   },
 ): void {
   const { box, pose, skins } = input;
   const rect = fletRect(box);
   const rise = figureRise(box);
   const side = box.lanternSide;
-  const lampH = rise * 0.62;
+  const lampH = rise * 0.74;
   const lampW = (lampH * LANTERN_SPRITE.sw) / LANTERN_SPRITE.sh;
   const lampX = box.x + side * (box.width * 0.5 - lampW * 0.42);
   const lampTop = box.deckY - rise * 0.86;
@@ -485,8 +539,8 @@ export function drawFlet(
   }
 
   if (pose !== "sleeping") {
-    const radius = pose === "working" ? rise * 1.5 : rise * 0.9;
-    ctx.globalAlpha = (pose === "working" ? 0.9 : 0.42) * input.flicker;
+    const radius = rise * input.glowScale * (pose === "working" ? 1 : 0.55);
+    ctx.globalAlpha = (pose === "working" ? 0.95 : 0.52) * input.flicker;
     ctx.drawImage(skins.glowWarm, lampX - radius, glassY - radius, radius * 2, radius * 2);
     ctx.globalAlpha = 1;
     drawFigure(ctx, {
@@ -546,11 +600,12 @@ export function drawSign(
 ): void {
   const { box } = input;
   const fontPx = Math.max(9, box.signHeight * 0.58);
-  ctx.font = `500 ${fontPx.toFixed(1)}px ${input.font}`;
+  const font = `500 ${fontPx.toFixed(1)}px ${input.font}`;
+  ctx.font = font;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  const label = fitText(ctx, input.name, box.signMaxWidth - fontPx * 0.9);
-  const w = Math.min(box.signMaxWidth, ctx.measureText(label).width + fontPx * 1.2);
+  const fitted = measureFitted(ctx, input.name, box.signMaxWidth - fontPx * 0.9, font);
+  const w = Math.min(box.signMaxWidth, fitted.width + fontPx * 1.2);
   const x = box.x - w / 2;
   const rect = fletRect(box);
 
@@ -571,38 +626,68 @@ export function drawSign(
   ctx.stroke();
 
   ctx.fillStyle = input.selected ? PALETTE.accent : PALETTE.signInk;
-  ctx.fillText(label, box.x, box.signTop + box.signHeight * 0.54);
+  ctx.fillText(fitted.fitted, box.x, box.signTop + box.signHeight * 0.54);
 }
 
+// Clamped inside the bot's own cell. Cells are disjoint, so two labels can never
+// reach each other however long the path is.
 export function drawLabel(
   ctx: CanvasRenderingContext2D,
-  input: { box: FletBox; text: string; font: string; maxWidth: number; dim: boolean },
+  input: {
+    box: FletBox;
+    text: string;
+    font: string;
+    cellLeft: number;
+    cellRight: number;
+    dim: boolean;
+  },
 ): void {
   const { box } = input;
   const rise = figureRise(box);
-  const fontPx = Math.max(8.5, rise * 0.29);
-  ctx.font = `400 ${fontPx.toFixed(1)}px ${input.font}`;
+  const fontPx = Math.max(8.5, rise * 0.23);
+  const font = `400 ${fontPx.toFixed(1)}px ${input.font}`;
+  ctx.font = font;
   ctx.textBaseline = "middle";
-  const side = box.lanternSide;
-  const text = fitText(ctx, input.text, input.maxWidth);
-  const width = ctx.measureText(text).width;
-  let x = box.x + side * (box.width * 0.5 + rise * 0.16);
-  ctx.textAlign = side < 0 ? "right" : "left";
-  if (side < 0 && x - width < 4) {
-    ctx.textAlign = "left";
-    x = box.x + box.width * 0.5 + rise * 0.16;
-  } else if (side > 0 && x + width > WORLD_WIDTH - 4) {
-    ctx.textAlign = "right";
-    x = box.x - box.width * 0.5 - rise * 0.16;
-  }
-  const y = box.deckY - rise * 0.78;
-  ctx.fillStyle = "rgba(8,16,22,0.5)";
-  const padX = fontPx * 0.35;
-  const left = ctx.textAlign === "right" ? x - width - padX : x - padX;
-  roundRect(ctx, left, y - fontPx * 0.72, width + padX * 2, fontPx * 1.44, fontPx * 0.3);
+  const padX = fontPx * 0.4;
+  const room = Math.max(fontPx * 3, input.cellRight - input.cellLeft - padX * 2 - 6);
+  const fitted = measureFitted(ctx, input.text, room, font);
+  const half = fitted.width / 2 + padX;
+  const anchor = box.x + box.lanternSide * box.width * 0.36;
+  const centre = Math.min(
+    input.cellRight - 3 - half,
+    Math.max(input.cellLeft + 3 + half, anchor),
+  );
+  const y = box.deckY - rise * 0.82;
+  ctx.fillStyle = "rgba(8,16,22,0.46)";
+  roundRect(ctx, centre - half, y - fontPx * 0.72, half * 2, fontPx * 1.44, fontPx * 0.3);
   ctx.fill();
+  ctx.textAlign = "center";
   ctx.fillStyle = input.dim ? PALETTE.inkDim : PALETTE.ink;
-  ctx.fillText(text, x, y);
+  ctx.fillText(fitted.fitted, centre, y);
+}
+
+const fittedText = new Map<string, { fitted: string; width: number }>();
+
+// Fitting a long path walks it a character at a time, and measureText is the
+// most expensive call in the frame. At 40 bots the uncached version cost 8.4ms.
+export function measureFitted(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+  font: string,
+): { fitted: string; width: number } {
+  const key = `${font}|${maxWidth.toFixed(1)}|${text}`;
+  const hit = fittedText.get(key);
+  if (hit !== undefined) {
+    return hit;
+  }
+  const fitted = fitText(ctx, text, maxWidth);
+  const value = { fitted, width: ctx.measureText(fitted).width };
+  if (fittedText.size > 4000) {
+    fittedText.clear();
+  }
+  fittedText.set(key, value);
+  return value;
 }
 
 export function fitText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string {
@@ -624,18 +709,29 @@ export function drawAmbience(
   ctx: CanvasRenderingContext2D,
   input: { t: number; count: number; seed: number; ambient: number },
 ): void {
-  const flies = Math.min(70, 22 + input.count);
+  const flies = Math.min(34, 18 + Math.floor(input.count / 3));
+  const dim = 1 - input.ambient * 0.55;
   ctx.fillStyle = PALETTE.firefly;
-  for (let i = 0; i < flies; i += 1) {
-    const phase = i * 2.399963;
-    const driftX = Math.sin(input.t * 0.21 + phase) * 140;
-    const driftY = Math.cos(input.t * 0.17 + phase * 1.7) * 70;
-    const x = ((phase * 271) % WORLD_WIDTH) + driftX;
-    const y = (((phase * 577) % (WORLD_HEIGHT - 240)) + 150 + driftY) % WORLD_HEIGHT;
-    const blink = 0.35 + 0.65 * Math.abs(Math.sin(input.t * 1.3 + phase * 3.1));
-    ctx.globalAlpha = blink * (1 - input.ambient * 0.55);
+  // Brightness is bucketed so the whole swarm draws in four fills rather than
+  // one globalAlpha change and one fill per firefly.
+  for (let bucket = 0; bucket < 4; bucket += 1) {
+    ctx.globalAlpha = dim * (0.34 + bucket * 0.22);
     ctx.beginPath();
-    ctx.arc(x, y, 2.1, 0, Math.PI * 2);
+    for (let i = 0; i < flies; i += 1) {
+      const phase = i * 2.399963;
+      const blink = Math.abs(Math.sin(input.t * 1.3 + phase * 3.1));
+      if (Math.min(3, Math.floor(blink * 4)) !== bucket) {
+        continue;
+      }
+      const x = ((phase * 271) % WORLD_WIDTH) + Math.sin(input.t * 0.21 + phase) * 140;
+      const y =
+        (((phase * 577) % (WORLD_HEIGHT - 240)) +
+          150 +
+          Math.cos(input.t * 0.17 + phase * 1.7) * 70) %
+        WORLD_HEIGHT;
+      ctx.moveTo(x + 2.1, y);
+      ctx.arc(x, y, 2.1, 0, Math.PI * 2);
+    }
     ctx.fill();
   }
   ctx.globalAlpha = 1;
@@ -646,16 +742,14 @@ export function drawLeafDrift(
   input: { t: number; ambient: number },
 ): void {
   ctx.fillStyle = `rgba(198,206,150,${(0.16 + input.ambient * 0.2).toFixed(3)})`;
-  for (let i = 0; i < 16; i += 1) {
+  // One path per leaf. Batching them into a single path joins each ellipse to
+  // the last with a line, which drew long diagonal streaks across the frame.
+  for (let i = 0; i < 12; i += 1) {
     const phase = i * 1.7561;
     const fall = (input.t * 22 + phase * 260) % (WORLD_HEIGHT + 200);
     const x = ((phase * 419) % WORLD_WIDTH) + Math.sin(input.t * 0.5 + phase) * 40;
-    ctx.save();
-    ctx.translate(x, fall - 100);
-    ctx.rotate(input.t * 0.6 + phase);
     ctx.beginPath();
-    ctx.ellipse(0, 0, 5.2, 2.3, 0, 0, Math.PI * 2);
+    ctx.ellipse(x, fall - 100, 5.2, 2.3, input.t * 0.6 + phase, 0, Math.PI * 2);
     ctx.fill();
-    ctx.restore();
   }
 }

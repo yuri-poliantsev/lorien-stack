@@ -78,10 +78,10 @@ describe("lorien sky clock", () => {
   it("blends between the two anchors that bracket the clock", () => {
     assert.deepEqual(skyAt(3.25), {
       name: "dawn",
-      zenith: "#162a3d",
-      mid: "#484760",
-      horizon: "#6b5748",
-      ambient: 0.5,
+      zenith: "#142739",
+      mid: "#313d55",
+      horizon: "#554a43",
+      ambient: 0.49,
     });
     assert.equal(skyAt(21.5).name, "night", "half past nine reads as night, not dusk");
     assert.deepEqual(skyAt(24), skyAt(0), "the cycle wraps at midnight");
