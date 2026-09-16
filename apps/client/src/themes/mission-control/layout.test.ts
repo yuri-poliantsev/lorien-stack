@@ -135,7 +135,7 @@ describe("mission control card placement", () => {
     const one = cardRect(gridFor(1), 0);
     assert.deepEqual(
       { w: one.w, h: one.h },
-      { w: 440, h: 372 },
+      { w: 440, h: 292 },
       "single card clamps to the maximum card size",
     );
     assert.equal(one.x + one.w / 2, GRID_AREA.x + GRID_AREA.w / 2);
@@ -179,7 +179,7 @@ describe("mission control type scale", () => {
       state: 13,
       meta: 15,
       pad: 22,
-      spark: 156,
+      spark: 123,
       chars: 38,
     });
   });
@@ -192,7 +192,7 @@ describe("mission control type scale", () => {
   it("grows the chart with the card so a roomy card is not mostly empty", () => {
     assert.deepEqual(
       [8, 24, 40].map((n) => cardScale(gridFor(n)).spark),
-      [156, 84, 66],
+      [123, 84, 66],
     );
     assert.equal(cardScale({ cardW: 200, cardH: 0 }).spark, 20, "chart holds a floor of twenty");
   });

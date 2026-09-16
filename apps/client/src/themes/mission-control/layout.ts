@@ -14,7 +14,8 @@ const BOARD_PAD = 24;
 const HEADER_HEIGHT = 136;
 const GUTTER = 12;
 const MAX_CARD_W = 440;
-const MAX_CARD_H = 372;
+// Below twelve bots the rows would stretch past this; a taller card is mostly air.
+const MAX_CARD_H = 292;
 
 export type Rect = { x: number; y: number; w: number; h: number };
 
