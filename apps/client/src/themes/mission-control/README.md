@@ -18,6 +18,14 @@ The board reserves a 296px rail on the left. The shell floats its roster panel t
 reserving the band is what keeps the first column of cards out from behind the glass at
 every roster size.
 
+A 136px header strip above the grid carries the title and the ROSTER / LIVE NOW / ASLEEP
+band, recomputed from the card poses on every render. Cards cap at 292px tall so the 8-bot
+board is not four rows of air.
+
+The working line is `<glyph> <action> · <path>`. The path is cut from the left by string
+logic, sized from the card width in `cardScale`, so the file name survives a narrow card
+and no CSS `direction` trick reorders bidi text.
+
 ## Frame budget
 
 There is no animation loop. The shell already re-renders once a second, which is what
@@ -28,7 +36,7 @@ moment no number is moving.
 ## Files
 
 - `layout.ts` world and board geometry, column steps, card rects, type scale, slot order
-- `model.ts` pose clock, activity sparkline, card model, real-clock accent
+- `model.ts` pose clock, activity sparkline, action line, card model, pose tally, real-clock accent
 - `scene.ts` DOM mount, per-card diff, camera transform, stylesheet
 - `layout.test.ts` slot stability, no overlap to 24, bounded crowding at 40, type scale
 - `model.test.ts` pose thresholds, sparkline buckets, card labels, accent clock
