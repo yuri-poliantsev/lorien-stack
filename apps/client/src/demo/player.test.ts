@@ -94,11 +94,12 @@ describe("createDemoPlayer", () => {
     });
     const botOf = (m: (typeof first)[number]) =>
       m.type === "snapshot" ? undefined : m.type === "event" ? m.event.botId : m.botId;
-    const first = player.advance(3499);
+    const first = player.advance(1599);
     assert.deepEqual(new Set(first.map(botOf)), new Set([undefined, slots[0]?.record.id]));
     assert.deepEqual(
-      player.advance(3500).map((m) => [m.type, botOf(m)]),
+      player.advance(1600).map((m) => [m.type, botOf(m)]),
       [
+        ["event", slots[0]?.record.id],
         ["presence", slots[1]?.record.id],
         ["event", slots[1]?.record.id],
       ],

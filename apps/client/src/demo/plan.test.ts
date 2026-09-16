@@ -74,24 +74,25 @@ describe("demoFixtures", () => {
 describe("demoRoster", () => {
   const fixtures = loadDemoFixtures();
 
-  it("takes the first N fixtures by id below the fixture count", () => {
+  it("takes the first N fixtures by id below the fixture count, 1600ms apart", () => {
     const slots = demoRoster(fixtures, 3);
     assert.deepEqual(
       slots.map((s) => [s.record.name, s.startOffsetMs]),
       [
         ["Ivo", 0],
-        ["Wren", 3500],
-        ["Sable", 7000],
+        ["Wren", 1600],
+        ["Sable", 3200],
       ],
     );
   });
 
-  it("clones with wave-numbered names and distinct valid ids above the fixture count", () => {
+  it("clones with wave-numbered names, distinct valid ids, and a stagger that fits 12s", () => {
     const slots = demoRoster(fixtures, 18);
     assert.deepEqual(slots[8]?.record.name, "Ivo 2");
     assert.deepEqual(slots[16]?.record.name, "Ivo 3");
-    assert.equal(slots[8]?.startOffsetMs, 1600);
-    assert.equal(slots[17]?.startOffsetMs, 3500 + 3200);
+    assert.equal(slots[8]?.startOffsetMs, 8 * 666);
+    assert.equal(slots[17]?.startOffsetMs, 17 * 666);
+    assert.equal(demoRoster(fixtures, 40)[39]?.startOffsetMs, 39 * 300);
     assert.equal(slots[8]?.record.id, "15aafeb5-603a-4d4b-b25d-8bc5a5280001");
     assert.deepEqual(slots[8]?.lines, fixtures[0]?.lines);
     const ids = new Set(demoRoster(fixtures, 40).map((s) => s.record.id));
@@ -103,7 +104,7 @@ describe("demoRoster", () => {
 
   it("matches the gateway's expandDemoRoster on names and start offsets, not ids", async () => {
     const gatewayFixtures = await loadFixtureAgents(FIXTURE_ROOT);
-    for (const botCount of [1, 8, 18, 40]) {
+    for (const botCount of [1, 3, 8, 18, 40]) {
       const gateway = expandDemoRoster({ fixtures: gatewayFixtures, botCount }).map((s) => [
         s.name,
         s.startOffsetMs,

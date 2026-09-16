@@ -10,8 +10,8 @@ const DEMO_BOT_MIN = 1;
 const DEMO_BOT_MAX = 40;
 const DEFAULT_DEMO_BOTS = 8;
 const DEMO_MULTIPLIER = 1000;
-const DEMO_STAGGER_MS = 3500;
-const DEMO_CLONE_STAGGER_MS = 1600;
+const DEMO_STAGGER_WINDOW_MS = 12_000;
+const DEMO_STAGGER_CAP_MS = 1_600;
 const DEMO_MIN_STEP_MS = 800;
 const DEMO_QUIET_HOLD_MS = 4_000;
 const DEMO_SLEEP_HOLD_MS = 3_000;
@@ -104,8 +104,13 @@ function cloneBotId(sourceId: BotId, wave: number): BotId {
   return parsed.value;
 }
 
+function demoStaggerMs(botCount: number): number {
+  return Math.min(DEMO_STAGGER_CAP_MS, Math.floor(DEMO_STAGGER_WINDOW_MS / botCount));
+}
+
 export function demoRoster(fixtures: DemoFixture[], botCount: number): DemoSlot[] {
   const sorted = [...fixtures].sort((a, b) => a.record.id.localeCompare(b.record.id));
+  const staggerMs = demoStaggerMs(botCount);
   const slots: DemoSlot[] = [];
   for (let index = 0; index < botCount; index += 1) {
     const source = sorted[index % sorted.length];
@@ -113,8 +118,7 @@ export function demoRoster(fixtures: DemoFixture[], botCount: number): DemoSlot[
       break;
     }
     const wave = Math.floor(index / sorted.length);
-    const startOffsetMs =
-      (index % sorted.length) * DEMO_STAGGER_MS + wave * DEMO_CLONE_STAGGER_MS;
+    const startOffsetMs = index * staggerMs;
     if (wave === 0) {
       slots.push({ ...source, startOffsetMs });
       continue;
