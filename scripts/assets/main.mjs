@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { defaultOutDir, generate } from "./lib/gen.mjs";
 import { describeHeader, readImageHeader } from "./lib/header.mjs";
@@ -13,16 +13,18 @@ import {
 	readManifest,
 	sha256,
 	takeLock,
+	repoRelative,
 	totals,
 } from "./lib/ledger.mjs";
 import { readback } from "./lib/readback.mjs";
-import { parseRequests } from "./lib/shape.mjs";
+import { MANIFEST_COLUMNS, parseRequests } from "./lib/shape.mjs";
 
 const USAGE = `usage:
   assets gen --request <file.json> [--out-dir <dir>] [--parallel 4] [--dry-run]
   assets key --in <img> --out <png> --key <#rrggbb|auto> --tolerance <n> --grid <px> [--levels 16]
   assets readback --in <img> --spec <file> [--offline] [--force]
   assets ledger [--verify]
+  assets concepts
   assets selftest`;
 
 const [command, ...rest] = process.argv.slice(2);
@@ -193,6 +195,22 @@ function cmdLedger() {
 	if (bad > 0) process.exitCode = 1;
 }
 
+// A roll-up across every theme's concept directory. Derived, so it is rewritten
+// from the authoritative rows rather than appended to.
+function cmdConcepts() {
+	const rows = authoritativeRows()
+		.filter((entry) => !entry.superseded && entry.row.kind === "concept")
+		.map((entry) => entry.row);
+	const out = path.join(REPO_ROOT, "docs/images/concepts/manifest.tsv");
+	writeFileSync(
+		out,
+		`${MANIFEST_COLUMNS.join("\t")}\n${rows
+			.map((row) => MANIFEST_COLUMNS.map((column) => row[column]).join("\t"))
+			.join("\n")}\n`,
+	);
+	process.stdout.write(`assets concepts: ${String(rows.length)} concept frames -> ${repoRelative(out)}\n`);
+}
+
 async function cmdSelftest() {
 	const { spawnSync } = await import("node:child_process");
 	const result = spawnSync(process.execPath, ["--test", "scripts/assets/test/*.test.mjs"], {
@@ -215,6 +233,9 @@ try {
 			break;
 		case "ledger":
 			cmdLedger();
+			break;
+		case "concepts":
+			cmdConcepts();
 			break;
 		case "selftest":
 			await cmdSelftest();

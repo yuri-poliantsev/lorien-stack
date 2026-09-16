@@ -114,3 +114,7 @@ boundary is what stops `eight` from passing on "staggered heights" or "eighteen"
 
 `readback --offline` re-runs the spec diff against the saved description without spending
 a call, which is how a tightened spec gets re-applied to frames that already exist.
+
+`assets concepts` rewrites `docs/images/concepts/manifest.tsv` as a roll-up of every
+theme's concept frames. It is derived from the authoritative rows, so it is rewritten
+rather than appended to.
