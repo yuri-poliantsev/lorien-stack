@@ -1,6 +1,9 @@
 import type { BotId } from "@lorien-stack/contracts";
 
 import { createCamera } from "./camera.ts";
+import { DEMO_FIXTURES } from "./demo/fixtures.ts";
+import { resolveDemoSource } from "./demo/plan.ts";
+import { startDemoSource } from "./demo/source.ts";
 import { mountHeader } from "./shell/header.ts";
 import { mountInspector } from "./shell/inspector.ts";
 import { rosterRows, shellStats, tapeRows } from "./shell/model.ts";
@@ -12,6 +15,7 @@ import {
   emptyStore,
   rosterList,
   selectBot,
+  type StoreMessage,
 } from "./store.ts";
 import { mountThemeHost } from "./themeHost.ts";
 import { THEMES } from "./themes/registry.ts";
@@ -179,16 +183,27 @@ bindCameraInput(sceneStack, camera, { onRefit: refit });
 window.addEventListener("resize", refit);
 window.setInterval(render, TICK_MS);
 
-connectGateway({
-  url: gatewayWsUrl({
-    protocol: window.location.protocol,
-    host: window.location.host,
-  }),
-  onMessage(message) {
-    applyMessage(store, message);
-    render();
-  },
+function onMessage(message: StoreMessage): void {
+  applyMessage(store, message);
+  render();
+}
+
+const source = resolveDemoSource({
+  search: window.location.search,
+  hostedDemo: import.meta.env.VITE_HOSTED_DEMO === "1",
 });
+document.documentElement.dataset.source = source.kind;
+if (source.kind === "demo") {
+  startDemoSource({ bots: source.bots, fixtures: DEMO_FIXTURES, onMessage });
+} else {
+  connectGateway({
+    url: gatewayWsUrl({
+      protocol: window.location.protocol,
+      host: window.location.host,
+    }),
+    onMessage,
+  });
+}
 
 refit();
 render();
