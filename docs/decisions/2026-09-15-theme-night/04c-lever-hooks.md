@@ -63,3 +63,7 @@ Waiting on header counts. The 03-shell strip uses its own event window, so heade
 Wait for merge authorization at this head. Do not merge until the root says `merge authorized at <sha>`.
 
 A later owner should give the shell header strip and the theme's `poseFromPulse` one classification. At N=40 they disagreed (header 14 working, unit poses 17) because the strip uses its own event window.
+
+## Outcome
+
+Squash-merged to `main` as `c16726d51a22a1aa36351e6618b8802690121727` in [#18](https://github.com/yuri-poliantsev/lorien-stack/pull/18). Three verification rounds passed: gates and the 40-unit page at `020a49a`, a live N=8/N=40 lever plus preflight and stagger check at that head, and a live hard-gate plus port-override pass at `53e377e` (N=8/40 in 39 s, timeout exit 1 in 44.1 s, bad env 1.8 s).
