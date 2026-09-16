@@ -22,7 +22,7 @@ export const DEMO_STAGGER_MS = 3500;
 export const DEMO_CLONE_STAGGER_MS = 1600;
 export const DEMO_MIN_STEP_MS = 800;
 export const DEMO_QUIET_HOLD_MS = 4_000;
-export const DEMO_SLEEP_HOLD_MS = 4_000;
+export const DEMO_SLEEP_HOLD_MS = 3_000;
 
 export type ReplayAppend = {
   kind: "append";
