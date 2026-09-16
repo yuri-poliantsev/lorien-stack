@@ -60,7 +60,7 @@ export function downsampleNearest({ data, width, height, grid }) {
 }
 
 // Both generators drift the requested key colour badly: a prompt asking for
-// #ff00ff came back as #aa5380, 174 away in RGB. Sampling the corners is the only
+// #ff00ff came back as #aa527f, 174 away in RGB. Sampling the corners is the only
 // reliable way to learn what the flat background actually is.
 export function sampleCorners({ data, width, height }) {
 	const corners = [
