@@ -46,16 +46,18 @@ Real-mouse proofs from a's `proof.mjs` at the graft-4 head, 7 of 7 passed. A mou
 
 Live check of the registry at the graft-4 head, `?theme=mission-control`. The theme host carried `data-theme="mission-control"` and the header picker listed `StarCraft:false` and `Mission control:true`. Lórien is not on `main` yet, so the picker shows two themes on this branch and three once step 6 merges.
 
-Lever run at the final theme head `7cc6b52`, `npm run capture -- --theme mission-control --bots 8,40 --record 20 --out docs/images/themes`:
+Lever run at the merge-ready head, rebased on `origin/main` `3ae8d4f`, `npm run capture -- --theme mission-control --bots 8,40 --record 20 --out docs/images/themes`:
 
 ```
-mission-control-8.png	N=8	avgFrameMs=0.16	pose_working=3	pose_idle=5	pose_sleeping=0
-mission-control-40.png	N=40	avgFrameMs=0.31	pose_working=16	pose_idle=24	pose_sleeping=0
-mission-control-8-asleep.png	N=8	avgFrameMs=0.63	pose_working=0	pose_idle=0	pose_sleeping=8
-mission-control.mp4	N=18	avgFrameMs=0.23
+mission-control-8.png	N=8	avgFrameMs=0.73	pose_working=3	pose_idle=5	pose_sleeping=0
+mission-control-40.png	N=40	avgFrameMs=0.67	pose_working=16	pose_idle=24	pose_sleeping=0
+mission-control-8-asleep.png	N=8	avgFrameMs=0.57	pose_working=0	pose_idle=0	pose_sleeping=8
+mission-control.mp4	N=18	avgFrameMs=1.04
 ```
 
-`avgFrameMs` at 40 over five lever runs at this head: 0.20, 0.25, 0.57, 0.74, 0.67. The budget is 4.
+An earlier run at the last theme commit before the rebase read 0.16 / 0.31 / 0.63 / 0.23 for the same four artifacts.
+
+`avgFrameMs` at 40 over five lever runs at the graft-4 head: 0.20, 0.25, 0.57, 0.74, 0.67. The budget is 4.
 
 Gates at the head: `npm test`, `npm run typecheck`, `npm run build -w apps/client`, `npm run docs:smoke`.
 
