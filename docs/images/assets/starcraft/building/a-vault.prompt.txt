@@ -1,0 +1,15 @@
+A single small prefabricated industrial building seen from an elevated three-quarter angle, walls clad in dark grey steel panels, a ribbed corrugated roof, one wide closed roller shutter across the front and no windows at all, yellow and black hazard stripes on the lower corners, grey pipes running along one side, and a small red beacon lamp on the roof. The whole building is centred and standing alone with a clear margin on every side. The background is one completely flat uniform magenta field with nothing else in it: no ground, no horizon, no shadow, no writing and no lettering. Clean stylised 2D game art with crisp cel shading and an original blunt industrial design.
+
+--- wrapper handed to /Users/iuriipoliantsev/.grok/bin/grok ---
+Produce exactly one image file and stop.
+
+Step 1. Call image_gen exactly once. Pass aspect_ratio "1:1". Pass this prompt text verbatim, with no additions, no rewording, and no style notes of your own:
+<<<PROMPT
+A single small prefabricated industrial building seen from an elevated three-quarter angle, walls clad in dark grey steel panels, a ribbed corrugated roof, one wide closed roller shutter across the front and no windows at all, yellow and black hazard stripes on the lower corners, grey pipes running along one side, and a small red beacon lamp on the roof. The whole building is centred and standing alone with a clear margin on every side. The background is one completely flat uniform magenta field with nothing else in it: no ground, no horizon, no shadow, no writing and no lettering. Clean stylised 2D game art with crisp cel shading and an original blunt industrial design.
+PROMPT
+
+Step 2. Copy the resulting image to exactly this absolute path, creating parent directories if they are missing: /var/folders/pg/03wfg4_x5ms5n_1vthnkmdm40000gn/T/asset-scratch/f3c1b8a8ae76c935/out.jpg
+
+Step 3. Print that absolute path as your entire final message. No prose, no markdown, no code fences, no trailing text.
+
+Hard rules. Exactly one image call, and no second attempt even if the result looks wrong. Do not call image_edit if you called image_gen, or image_gen if you called image_edit. Do not write, move, or delete any file outside /var/folders/pg/03wfg4_x5ms5n_1vthnkmdm40000gn/T/asset-scratch/f3c1b8a8ae76c935. Do not run git. Do not ask questions.
