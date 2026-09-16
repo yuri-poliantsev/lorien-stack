@@ -77,6 +77,13 @@ discarded frame therefore stays on disk to back its row, and a retry of `04` is 
 as `04-2`. The discard cap counts the stem before that suffix, so a retry cannot reset its
 own budget.
 
+The wrapper tells the model where to save, so that path is something the model reads. It
+points at `asset-scratch/<hash>` under the system temp root, never at the output directory,
+because the output directory is named after the theme and the bakeoff depends on the model
+not knowing which theme it is drawing for. `gen` moves the result into place afterwards. A
+`reference` image is copied into the same scratch directory as `source.<ext>` for the same
+reason.
+
 ## Manifests
 
 `scripts/assets/manifest.tsv` is the append-only record of asset outcomes, and the same

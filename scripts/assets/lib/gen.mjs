@@ -1,4 +1,6 @@
-import { existsSync, mkdirSync, renameSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { copyFileSync, existsSync, mkdirSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import { describeHeader, readImageHeader } from "./header.mjs";
 import { GROK_BIN, LOGIN_INSTRUCTION, lastPathLike, looksLikeAuthFailure, runGrok } from "./grok.mjs";
@@ -22,10 +24,24 @@ export function defaultOutDir(request) {
 		: path.join(REPO_ROOT, "docs/images/assets", request.theme, request.kind);
 }
 
-export function wrapperPrompt(request, outPath) {
+// The model is told where to save, so that path is part of the prompt. Pointing it at
+// the real output directory handed it the theme slug, which the bakeoff exists to keep
+// out of the prompt. It writes into an opaque scratch directory instead and gen moves
+// the result into place afterwards.
+export function scratchPaths(request) {
+	const token = createHash("sha256").update(`${request.theme}/${request.id}`).digest("hex").slice(0, 16);
+	const dir = path.join(tmpdir(), "asset-scratch", token);
+	const reference =
+		request.reference === undefined
+			? undefined
+			: path.join(dir, `source${path.extname(request.reference).toLowerCase() || ".jpg"}`);
+	return { dir, outPath: path.join(dir, "out.jpg"), reference };
+}
+
+export function wrapperPrompt(request, outPath, referencePath) {
 	const dir = path.dirname(outPath);
 	const call = request.reference
-		? `Call image_edit exactly once. Pass image "${path.resolve(REPO_ROOT, request.reference)}" as the single source image. Pass aspect_ratio "${aspectRatio(request.size)}".`
+		? `Call image_edit exactly once. Pass image "${referencePath}" as the single source image. Pass aspect_ratio "${aspectRatio(request.size)}".`
 		: `Call image_gen exactly once. Pass aspect_ratio "${aspectRatio(request.size)}".`;
 	return [
 		"Produce exactly one image file and stop.",
@@ -84,15 +100,22 @@ export async function generate(request, { outDir = defaultOutDir(request), dryRu
 	mkdirSync(outDir, { recursive: true });
 	const outPath = path.join(outDir, `${request.id}.jpg`);
 	const promptPath = path.join(outDir, `${request.id}.prompt.txt`);
-	const wrapper = wrapperPrompt(request, outPath);
+	const scratch = scratchPaths(request);
+	const wrapper = wrapperPrompt(request, scratch.outPath, scratch.reference);
 	writeFileSync(promptPath, `${request.prompt.trim()}\n\n--- wrapper handed to ${GROK_BIN} ---\n${wrapper}\n`);
 
 	if (dryRun) return { ok: true, dryRun: true, outPath, promptPath, wrapper };
 
+	rmSync(scratch.dir, { recursive: true, force: true });
+	mkdirSync(scratch.dir, { recursive: true });
+	if (scratch.reference !== undefined) copyFileSync(path.resolve(REPO_ROOT, request.reference), scratch.reference);
+
 	assertUnderCaps(1);
 	const result = await runGrok(wrapper);
 	const combined = `${result.stdout}\n${result.stderr}`;
-	const landed = existsSync(outPath) ? outPath : resolveLanded(result.text, outPath);
+	const scratched = existsSync(scratch.outPath) ? scratch.outPath : resolveLanded(result.text, scratch.outPath);
+	const landed = scratched === undefined ? undefined : movePath(scratched, outPath);
+	rmSync(scratch.dir, { recursive: true, force: true });
 	logCall({
 		id: `${request.theme}/${request.id}`,
 		op: request.reference ? "image_edit" : "image_gen",
@@ -166,6 +189,19 @@ function resolveLanded(text, outPath) {
 	if (!existsSync(printed)) return undefined;
 	renameSync(printed, outPath);
 	return outPath;
+}
+
+// The scratch directory is under the system temp root, which is often a different
+// filesystem from the repo, so rename can fail with EXDEV.
+function movePath(from, to) {
+	try {
+		renameSync(from, to);
+	} catch (error) {
+		if (error.code !== "EXDEV") throw error;
+		copyFileSync(from, to);
+		rmSync(from, { force: true });
+	}
+	return to;
 }
 
 function retypeExtension(file, header) {

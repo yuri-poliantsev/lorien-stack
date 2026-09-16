@@ -6,7 +6,7 @@ import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
-import { defaultOutDir, existingOutput, wrapperPrompt } from "../lib/gen.mjs";
+import { defaultOutDir, existingOutput, scratchPaths, wrapperPrompt } from "../lib/gen.mjs";
 import { lastPathLike, looksLikeAuthFailure } from "../lib/grok.mjs";
 import { describeHeader, readImageHeader } from "../lib/header.mjs";
 import {
@@ -69,9 +69,28 @@ test("wrapperPrompt pins one image_gen call, the absolute path, and a bare final
 });
 
 test("wrapperPrompt switches to image_edit when a reference is set", () => {
-	const wrapper = wrapperPrompt({ ...REQUEST, reference: "docs/images/concepts/lorien/01.jpg" }, "/abs/out/02.jpg");
-	assert.match(wrapper, /Call image_edit exactly once\. Pass image "\/[^"]*docs\/images\/concepts\/lorien\/01\.jpg"/);
+	const scratch = scratchPaths({ ...REQUEST, reference: "docs/images/concepts/lorien/01.jpg" });
+	const wrapper = wrapperPrompt({ ...REQUEST, reference: "docs/images/concepts/lorien/01.jpg" }, scratch.outPath, scratch.reference);
+	assert.match(wrapper, /Call image_edit exactly once\. Pass image "[^"]*\/source\.jpg"/);
 	assert.doesNotMatch(wrapper, /Call image_gen exactly once/);
+});
+
+// The bakeoff is only honest if the model never reads the theme it is drawing for, and
+// the save path is part of what it reads.
+test("the wrapper handed to the model names no theme, in the output path or the reference", () => {
+	const themes = ["lorien", "starcraft", "mission-control", "bruegel", "night-city", "aquarium", "isometric-office"];
+	for (const theme of themes) {
+		const request = { ...REQUEST, theme, id: "04", reference: "docs/images/concepts/mission-control/02.jpg" };
+		const scratch = scratchPaths(request);
+		const wrapper = wrapperPrompt(request, scratch.outPath, scratch.reference);
+		for (const slug of themes) {
+			assert.ok(!wrapper.toLowerCase().includes(slug), `${theme} wrapper leaks ${slug}:\n${wrapper}`);
+		}
+		assert.ok(!wrapper.includes(REPO_ROOT), `${theme} wrapper leaks the repo path`);
+		assert.ok(!wrapper.includes("/04"), `${theme} wrapper leaks the request id as a path segment`);
+		assert.ok(wrapper.includes(scratch.dir), "the wrapper points at the opaque scratch directory");
+	}
+	assert.notEqual(scratchPaths({ ...REQUEST, id: "01" }).dir, scratchPaths({ ...REQUEST, id: "02" }).dir);
 });
 
 test("readImageHeader reports JPEG 4:2:0 under a png filename and real PNG alpha", async () => {

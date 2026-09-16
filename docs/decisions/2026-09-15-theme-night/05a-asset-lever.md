@@ -151,10 +151,19 @@ as a card. No count check, no state check and no forbid line was touched.
 - **The `poteto-mode` skill is not installed on this laptop**, though the plan's Local runtime
   section says it is. The plan's Process section, which it names as the replacement, was
   followed instead, along with the `show-me-your-work` log script from pstack.
-- **The StarCraft prompts never name StarCraft** or describe any published game's art. They
-  ask for "a small science-fiction industrial outpost" with "original industrial design of
-  ribbed panels and blunt shapes". Q15's name is a shorthand for the mapping, not a brief to
-  imitate.
+- **The StarCraft descriptions never name StarCraft, but the save path did.** The prompt text
+  asks for "a small science-fiction industrial outpost" with "original industrial design of
+  ribbed panels and blunt shapes", and describes no published game's art; Q15's name is a
+  shorthand for the mapping, not a brief to imitate. The wrapper around that text, however,
+  told the model where to save, and until this branch's second round that path was the real
+  output directory — so `docs/images/concepts/starcraft/*.prompt.txt:11,15` and
+  `docs/images/assets/starcraft/sprite/worker.prompt.txt:11,15` handed it `/starcraft/`. Seven
+  frames plus the worker sprite were generated with the theme slug visible in the save path.
+  `gen` now writes into an opaque `asset-scratch/<hash>` directory under the system temp root
+  and moves the result into place, so the saved wrapper carries no theme id and no repo path.
+  The eight affected outputs were not regenerated; that would cost calls to re-prove frames
+  whose read-backs are already recorded, and the leak was a path segment rather than a stylistic
+  instruction. A test asserts every theme slug is absent from the wrapper.
 - **`lorien/07` has a defect worth carrying forward.** Its signs read `LUNARIS ACTIVE` on a
   platform the describer put "in dim cool light with faint lanterns and empty floors". The
   generator does not keep label text consistent with the state it draws, which is a reason the
