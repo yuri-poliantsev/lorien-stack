@@ -5,7 +5,9 @@ import type { ThemePose } from "../hooks.ts";
 
 export type PlotLabel = { name: string; status: string; path: string };
 
-export const PATH_CHARS = 30;
+// Budgeted so the path line stays narrower than a pad at forty bots, where the plot is
+// 167 world units wide and the mono glyph is about 7.
+export const PATH_CHARS = 24;
 
 export function plotLabel(input: {
   name: string;

@@ -134,8 +134,8 @@ function drawPadProp(ctx: CanvasRenderingContext2D, view: PlotView): void {
     return;
   }
   const S = view.cell;
-  const x = view.x - doorSide(view) * S * 0.29;
-  const y = view.y + S * 0.045;
+  const x = view.x - doorSide(view) * S * 0.26;
+  const y = view.y + S * 0.17;
   if (view.prop === 1) {
     ctx.fillStyle = "#7d5a32";
     ctx.fillRect(x - S * 0.045, y - S * 0.07, S * 0.09, S * 0.07);
@@ -319,8 +319,6 @@ export function drawPlot(ctx: CanvasRenderingContext2D, view: PlotView): void {
   ctx.ellipse(view.x, view.y + S * 0.055, S * 0.33, S * 0.115, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  drawPadProp(ctx, view);
-
   const sprite = view.sprite;
   if (sprite === undefined) {
     drawFallbackBox(ctx, view, lit);
@@ -340,6 +338,7 @@ export function drawPlot(ctx: CanvasRenderingContext2D, view: PlotView): void {
   }
 
   drawBeacon(ctx, view);
+  drawPadProp(ctx, view);
   if (view.pose === "working") {
     drawWorker(ctx, view);
   }
@@ -368,20 +367,51 @@ export function drawPlotLabel(ctx: CanvasRenderingContext2D, view: PlotView): vo
     return;
   }
   const statusSize = Math.max(8, S * 0.068);
-  const statusY = view.y + S * 0.3;
-  ctx.font = `500 ${statusSize.toFixed(1)}px ${view.font}`;
-  ctx.fillStyle = "rgba(22, 14, 4, 0.6)";
-  ctx.fillText(view.label.status, view.x + statusSize * 0.09, statusY + statusSize * 0.1);
-  ctx.fillStyle = view.pose === "working" ? "#ffdd94" : "#dbe0e6";
-  ctx.fillText(view.label.status, view.x, statusY);
+  const statusY = view.y + S * 0.265;
+  outlinedText(ctx, {
+    text: view.label.status,
+    x: view.x,
+    y: statusY,
+    size: statusSize,
+    weight: 500,
+    fill: view.pose === "working" ? "#ffe0a0" : "#e3e8ee",
+    font: view.font,
+  });
 
   if (view.label.path.length === 0) {
     return;
   }
-  const pathSize = Math.max(7, S * 0.058);
-  ctx.font = `400 ${pathSize.toFixed(1)}px ${view.font}`;
-  ctx.fillStyle = "rgba(22, 14, 4, 0.6)";
-  ctx.fillText(view.label.path, view.x + pathSize * 0.09, statusY + statusSize * 1.22);
-  ctx.fillStyle = "#cbd3db";
-  ctx.fillText(view.label.path, view.x, statusY + statusSize * 1.13);
+  const pathSize = Math.max(8, S * 0.062);
+  outlinedText(ctx, {
+    text: view.label.path,
+    x: view.x,
+    y: statusY + statusSize * 1.05,
+    size: pathSize,
+    weight: 400,
+    fill: "#d7dee6",
+    font: view.font,
+  });
+}
+
+// Sand and concrete are both mid-tone, so a drop shadow left the action line half
+// readable. A dark stroke under the glyphs holds against either.
+function outlinedText(
+  ctx: CanvasRenderingContext2D,
+  input: {
+    text: string;
+    x: number;
+    y: number;
+    size: number;
+    weight: number;
+    fill: string;
+    font: string;
+  },
+): void {
+  ctx.font = `${String(input.weight)} ${input.size.toFixed(1)}px ${input.font}`;
+  ctx.lineJoin = "round";
+  ctx.lineWidth = Math.max(2, input.size * 0.3);
+  ctx.strokeStyle = "rgba(16, 10, 2, 0.82)";
+  ctx.strokeText(input.text, input.x, input.y);
+  ctx.fillStyle = input.fill;
+  ctx.fillText(input.text, input.x, input.y);
 }
