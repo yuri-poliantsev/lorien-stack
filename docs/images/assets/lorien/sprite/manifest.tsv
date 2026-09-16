@@ -1,0 +1,5 @@
+id	theme	kind	path	sha256	promptPath	source	attempts	readback	verdict
+flet	lorien	sprite	docs/images/assets/lorien/sprite/flet.jpg	9fa6343292394ea229f419eb29436bda3243763d2a961aee76867b97a99cfa16	docs/images/assets/lorien/sprite/flet.prompt.txt	grok	1		unread
+lantern	lorien	sprite	docs/images/assets/lorien/sprite/lantern.jpg	a23a53329732b4617bb0ccbd333dd886bbea63c7aa6506ae28062304179ce8d9	docs/images/assets/lorien/sprite/lantern.prompt.txt	grok	1		unread
+flet	lorien	sprite	docs/images/assets/lorien/sprite/flet.jpg	9fa6343292394ea229f419eb29436bda3243763d2a961aee76867b97a99cfa16	docs/images/assets/lorien/sprite/flet.prompt.txt	grok	1	9 checks pass	pass
+lantern	lorien	sprite	docs/images/assets/lorien/sprite/lantern.jpg	a23a53329732b4617bb0ccbd333dd886bbea63c7aa6506ae28062304179ce8d9	docs/images/assets/lorien/sprite/lantern.prompt.txt	grok	1	8 checks pass	pass

@@ -1,0 +1,49 @@
+{
+  "requests": [
+    {
+      "id": "far",
+      "theme": "lorien",
+      "kind": "backdrop",
+      "size": "16:9",
+      "keyColour": "#ff00ec",
+      "spec": "docs/images/assets/lorien/backdrop/far.spec.md",
+      "prompt": "A side-on row of distant colossal mallorn tree trunks, pale silver bark with faint gold lichen, receding into atmospheric depth, painterly stylised 2D game art with a bold silhouette. Only the trunks and a few high pale-green leaf clusters. No platforms, no people, no lanterns, no ground plane. The entire background, including every sky gap between trunks, is a completely flat uniform magenta field the colour of #ff00ec, with no gradient and no scenery behind the trees."
+    },
+    {
+      "id": "mid",
+      "theme": "lorien",
+      "kind": "backdrop",
+      "size": "16:9",
+      "keyColour": "#ff00ec",
+      "spec": "docs/images/assets/lorien/backdrop/mid.spec.md",
+      "prompt": "A side-on mid-distance mallorn canopy: silver boughs and clusters of pale yellow-green leaves hanging in two loose horizontal bands across the frame, painterly stylised 2D game art, translucent leafy masses with clean silhouettes. No full trunks, no platforms, no people, no lanterns. Completely flat uniform magenta field the colour of #ff00ec filling every gap, no painted sky, no ground, no cast shadow."
+    },
+    {
+      "id": "near",
+      "theme": "lorien",
+      "kind": "backdrop",
+      "size": "16:9",
+      "keyColour": "#ff00ec",
+      "spec": "docs/images/assets/lorien/backdrop/near.spec.md",
+      "prompt": "Two large silver mallorn branches with pale gold-green leaves entering from the top-left and top-right corners of a flat side elevation, plus a few smaller leafy twigs along the bottom edge, painterly stylised 2D game art, clean silhouettes. The centre of the frame is empty magenta. No platforms, no people, no lanterns. Completely flat uniform magenta field the colour of #ff00ec filling the rest of the image, no sky, no ground, no shadow."
+    },
+    {
+      "id": "flet",
+      "theme": "lorien",
+      "kind": "sprite",
+      "size": "1:1",
+      "keyColour": "#ff00ec",
+      "spec": "docs/images/assets/lorien/sprite/flet.spec.md",
+      "prompt": "One wooden elven balcony platform seen in flat side elevation, a short carved rail with gold-leaf scrollwork along the front edge, honey-brown planks, centred in the frame. Painterly stylised 2D game art with a clean silhouette and a bold outline. Isolated alone: no hanging sign, no figure, no lantern, no tree, no ground, no cast shadow. Completely flat uniform magenta field the colour of #ff00ec filling the entire background."
+    },
+    {
+      "id": "lantern",
+      "theme": "lorien",
+      "kind": "sprite",
+      "size": "1:1",
+      "keyColour": "#ff00ec",
+      "spec": "docs/images/assets/lorien/sprite/lantern.spec.md",
+      "prompt": "One hanging elven lantern of dark bronze and warm glass, a small hexagonal lantern body with a short hanging hook on top, unlit glass panes, painterly stylised 2D game art, clean silhouette. Isolated alone: no flame, no glow bloom, no platform, no people, no ground, no shadow. Completely flat uniform magenta field the colour of #ff00ec filling the entire background."
+    }
+  ]
+}

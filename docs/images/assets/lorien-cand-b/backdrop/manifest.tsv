@@ -1,0 +1,4 @@
+id	theme	kind	path	sha256	promptPath	source	attempts	readback	verdict
+far-trunks	lorien-cand-b	backdrop	docs/images/assets/lorien-cand-b/backdrop/far-trunks.jpg	3e8b0310463865f4c7d1592b075ac9087f4cefc0a984c3f034f9637d427f5845	docs/images/assets/lorien-cand-b/backdrop/far-trunks.prompt.txt	grok	1		unread
+near-branches	lorien-cand-b	backdrop	docs/images/assets/lorien-cand-b/backdrop/near-branches.jpg	2e07b4e2086b07ba48ca9e4e0beda551f89cf6f403f84b3e44aaacdfa0996f48	docs/images/assets/lorien-cand-b/backdrop/near-branches.prompt.txt	grok	1		unread
+mid-canopy	lorien-cand-b	backdrop	docs/images/assets/lorien-cand-b/backdrop/mid-canopy.jpg	d4a1be6ff27b8dc9eadbd7f589df108940f6ce6e4e63b09717d02e43587a0a27	docs/images/assets/lorien-cand-b/backdrop/mid-canopy.prompt.txt	grok	1		unread

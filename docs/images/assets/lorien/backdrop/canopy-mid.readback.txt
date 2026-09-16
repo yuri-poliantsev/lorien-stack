@@ -1,0 +1,12 @@
+The image is a frontal view of hanging leafy stems that enter from the top edge of the frame. A dense overlapping mass of foliage occupies the upper portion and trails downward into a large empty magenta field. Twenty-six hanging stems of small oval leaves drop below that mass; they sit in a horizontal band along the top, with the longest trail on the far left, shorter overlapping trails across the centre and right, and a small isolated sprig at the far right. The dominant colours are magenta in the open field, yellow-gold on the leaves, and pale grey-green on the stems. The light is even and diffuse, with no cast shadows on the field and with lighter yellow on the faces of the leaves. Yellow-gold leaves are brighter and more numerous; grey-green leaves are duller and sit on the same stems.
+
+--- checked against canopy-mid.spec.md ---
+pass require leaves | leaf | foliage | canopy
+pass require top | upper | above | hanging | descending
+pass require gold | yellow | green | silver
+pass require magenta | pink | fuchsia
+pass require empty | blank | bare | lower | bottom
+pass forbid top-down
+pass forbid overhead
+pass forbid aerial
+verdict pass

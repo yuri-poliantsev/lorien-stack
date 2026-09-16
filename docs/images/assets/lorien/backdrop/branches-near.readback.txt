@@ -1,0 +1,12 @@
+The image is a low-angle view looking up at two leafy branch masses set against a flat magenta field. One mass fills the left side and the other fills the right, with open magenta space between them and across the upper half of the frame. Two distinct branch structures sit opposite each other, each entering from a lower corner and reaching inward toward the centre. Dark green-black trunks split into thinner limbs packed with oval pointed leaves. The dominant colours are solid magenta and dark teal-green, with paler gray-green rims on some leaves. Light is even across the magenta field, and the only highlights sit as lighter edges on individual leaves. Leaves with those pale rims sit brighter than the solid dark leaves beside them.
+
+--- checked against branches-near.spec.md ---
+pass require branch | branches | limb | limbs | bough | boughs
+pass require dark | black | charcoal | silhouette | silhouetted | shadow
+pass require corner | corners | left | right
+pass require magenta | pink | fuchsia
+pass require leaves | leaf | foliage | cluster | clusters
+pass forbid top-down
+pass forbid overhead
+pass forbid aerial
+verdict pass

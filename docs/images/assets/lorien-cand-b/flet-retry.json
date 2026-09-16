@@ -1,0 +1,9 @@
+{
+  "id": "flet-2",
+  "theme": "lorien",
+  "kind": "building",
+  "size": "1:1",
+  "keyColour": "#ff00ec",
+  "spec": "docs/images/assets/lorien/assets.spec.md",
+  "prompt": "A single ornate elven tree platform sprite, shown in a perfectly flat front elevation: one shallow honey-brown wooden balcony with a carved leaf-scroll rail, two slim end posts, and one small blank wood plaque hanging directly below the deck. Elegant hand-painted 2D fantasy game art with a crisp symmetrical silhouette and cool dusk shading. Centre the isolated platform alone on a completely uniform bright magenta field filling the square, without branches, lanterns, figures, flames, lettering, scenery, floor, or shadow."
+}

@@ -1,0 +1,3 @@
+id	theme	kind	path	sha256	promptPath	source	attempts	readback	verdict
+flet	lorien-cand-b	building			docs/images/assets/lorien-cand-b/building/flet.prompt.txt	grok	1		fail
+flet-2	lorien-cand-b	building	docs/images/assets/lorien-cand-b/building/flet-2.jpg	016ab7b8d61108772c88bfe7154222c71acb0d2b8f5c29ed4b04b17b23e1851f	docs/images/assets/lorien-cand-b/building/flet-2.prompt.txt	grok	2		unread

@@ -1,0 +1,12 @@
+The view is frontal and level, cropped so four vertical trunks fill the frame from the top edge to the bottom edge. The trunks stand in a single horizontal row against a flat field of magenta, with open magenta gaps between them. Four repeated structures occupy the row: a wide trunk at the left, two narrower trunks in the middle, and a wide trunk at the right. Each trunk is pale blue-grey with horizontal ring bands and a mint-green strip along its right edge. The light is even and diffuse, with the left side of each trunk a shade darker than the right. No text or badges are present.
+
+--- checked against trunks-far.spec.md ---
+pass require side | side-on | straight-on | profile | frontal | front-facing | eye level | elevation | vertical
+pass require trunk | trunks | tree | trees | column | columns
+pass require silver | grey | gray | pale | white
+pass require magenta | pink | fuchsia
+pass require gap | gaps | apart | spaced | between | separated
+pass forbid top-down
+pass forbid overhead
+pass forbid aerial
+verdict pass
