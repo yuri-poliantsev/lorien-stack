@@ -1,7 +1,7 @@
 import { countLabel } from "./format.ts";
 import type { ShellStats } from "./model.ts";
 
-export type HeaderHandle = {
+type HeaderHandle = {
   update: (stats: ShellStats) => void;
   pickerSlot: HTMLElement;
   unmount: () => void;

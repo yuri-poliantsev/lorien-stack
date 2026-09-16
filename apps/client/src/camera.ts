@@ -1,9 +1,9 @@
-export type CameraState = { x: number; y: number; zoom: number };
+type CameraState = { x: number; y: number; zoom: number };
 export type Viewport = { w: number; h: number };
-export type Point = { x: number; y: number };
+type Point = { x: number; y: number };
 
-export const ZOOM_MIN = 0.25;
-export const ZOOM_MAX = 8;
+const ZOOM_MIN = 0.25;
+const ZOOM_MAX = 8;
 
 export function clampZoom(zoom: number): number {
   if (!Number.isFinite(zoom) || zoom <= 0) {

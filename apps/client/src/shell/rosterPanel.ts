@@ -3,14 +3,14 @@ import type { BotId } from "@lorien-stack/contracts";
 import { ageLabel } from "./format.ts";
 import type { RosterRow } from "./model.ts";
 
-export const ROSTER_COLLAPSED_KEY = "lorien.roster.collapsed";
+const ROSTER_COLLAPSED_KEY = "lorien.roster.collapsed";
 
-export type RosterPanelModel = {
+type RosterPanelModel = {
   rows: readonly RosterRow[];
   selectedBotId: BotId | undefined;
 };
 
-export type RosterPanelHandle = {
+type RosterPanelHandle = {
   update: (model: RosterPanelModel) => void;
   collapsed: () => boolean;
   unmount: () => void;

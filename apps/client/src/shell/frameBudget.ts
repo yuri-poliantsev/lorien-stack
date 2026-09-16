@@ -1,4 +1,4 @@
-export type RollingAverage = {
+type RollingAverage = {
   push(atMs: number, sampleMs: number): void;
   average(): number;
   count(): number;
@@ -40,11 +40,11 @@ export function rollingAverage(windowMs: number): RollingAverage {
   };
 }
 
-export const FRAME_BUDGET_WINDOW_MS = 2000;
-export const FRAME_BUDGET_WRITE_MS = 1000;
+const FRAME_BUDGET_WINDOW_MS = 2000;
+const FRAME_BUDGET_WRITE_MS = 1000;
 export const FRAME_BUDGET_MIN_SAMPLES = 20;
 
-export type FrameBudgetTarget = { dataset: DOMStringMap };
+type FrameBudgetTarget = { dataset: DOMStringMap };
 
 export type FrameBudgetClock = {
   requestAnimationFrame(callback: (timestamp: number) => void): number;

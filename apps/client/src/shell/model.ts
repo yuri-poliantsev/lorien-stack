@@ -10,7 +10,7 @@ import type {
 import { actionFromEvent, pathFromToolEvent } from "../actions.ts";
 import type { Action } from "../actions.ts";
 
-export type PresenceState = "working" | "idle" | "asleep";
+type PresenceState = "working" | "idle" | "asleep";
 
 export type RosterRow = {
   botId: BotId;
@@ -36,16 +36,16 @@ export type TapeRow = {
   text: string;
 };
 
-export type ShellModelInput = {
+type ShellModelInput = {
   roster: readonly BotRecord[];
   activity: ReadonlyMap<BotId, readonly ActivityEvent[]>;
   presence: ReadonlyMap<BotId, PresenceHint>;
   nowMs: number;
 };
 
-export const WORK_MS = 60_000;
-export const SLEEP_MS = 600_000;
-export const TAPE_TEXT_MAX = 120;
+const WORK_MS = 60_000;
+const SLEEP_MS = 600_000;
+const TAPE_TEXT_MAX = 120;
 
 export function presenceStateFor(input: {
   hint: PresenceHint | undefined;

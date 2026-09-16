@@ -1,13 +1,13 @@
 import { timeLabel } from "./format.ts";
 import type { TapeRow } from "./model.ts";
 
-export type InspectorModel = {
+type InspectorModel = {
   open: boolean;
   title: string;
   rows: readonly TapeRow[];
 };
 
-export type InspectorHandle = {
+type InspectorHandle = {
   update: (model: InspectorModel) => void;
   unmount: () => void;
 };
