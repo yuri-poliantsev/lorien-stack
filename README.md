@@ -159,7 +159,7 @@ npm test -w @lorien-stack/gateway
 npm test -w @lorien-stack/client
 ```
 
-Root `npm test` runs contracts only.
+Root `npm test` runs the workspace tests, then the capture tests.
 
 ## License
 

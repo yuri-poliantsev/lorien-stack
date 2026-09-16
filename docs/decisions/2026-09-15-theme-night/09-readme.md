@@ -40,7 +40,7 @@ Registry labels live in `apps/client/src/themes/registry.ts`. The labels are Sta
 
 `curl -sI https://yuri-poliantsev.github.io/lorien-stack/` returned HTTP/2 200 at 08:27Z. Saved as `/tmp/theme-night/09-readme/hosted-head.txt`.
 
-`docs:smoke` already requires the observe-only sentence, Quick start before Live bots, and the live.md plus setup-prompt links. Those headings were kept.
+`docs:smoke` already requires the observe-only sentence, Quick start before Live bots, and the live.md plus setup-prompt links. Those headings were kept. The Tests footer still said root `npm test` runs contracts only. Root `package.json` now runs every workspace, then the capture tests, so that sentence was updated.
 
 ## What was rejected and why
 
