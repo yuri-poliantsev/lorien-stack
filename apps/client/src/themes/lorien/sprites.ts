@@ -599,13 +599,13 @@ export function drawSign(
   input: { box: FletBox; name: string; font: string; selected: boolean },
 ): void {
   const { box } = input;
-  const fontPx = Math.max(9, box.signHeight * 0.58);
-  const font = `500 ${fontPx.toFixed(1)}px ${input.font}`;
+  const fontPx = Math.max(10, box.signHeight * 0.66);
+  const font = `600 ${fontPx.toFixed(1)}px ${input.font}`;
   ctx.font = font;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   const fitted = measureFitted(ctx, input.name, box.signMaxWidth - fontPx * 0.9, font);
-  const w = Math.min(box.signMaxWidth, fitted.width + fontPx * 1.2);
+  const w = Math.min(box.signMaxWidth, fitted.width + fontPx * 1.1);
   const x = box.x - w / 2;
   const rect = fletRect(box);
 
@@ -629,26 +629,32 @@ export function drawSign(
   ctx.fillText(fitted.fitted, box.x, box.signTop + box.signHeight * 0.54);
 }
 
-// Clamped inside the bot's own cell. Cells are disjoint, so two labels can never
+const CHIP_INK: Record<FletPose, string> = {
+  working: PALETTE.accent,
+  idle: PALETTE.ink,
+  sleeping: PALETTE.inkDim,
+};
+
+// Clamped inside the bot's own cell. Cells are disjoint, so two chips can never
 // reach each other however long the path is.
-export function drawLabel(
+export function drawChip(
   ctx: CanvasRenderingContext2D,
   input: {
     box: FletBox;
     text: string;
+    pose: FletPose;
     font: string;
     cellLeft: number;
     cellRight: number;
-    dim: boolean;
   },
 ): void {
   const { box } = input;
   const rise = figureRise(box);
   const fontPx = Math.max(8.5, rise * 0.23);
-  const font = `400 ${fontPx.toFixed(1)}px ${input.font}`;
+  const font = `700 ${fontPx.toFixed(1)}px ${input.font}`;
   ctx.font = font;
   ctx.textBaseline = "middle";
-  const padX = fontPx * 0.4;
+  const padX = fontPx * 0.5;
   const room = Math.max(fontPx * 3, input.cellRight - input.cellLeft - padX * 2 - 6);
   const fitted = measureFitted(ctx, input.text, room, font);
   const half = fitted.width / 2 + padX;
@@ -658,12 +664,14 @@ export function drawLabel(
     Math.max(input.cellLeft + 3 + half, anchor),
   );
   const y = box.deckY - rise * 0.82;
-  ctx.fillStyle = "rgba(8,16,22,0.46)";
-  roundRect(ctx, centre - half, y - fontPx * 0.72, half * 2, fontPx * 1.44, fontPx * 0.3);
+  ctx.globalAlpha = input.pose === "sleeping" ? 0.7 : 1;
+  ctx.fillStyle = "rgba(7,25,33,0.83)";
+  roundRect(ctx, centre - half, y - fontPx * 0.78, half * 2, fontPx * 1.56, fontPx * 0.3);
   ctx.fill();
   ctx.textAlign = "center";
-  ctx.fillStyle = input.dim ? PALETTE.inkDim : PALETTE.ink;
+  ctx.fillStyle = CHIP_INK[input.pose];
   ctx.fillText(fitted.fitted, centre, y);
+  ctx.globalAlpha = 1;
 }
 
 const fittedText = new Map<string, { fitted: string; width: number }>();

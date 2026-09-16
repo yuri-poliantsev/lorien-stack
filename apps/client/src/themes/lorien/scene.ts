@@ -25,8 +25,8 @@ import {
 import {
   buildSkins,
   drawAmbience,
+  drawChip,
   drawFlet,
-  drawLabel,
   drawLeafDrift,
   drawSign,
   glowScaleFor,
@@ -330,24 +330,22 @@ export function mountLorienTheme(root: HTMLElement, context: ThemeMountContext):
       for (const { bot, flet } of ordered) {
         const pose = poseNow.get(bot.id) ?? "idle";
         const selected = bot.id === model.selectedBotId;
-        if (pose !== "sleeping") {
-          const event = lastEvent(bot.id);
-          const action = event === undefined ? "unknown" : actionFromEvent(event);
-          const path = event === undefined ? undefined : pathFromToolEvent(event);
-          const detailed = selected || layout.cols <= FULL_LABEL_COLS;
-          const text = detailed
-            ? inSceneLabel({ pose, action, path })
-            : inSceneLabel({ pose, action, path: undefined });
-          const centre = cellCentreX(flet.col, layout.cols);
-          drawLabel(ctx, {
-            box: flet,
-            text,
-            font,
-            cellLeft: centre - layout.cellWidth / 2,
-            cellRight: centre + layout.cellWidth / 2,
-            dim: pose === "idle",
-          });
-        }
+        const event = lastEvent(bot.id);
+        const action = event === undefined ? "unknown" : actionFromEvent(event);
+        const path = event === undefined ? undefined : pathFromToolEvent(event);
+        const detailed = selected || layout.cols <= FULL_LABEL_COLS;
+        const text = detailed
+          ? inSceneLabel({ pose, action, path })
+          : inSceneLabel({ pose, action, path: undefined });
+        const centre = cellCentreX(flet.col, layout.cols);
+        drawChip(ctx, {
+          box: flet,
+          text,
+          pose,
+          font,
+          cellLeft: centre - layout.cellWidth / 2,
+          cellRight: centre + layout.cellWidth / 2,
+        });
         drawSign(ctx, {
           box: flet,
           name: nametagFromBotName(bot.name),

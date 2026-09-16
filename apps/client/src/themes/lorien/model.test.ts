@@ -25,24 +25,24 @@ describe("lorien pose", () => {
 });
 
 describe("lorien in-scene label", () => {
-  it("prints pose, action and path for a working flet", () => {
+  it("prints the state word in capitals, then action and path, for a working flet", () => {
     assert.equal(
       inSceneLabel({ pose: "working", action: "reading", path: "apps/gateway/src/presence.ts" }),
-      "working \u00b7 reading \u00b7 apps/gateway/src/presence.ts",
+      "WORKING \u00b7 reading \u00b7 apps/gateway/src/presence.ts",
     );
     assert.equal(
       inSceneLabel({ pose: "working", action: "shell", path: undefined }),
-      "working \u00b7 shell",
+      "WORKING \u00b7 shell",
     );
     assert.equal(
       inSceneLabel({ pose: "working", action: "unknown", path: undefined }),
-      "working \u00b7 unknown",
+      "WORKING \u00b7 unknown",
     );
   });
 
   it("spends no action word on an idle or sleeping flet", () => {
-    assert.equal(inSceneLabel({ pose: "idle", action: "reading", path: "a/b.ts" }), "idle");
-    assert.equal(inSceneLabel({ pose: "sleeping", action: "writing", path: "a/b.ts" }), "asleep");
+    assert.equal(inSceneLabel({ pose: "idle", action: "reading", path: "a/b.ts" }), "IDLE");
+    assert.equal(inSceneLabel({ pose: "sleeping", action: "writing", path: "a/b.ts" }), "SLEEPING");
   });
 
   it("gives every action word its own prop", () => {

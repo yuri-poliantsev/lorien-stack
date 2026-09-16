@@ -72,12 +72,12 @@ export function inSceneLabel(input: {
   path: string | undefined;
 }): string {
   if (input.pose === "sleeping") {
-    return "asleep";
+    return "SLEEPING";
   }
   if (input.pose === "idle") {
-    return "idle";
+    return "IDLE";
   }
-  const parts = ["working", input.action];
+  const parts = ["WORKING", input.action];
   if (input.path !== undefined && input.path.length > 0) {
     parts.push(input.path);
   }
