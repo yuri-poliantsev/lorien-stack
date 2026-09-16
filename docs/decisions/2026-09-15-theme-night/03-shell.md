@@ -155,13 +155,27 @@ function startFrameBudget(root: HTMLElement): () => void;
 
 Window is 2 seconds. The dataset write is throttled to once per second, so a capture tool reads a settled number instead of a value that changes under it.
 
+### Selection
+
+`ThemeRenderInput` carries the current selection, so a theme draws it rather than tracking it:
+
+```ts
+type ThemeRenderInput = {
+  roster: readonly BotRecord[];
+  activity: ReadonlyMap<BotId, readonly ActivityEvent[]>;
+  selectedBotId: BotId | undefined;
+};
+```
+
+A theme still reports a click through `ThemeMountContext.onSelect`, but it learns the result from the next `render`. The store is the only place a selection lives. Step 5 should draw its highlight from this field and keep no selection state of its own.
+
 ## What evidence decided it
 
 Q2, Q3, Q9, Q13, Q14, Q18, Q20, Q21 in `docs/plans/2026-09-15-theme-night.md`, and step 2's merged contract in `docs/decisions/2026-09-15-theme-night/02-registry.md`.
 
 ### Measured at this head
 
-Client tests went from 29 cases to 62, all passing, alongside contracts at 11 and gateway at 29. `npm run typecheck`, `npm run build -w apps/client` and `npm run docs:smoke` pass.
+Client tests went from 29 cases to 62, all passing, alongside contracts at 11 and gateway at 41. `npm run typecheck`, `npm run build -w apps/client` and `npm run docs:smoke` pass.
 
 Step 4 merged as `17e0b14` while this step was building, so the committed stills come from its lever. `npm run capture -- --theme starcraft --bots 1,8,18,40 --out docs/images/themes --record 20` at the rebased head measured `avgFrameMs` of 1.01 at 1 bot, 1.02 at 8, 1.30 at 18, and **1.42 at 40**, against Q21's 4ms target. `docs/images/themes/` is regenerated because the stills there showed the old sidebar, which step 4's entry set the precedent for after the step 2 header landed.
 
@@ -180,6 +194,24 @@ The first 40-bot capture showed the inspector drawer painted over a quarter of t
 The same capture showed the action column printing `unknown` on 33 of 40 rows, which reads as an error rather than as silence. The roster now spends that column only on an observed action and lets the presence dot carry the rest. `data-action` still holds the real value for the capture lever.
 
 The first lever run reported `avgFrameMs=42.10` at 1 bot. The instrument published its first sample immediately, and that sample was page load rather than a frame. The value now appears only once the window holds at least 20 frames, which took the same run to 1.01. A number that is briefly absent is better than one that is wrong, and step 4's lever already warns when the dataset key is missing.
+
+### What the review round found
+
+The proof clicked roster rows and called `HTMLElement.click()` on units, and both passed while a real mouse click on a unit selected nothing. `bindCameraInput` took `setPointerCapture` on every pointerdown over the scene, which retargets every later event in the sequence to the scene stack, so the unit button under the cursor never saw its click. The overlay guard added earlier in this step spared the roster and the drawer and left the units, which sit inside the scene, exposed. Capture now waits for the drag threshold, the only point where it earns anything.
+
+That is the second time this step a dataset assertion passed over a broken surface, after the drawer's `display`. Both were caught by looking at the artifact instead of the flag. The proof now drives `page.mouse.move/down/move/up` and `page.mouse.click`.
+
+The same round showed the ring on a stale unit after a roster pick, because `scene.ts` kept a `localSelected` beside the store's `selectedBotId` and only the scene's own clicks wrote to it. Two copies of one fact will disagree eventually; `localSelected` is gone.
+
+Measured at `0e6dc81`: a drag from the scene centre moved the camera from `480.00, 270.00` to `373.33, 210.00` with zoom held at `1.5000`. A `page.mouse.click` on the first unit, Anouk, set its roster row to `aria-current="true"` and `data-selected="true"`, opened the drawer titled `Anouk`, and left exactly one unit carrying `data-selected="true"`, that unit being Anouk. Picking Ivo from the roster kept the count at one and moved it to Ivo, with the canvas's `data-selected-bot-id` and the drawer title following. The roster row carries `aria-current`, not `aria-selected`, because the rows are buttons in a list rather than options in a listbox.
+
+`bindCameraInput` has no DOM-free seam worth testing. It is `getBoundingClientRect`, `closest`, `setPointerCapture` and listener registration, and the defect was the ordering of a capture call against the browser's event retargeting. An extracted threshold predicate would have passed both before and after the fix, so this one rests on the Playwright proof.
+
+Client tests went from 62 cases to 64, for 116 across the repo: `startFrameBudget` now takes an injected clock, so a test can preload `9.99`, watch it vanish at start, hold at nothing through 19 frames, and read exactly `5.50` on the twentieth. Each of that test's three assertions was confirmed to fail against a deliberately broken instrument. `zoomAtState` gained a literal case: state `400, 300, 1` with a `600, 450` anchor doubled is exactly `500, 375, 2`.
+
+An export audit of `camera.ts` and `shell/**` by resolved import specifier found 19 of 46 exports with no importer outside their own file, all of them used internally, so each kept its declaration and lost the keyword. The surface is now 27 exports and every one has an importer. Matching names alone was not enough: `shell/model.ts` and `starcraft/layout.ts` both declare `WORK_MS` and `SLEEP_MS`, neither imports the other, and the values differ because the shell's thresholds are presence at 60s and 10min while the theme's are pose at 12s and 22s.
+
+`npm run capture` at this head reads `avgFrameMs` of **1.36 at 40 bots**.
 
 ### A note for step 4
 
