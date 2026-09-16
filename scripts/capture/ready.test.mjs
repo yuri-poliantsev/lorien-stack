@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { countPoses, formatManifestLine, workingNeed } from "./ready.mjs";
+import { countPoses, formatManifestLine, preflightHooks, workingNeed } from "./ready.mjs";
 
 describe("capture ready", () => {
 	it("needs 1, 3, and 14 working poses at N=1, 8, and 40", () => {
@@ -31,5 +31,32 @@ describe("capture ready", () => {
 			idle: 1,
 			sleeping: 1,
 		});
+	});
+
+	it("names the missing data-pose hook when eight units omit pose", () => {
+		const units = [
+			{ botId: "a", pose: "" },
+			{ botId: "b", pose: "" },
+			{ botId: "c", pose: "" },
+			{ botId: "d", pose: "" },
+			{ botId: "e", pose: "" },
+			{ botId: "f", pose: "" },
+			{ botId: "g", pose: "" },
+			{ botId: "h", pose: "" },
+		];
+		assert.deepEqual(
+			preflightHooks({
+				theme: "starcraft",
+				bots: 8,
+				canvases: [{ unitCount: "8" }],
+				units,
+			}),
+			{
+				ok: false,
+				hook: "data-pose",
+				message:
+					"theme=starcraft missing data-pose canvases=1 unitCount=8 units=8 withBotId=8 withPose=0",
+			},
+		);
 	});
 });

@@ -4,6 +4,8 @@
 
 The capture lever waits on `theme-canvas` and `theme-unit` with poses `working | idle | sleeping`. A working still shoots when at least `ceil(N / 3)` units are `working`, or after 40 s. The manifest line records `working= idle= sleeping=` from those poses.
 
+Right after roster-ready, capture preflights the hooks. Within 5 s there must be one `theme-canvas` whose `data-unit-count` equals N, and N `theme-unit` nodes each with `data-bot-id` and a pose in the set. A miss exits 1 and names the theme, the missing hook, and the counts. That stops an 85 s silent wait when a candidate omits `data-pose`.
+
 Demo start stagger is `min(1600, floor(12000 / N))` ms so every tape starts within about 12 s. Quiet and sleep holds stay at 4000 ms and 3000 ms.
 
 StarCraft emits the same hook names through constants in `apps/client/src/themes/hooks.ts`. `theme-canvas` is on the canvas before the first paint, with `data-unit-count` updated on every render. Each bot has one `theme-unit` button with `data-bot-id` and `data-pose`. Click (and native Enter on that button) calls `onSelect`.

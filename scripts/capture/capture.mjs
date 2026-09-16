@@ -8,11 +8,13 @@ import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 
 import {
+	PREFLIGHT_WAIT_MS,
 	THEME_CANVAS,
 	THEME_UNIT,
 	WORKING_WAIT_MS,
 	countPoses,
 	formatManifestLine,
+	preflightHooks,
 	workingNeed,
 } from "./ready.mjs";
 
@@ -431,6 +433,45 @@ async function readAvgFrameMs(page) {
 	});
 }
 
+async function readHookSnapshot(page) {
+	return page.evaluate(
+		({ canvasTestId, unitTestId }) => {
+			const canvases = [...document.querySelectorAll(`[data-testid="${canvasTestId}"]`)].map(
+				(el) => ({
+					unitCount: el instanceof HTMLElement ? (el.dataset.unitCount ?? "") : "",
+				}),
+			);
+			const units = [...document.querySelectorAll(`[data-testid="${unitTestId}"]`)].map((el) => ({
+				botId: el instanceof HTMLElement ? (el.dataset.botId ?? "") : "",
+				pose: el instanceof HTMLElement ? (el.dataset.pose ?? "") : "",
+			}));
+			return { canvases, units };
+		},
+		{ canvasTestId: THEME_CANVAS, unitTestId: THEME_UNIT },
+	);
+}
+
+async function assertThemeHooks(page, input) {
+	const deadline = Date.now() + PREFLIGHT_WAIT_MS;
+	let report;
+	while (true) {
+		const snap = await readHookSnapshot(page);
+		report = preflightHooks({
+			theme: input.theme,
+			bots: input.bots,
+			canvases: snap.canvases,
+			units: snap.units,
+		});
+		if (report.ok) {
+			return;
+		}
+		if (Date.now() >= deadline) {
+			throw new Error(report.message);
+		}
+		await pause(150);
+	}
+}
+
 async function preparePage(page, input) {
 	await page.setViewportSize(VIEWPORT);
 	await page.goto(input.url, { waitUntil: "domcontentloaded", timeout: 30000 });
@@ -439,6 +480,7 @@ async function preparePage(page, input) {
 		null,
 		{ timeout: 30000 },
 	);
+	await assertThemeHooks(page, { theme: input.theme, bots: input.bots });
 	const htmlTheme = await page.evaluate(() => document.documentElement.dataset.theme ?? "");
 	if (htmlTheme !== input.theme) {
 		process.stderr.write(
