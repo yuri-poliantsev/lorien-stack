@@ -202,6 +202,7 @@ const STYLE = `
   border-radius: 50%;
   background: var(--mc-dim);
   overflow: hidden;
+  transform: translateZ(0);
 }
 .mc-name {
   margin-top: 0.35em;
@@ -336,14 +337,13 @@ const STYLE = `
   outline: 2px solid var(--mc-accent);
   outline-offset: 2px;
 }
-.theme-host[data-theme="mission-control"][data-motion="on"] .mc-spark i {
-  transition: transform 320ms ease-out;
-}
 .theme-host[data-theme="mission-control"][data-motion="on"] .mc-card[data-pose="working"] .mc-dot {
   animation: mc-live 1.7s ease-in-out infinite;
+  will-change: opacity;
 }
 .theme-host[data-theme="mission-control"][data-motion="on"] .mc-card[data-pose="sleeping"] .mc-dot {
   animation: mc-breathe 7s ease-in-out infinite;
+  will-change: opacity;
 }
 @keyframes mc-live {
   0%, 100% { opacity: 1; }

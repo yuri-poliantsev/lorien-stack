@@ -59,7 +59,40 @@ mission-control.mp4	N=18	avgFrameMs=1.04
 
 An earlier run at the last theme commit before the rebase read 0.16 / 0.31 / 0.63 / 0.23 for the same four artifacts.
 
-`avgFrameMs` at 40 over five lever runs at the graft-4 head: 0.20, 0.25, 0.57, 0.74, 0.67. The budget is 4.
+`avgFrameMs` at 40 over five lever runs at the graft-4 head: 0.20, 0.25, 0.57, 0.74, 0.67. The budget is 4. Those lever windows are a few seconds. They hid a climb.
+
+Production preview, N=40, headless 1920x1080, before the CSS change. `working` reached 40 at 10s. DOM nodes stayed at 1545. CSS animations rose from 36 to about 370:
+
+```
+t     avgFrameMs  anims  working
+5s    1.79        36     23
+10s   11.41       84     40
+20s   19.45       141    40
+40s   26.63       235    40
+60s   24.10       373    40
+120s  24.00       367    40
+```
+
+CDP split those animations. All of the extras were `CSSTransition` on `.mc-spark i`. Each bar had `transition: transform 320ms ease-out`. Activity paints kept giving the bars new `scaleY` targets before 320ms ended, so hundreds of transitions stayed in flight. Dropping that rule and leaving the 40 live-dot pulses still read 4 to 12 ms after 20s. `will-change: opacity` plus `transform: translateZ(0)` on `.mc-dot` put each pulse on its own compositor layer. That held 0.24 to 0.53 ms over 30s.
+
+After those two CSS changes, the same 120s series:
+
+```
+t     avgFrameMs  anims  cssAnims  transitions  working  nodes  events
+5s    0.22        21     21        0            21       1545   77
+10s   0.90        36     36        0            36       1545   185
+15s   0.66        40     40        0            40       1545   299
+20s   0.61        40     40        0            40       1545   409
+30s   0.53        40     40        0            40       1545   637
+40s   0.48        40     40        0            40       1545   867
+60s   0.67        40     40        0            40       1545   1319
+90s   0.78        40     40        0            40       1545   2003
+120s  0.70        40     40        0            40       1545   2683
+```
+
+StarCraft on the same machine, same load, same 120s stayed at 1.13 at 5s, 1.51 at 15s, 1.47 at 60s, and 2.10 at 120s.
+
+Reduced motion on Mission Control, 45s, was 0.63 to 0.85 with zero animations and the same event growth. The event scan is not the climb. Stills were not reshot. The live pulse remains. Bars snap instead of easing.
 
 Gates at the head: `npm test`, `npm run typecheck`, `npm run build -w apps/client`, `npm run docs:smoke`.
 
@@ -72,6 +105,8 @@ Gates at the head: `npm test`, `npm run typecheck`, `npm run build -w apps/clien
 - A count branch for the height cap (`count >= 24 ? 236 : 292`). Rows above twelve bots are already below 292.
 - Stacking c's grid on top of a's host grid. One backdrop, on the canvas.
 - Judge 2's grafts (a's `activityBars` and `cardScale` into b, c's `clockAccent`). With a as base the first two are already present, and a has its own `accentForHour` curve.
+- A whole-card render skip on a fresh `bars` array. `writeCard` already skips a bar whose height matches the last write. CDP showed the extra `getAnimations()` entries were spark transitions, not extra style writes from array identity.
+- Capping or rewriting `activityBars` because the event arrays look unbounded. Event counts grew from 77 to 2683 over 120s. DOM nodes stayed at 1545. Reduced-motion frame time stayed under 1 ms.
 
 ## Outcome
 
