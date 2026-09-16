@@ -20,8 +20,8 @@ import { parseRequests } from "./lib/shape.mjs";
 
 const USAGE = `usage:
   assets gen --request <file.json> [--out-dir <dir>] [--parallel 4] [--dry-run]
-  assets key --in <img> --out <png> --key <#rrggbb> --tolerance <n> --grid <px> [--levels 16]
-  assets readback --in <img> --spec <file> [--offline]
+  assets key --in <img> --out <png> --key <#rrggbb|auto> --tolerance <n> --grid <px> [--levels 16]
+  assets readback --in <img> --spec <file> [--offline] [--force]
   assets ledger [--verify]
   assets selftest`;
 
@@ -132,14 +132,23 @@ async function cmdKey() {
 	});
 	process.stdout.write(
 		`assets key: in ${describeHeader(header)}\n` +
-			`assets key: keyed ${String(stats.keyedSourcePixels)} of ${String(stats.sourceWidth * stats.sourceHeight)} source pixels\n` +
+			`assets key: key colour ${stats.key}, keyed ${String(stats.keyedSourcePixels)} of ${String(stats.sourceWidth * stats.sourceHeight)} source pixels\n` +
 			`assets key: out png ${String(stats.width)}x${String(stats.height)} opaque ${String(stats.opaquePixels)} transparent ${String(stats.transparentPixels)} sha256=${sha256(output)}\n`,
 	);
 }
 
 async function cmdReadback() {
 	const image = resolve(need("in"));
-	const result = await readback({ image, specPath: resolve(need("spec")), offline: flags.offline === true });
+	const result = await readback({
+		image,
+		specPath: resolve(need("spec")),
+		offline: flags.offline === true,
+		force: flags.force === true,
+	});
+	if (result.alreadyRead) {
+		process.stdout.write(`assets readback: already read into ${result.outPath}, pass --force to spend another call\n`);
+		return;
+	}
 	if (result.authFailure) {
 		process.stderr.write(`assets readback: AUTH FAILURE\n  run: ${result.instruction}\n`);
 		process.exitCode = 3;

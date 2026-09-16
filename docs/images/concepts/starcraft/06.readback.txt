@@ -1,0 +1,12 @@
+This is a high-angle view looking down across a sandy lot toward the horizon. Seven boxy metal buildings stand on the sand, spaced apart around a painted grid of white and yellow lines, with empty marked plots in the center. Five of the buildings are dark blue-grey with dark interiors and a red light on the roof; two are tan with warm yellow-orange light coming from their doors and windows. The sand is tan, the sky is pale peach, and a pale sun sits on the horizon, throwing long blue shadows from the buildings. Yellow and white painted marks on the ground read C-01, C-02, C-04, C-11, C-12, B-03, B-04, I-02, I-03, I-11, E-02, 109, and 2-03. Yellow mechanical figures with blue visors stand beside several of the buildings.
+
+--- checked against 06.spec.md ---
+FAIL require isometric | axonometric | three-quarter | angled overhead | diagonal overhead
+FAIL require eight | 8
+pass require building | buildings | structure | structures | bunker | bunkers | depot | depots
+pass require empty | bare | vacant | unbuilt | flat | cleared | plot | plots | pad | pads
+pass require lit | glowing | glow | light | lights | illuminated
+pass require dark | dim | unlit | shadowed | dormant
+pass forbid photograph
+pass forbid photorealistic
+verdict fail

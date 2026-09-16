@@ -1,0 +1,13 @@
+The image is a top-down view of a ring of eight circular wooden platforms around a pale round hub, with eight grey branches radiating out like spokes. Dense green foliage with silvery-white leaves fills the frame on all sides. Three platforms hold a seated hooded figure in blue-green cloth, a glowing lantern, and warm honey-coloured planks; the other five platforms are empty, their boards a dark purple-blue, each with a small green glow. Warm yellow light pools on the occupied platforms and leaves the empty ones in cooler shadow. There is no text and no badge.
+
+--- checked against 06.spec.md ---
+pass require top-down | overhead | above | bird's-eye | aerial | looking down
+pass require eight | 8
+pass require platform | platforms | flet | flets | treehouse | treehouses | deck | decks
+pass require branch | branches | limb | limbs | bough | boughs
+pass require lantern | lanterns | lamp | lamps | lit | glowing | glow
+pass require dark | dim | unlit | shadowed | dormant
+pass forbid side elevation
+pass forbid horizon
+pass forbid sky at the top
+verdict pass

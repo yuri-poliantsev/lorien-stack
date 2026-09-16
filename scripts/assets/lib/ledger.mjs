@@ -86,6 +86,17 @@ export function authoritativeRows(rows = readManifest()) {
 	return rows.map((row, index) => ({ row, superseded: newest.get(`${row.theme}\t${row.id}`) !== index }));
 }
 
+// A read-back has to land in the manifest or the discard cap never fires. The
+// manifest is append-only, so the verdict arrives as a fresh row that supersedes
+// the generation row for the same theme and id.
+export function recordVerdict(imagePath, verdict, readbackNote) {
+	const wanted = repoRelative(imagePath);
+	const rows = readManifest();
+	const found = [...rows].reverse().find((row) => row.path === wanted);
+	if (found === undefined) throw new Error(`${wanted} has no manifest row to carry a verdict`);
+	return logManifest({ ...found, readback: readbackNote, verdict }, path.dirname(imagePath));
+}
+
 export const LOCK_PATH = path.join(ASSETS_DIR, ".gen.lock");
 
 // Two concurrent gen runs would both spend from a shared cap and overwrite each

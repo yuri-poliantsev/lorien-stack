@@ -1,0 +1,14 @@
+The image is a front-facing view of hanging wooden platforms set against large purple-brown tree trunks and a muted teal-purple sky. Eight repeated platforms occupy the frame in two horizontal rows of four, each a square wooden balcony with a four-post branch frame, side railings, hanging lanterns, chain supports, and a wooden sign hung beneath. Dominant colours are purple bark, teal mist, dark green and brown floors, gold lantern light, and brown wood. The top row and the bottom-right platform sit in dim cool light with faint lanterns and empty floors, while the three remaining bottom platforms glow with warm yellow lantern light on bright wood. Wooden signs read NIGHTROOT QUIET, LUNARIS ACTIVE, ELMHEART QUIET, and SHADOWFERN QUIET across the top, and SILVERVEIL ACTIVE, MOONTHORN QUIET, STARGLADE ACTIVE, and WHISPERBARK ACTIVE across the bottom. The left lit platform holds a hooded figure in a purple cloak writing at a lectern beside scattered papers, and the next two lit platforms each hold two seated figures at a table.
+
+--- checked against 07.spec.md ---
+pass require side view | side-on | from the side | profile | side elevation | frontal | front-facing | straight-on | eye level
+pass require eight | 8
+pass require sign | signs | plaque | plaques | placard | placards | nameplate | nameplates | label | labels
+pass require platform | platforms | flet | flets | treehouse | treehouses | deck | decks | balcony | balconies
+pass require lantern | lanterns | lamp | lamps | lit | glowing | glow
+pass require dark | dim | unlit | shadowed | dormant
+pass forbid top-down
+pass forbid overhead
+pass forbid bird's-eye
+pass forbid aerial
+verdict pass

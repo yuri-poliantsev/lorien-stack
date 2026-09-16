@@ -1,0 +1,17 @@
+The image is a straight-on front view of a dark rectangular interface filling the frame. A faint dark grid covers the background. Eight rounded rectangular cards sit in two rows of four on the left, and a tall vertical panel occupies the right side. The palette is near-black with orange and grey, and the light is low with orange as the only bright colour. The four cards on the left of the grid each have a bright orange strip along the left edge, orange numbers, and orange line charts; they read PAGE VIEWS 4.8k with an up arrow and ↑12%, CONVERSIONS 312 with a down arrow and ↓12%, NEW USERS 2.9k with an up arrow and ↑12%, and BOUNCE RATE 312 with a down arrow and ↑12%. The four cards on the right of the grid each have a grey left strip, a small orange circle in the top-right corner, orange numbers, and grey line charts; they read AVG SESSION 2m 41s with a 7, ERRORS 184 with a 7 and 41%, API CALLS 2.9% with a 7 and ↓3%, and RETENTION 63% with an up arrow and 63%. The right panel is headed LOG in orange and lists stacked rows of GET, POST, DEL, PUT, PATCH, and ERR beside paths such as /api/v2/users/4892/activity and times from 14:22 down to 14:09, with an orange vertical bar along its right edge.
+
+--- checked against 05.spec.md ---
+pass require dark | black | near-black | dark background
+pass require eight | 8
+pass require card | cards | panel | panels | tile | tiles | module | modules
+pass require drawer | sidebar | side panel | right panel | column | rail | list
+pass require row | rows | line | lines | entry | entries | log
+pass require monospace | text | type | label | labels | lettering | reads | read | word | words | letter | letters
+pass forbid crt
+pass forbid scanline
+pass forbid scanlines
+pass forbid phosphor
+pass forbid cathode
+pass forbid pixel art
+pass forbid sprite
+verdict pass

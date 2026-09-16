@@ -1,0 +1,12 @@
+The image is drawn from a high isometric viewpoint looking down onto sandy ground and rust-red rock. Eight matching bunker buildings sit in two staggered rows of four, four behind and four in front, each with a corrugated roof, a red beacon on the ridge, a garage door, a sign above the door, yellow-and-black corner stripes, and a small white-and-grey robot standing in front. Tan sand, rust-red rock, dark grey metal, and red roof lights dominate the palette. Warm yellow-orange light fills the doorways and side windows of the four front buildings, while the four rear buildings stay dark inside with closed grey shutters. The front buildings carry cream signs that read HYDRO CORE OPERATIONAL, PLASMA FORGE ACTIVE, EXO LAB-1 ONLINE, and ORE CRUSHER RUNNING. The rear buildings carry dark signs that read NEURAL HUB LOCKED, FUEL DEPOT SHUT, BIO VAULT SEALED, and DRONE BAY OFFLINE. The lit buildings show glowing interiors and cream badges; the dark buildings show unlit interiors, closed shutters, and dark badges.
+
+--- checked against 05.spec.md ---
+pass require isometric | axonometric | three-quarter | angled overhead | diagonal overhead
+pass require eight | 8
+pass require plate | plates | sign | signs | label | labels | nameplate | nameplates | placard | placards | text
+pass require building | buildings | structure | structures | bunker | bunkers | depot | depots
+pass require lit | glowing | glow | light | lights | illuminated
+pass require dark | dim | unlit | shadowed | dormant
+pass forbid photograph
+pass forbid photorealistic
+verdict pass

@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
 import sharp from "sharp";
-import { downsampleNearest, keyImage, keyPixels, parseHex, quantise } from "../lib/key.mjs";
+import { downsampleNearest, keyImage, keyPixels, parseHex, quantise, sampleCorners, toHex } from "../lib/key.mjs";
 
 const SIDE = 64;
 const GRID = 8;
@@ -102,6 +102,23 @@ test("downsampleNearest lands the sprite on exactly the cells it covers", () => 
 		}
 	}
 	assert.deepEqual(opaqueCells, ["2,2", "3,2", "2,3", "3,3"]);
+});
+
+test("sampleCorners finds the drifted background instead of the requested colour", () => {
+	const data = syntheticSprite();
+	assert.equal(toHex(sampleCorners({ data, width: SIDE, height: SIDE })), "#fd03ea");
+	assert.notEqual(toHex(sampleCorners({ data, width: SIDE, height: SIDE })), "#ff00ff");
+});
+
+test("keyImage with key auto removes a background the caller never named", async () => {
+	const dir = mkdtempSync(path.join(tmpdir(), "assets-auto-"));
+	const input = path.join(dir, "sprite.png");
+	const output = path.join(dir, "sprite-keyed.png");
+	await sharp(syntheticSprite(), { raw: { width: SIDE, height: SIDE, channels: 4 } }).png().toFile(input);
+	const stats = await keyImage({ input, output, key: "auto", tolerance: 24, grid: GRID, levels: 16 });
+	assert.equal(stats.key, "#fd03ea");
+	assert.equal(stats.opaquePixels, 4);
+	assert.equal(stats.transparentPixels, 60);
 });
 
 test("keyImage writes a real PNG with alpha at the true pixel grid", async () => {

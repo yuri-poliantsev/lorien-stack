@@ -1,0 +1,18 @@
+The image is a front-facing flat view of a wide dark rectangle. A single dark banner spans the top, and eight matching beige cards sit beneath it in two rows of four. Four of those cards carry a vertical gold bar on the left edge and an orange jagged line inside a framed box; the other four carry an empty framed box with an orange circle in the upper-right corner and no gold bar. The field is near-black, the cards are pale beige, the bars and graphs and circles are gold-orange, and the large figures are white. The lighting is even and unshaded. The banner reads 2.8k SESSIONS, 41% CONV. RATE, 17.4 AVG. TIME, and +9.3% THIS WEEK. The eight cards read, left to right and top to bottom, Revenue $14,872 ↑ 23% MoM with $048; Users 3,241 active ↑ 14% with $065; Campaigns Email 42% Social 19%; Traffic Organic 2.1k Direct 843; Orders 892 ↑ 31% with $060; Bounce 27% ↓ 8% with $061; Sources Ref 1.4k Paid 312; and Devices Mobile 64% Desktop 29%.
+
+--- checked against 02.spec.md ---
+pass require dark | black | near-black | dark background
+pass require eight | 8
+pass require card | cards | panel | panels | tile | tiles | module | modules
+pass require strip | bar | header | banner | top row | across the top | along the top
+pass require number | numbers | numeral | numerals | figure | figures | count | counts | digit | digits
+pass require text | type | label | labels | heading | monospace | lettering | reads | read | word | words | letter | letters
+pass forbid crt
+pass forbid scanline
+pass forbid scanlines
+pass forbid curved screen
+pass forbid phosphor
+pass forbid cathode
+pass forbid pixel art
+pass forbid sprite
+verdict pass

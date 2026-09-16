@@ -1,7 +1,7 @@
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { LOGIN_INSTRUCTION, looksLikeAuthFailure, runGrok } from "./grok.mjs";
-import { assertUnderCaps, logCall } from "./ledger.mjs";
+import { assertUnderCaps, logCall, recordVerdict } from "./ledger.mjs";
 
 const HEDGES = [
 	"appears to",
@@ -103,14 +103,18 @@ function stripPreamble(text) {
 	return text.replace(/^\s*I(?:'|\u2019)ll[^.]*\.\s*/i, "").trim();
 }
 
-export async function readback({ image, specPath, offline = false }) {
+export async function readback({ image, specPath, offline = false, force = false }) {
 	const spec = parseSpec(specPath);
 	const outPath = describedFile(image);
 	if (offline) {
 		const saved = stripPreamble(readFileSync(outPath, "utf8").split("\n--- checked against")[0]);
 		const diff = diffAgainstSpec(saved, spec);
 		writeSummary(outPath, saved, specPath, diff);
+		recordVerdict(image, diff.verdict, note(diff));
 		return { ...diff, description: saved, outPath, offline: true };
+	}
+	if (!force && existsSync(outPath) && statSync(outPath).mtimeMs >= statSync(image).mtimeMs) {
+		return { alreadyRead: true, outPath };
 	}
 	assertUnderCaps(0);
 	const prompt = readbackPrompt(image);
@@ -123,7 +127,15 @@ export async function readback({ image, specPath, offline = false }) {
 	if (description.length === 0) return { verdict: "fail", description, checks: [], reason: "empty read-back" };
 	const diff = diffAgainstSpec(description, spec);
 	writeSummary(outPath, description, specPath, diff);
+	recordVerdict(image, diff.verdict, note(diff));
 	return { ...diff, description, outPath, seconds: result.seconds };
+}
+
+export function note(diff) {
+	const failed = diff.checks.filter((check) => !check.pass);
+	return failed.length === 0
+		? `${String(diff.checks.length)} checks pass`
+		: failed.map((check) => `${check.kind}:${check.label.split(" | ")[0]}`).join(" ");
 }
 
 function writeSummary(outPath, description, specPath, diff) {

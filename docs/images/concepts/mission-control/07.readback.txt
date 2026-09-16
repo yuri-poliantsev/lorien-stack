@@ -1,0 +1,17 @@
+The image is a front-on view of a dark rounded rectangular panel centered on a black field scored with a faint gold grid. The panel is arranged as a top bar, a three-column number band, a left column of eight stacked rows, and a main field of eight cards in two rows of four. Eight matching card frames occupy that two-by-four grid, and eight matching list rows occupy the left column. Dominant colours are black, dark charcoal, cream-white type, and gold-orange; the light is dim and the gold edges, dots, and marks are the brightest surfaces. The top bar reads LUMEN. then OVERVIEW, ISSUES, and QUEUE, with OVERVIEW in gold, plus a plus sign and a circular person icon; the number band reads 47 STORIES, 12 PENDING, and 8 DUE TODAY. The left rows read KHALID · ESSAY, MARÍA · REPORT, T. OKONKWO · INTERVIEW, S. PATEL · REVIEW, LUCÍA · FEATURE, J. MOREAU · OPINION, A. KIM · PROFILE, and R. AL-SAYED · ANALYSIS, with a gold bar on T. OKONKWO · INTERVIEW; the cards read The Last Signal, Border Crossings, Memory Tax, The Quiet Exit, Fault Lines, The Ledger, After the Flood, and Paper Trail. The Last Signal also reads Khalid · 2,400 words · Due in 4h and 87%, Border Crossings also reads María · Draft, Memory Tax also reads T. Okonkwo · 1,900 words, and The Ledger carries an orange circular badge reading 1. Cards that look active have a thick gold left edge, a gold corner mark, and extra interior type and gold bars; the dark cards have a thin or absent gold edge, a grey or brown dot, and empty interiors.
+
+--- checked against 07.spec.md ---
+pass require dark | black | near-black | dark background
+pass require eight | 8
+pass require card | cards | panel | panels | tile | tiles | module | modules
+pass require header | top bar | toolbar | navigation | nav | menu | tab | tabs | button | buttons
+pass require rail | sidebar | side panel | left column | narrow column | list
+pass require text | type | label | labels | heading | monospace | lettering
+pass forbid crt
+pass forbid scanline
+pass forbid scanlines
+pass forbid phosphor
+pass forbid cathode
+pass forbid pixel art
+pass forbid sprite
+verdict pass

@@ -1,0 +1,12 @@
+The image is an elevated three-quarter view of eight boxy buildings on grey concrete pads set on sandy tan ground, with layered brown rock walls along the top and scattered rocks around the scene. The eight structures sit in two rows of four and alternate between orange-brown buildings with open doors and dark grey metal buildings with closed roller shutters. White signs on the buildings read POWER-02, ORE-03, MISC-04, COMM-04, POWER-07, STDES-02, FIRE-01, MINE-01, and COMM-05. The orange-brown buildings have corrugated roofs, yellow-lit windows, open doorways spilling warm yellow light, red rooftop beacons, and grey humanoid figures at the doors, some holding rifles and brown bags. The dark grey buildings have closed corrugated shutters, no windows, no figures, no interior glow, red rooftop beacons, side pipes, and yellow-and-black hazard stripes on some corners. Dominant colours are tan sand, orange-brown walls, dark grey metal, grey pads, yellow interior light, and red beacon lights. The structures that look active are lit from inside through windows and open doors; the ones that look dark or dormant stay unlit except for the small red lights on their roofs.
+
+--- checked against 01.spec.md ---
+pass require isometric | axonometric | three-quarter | angled overhead | diagonal overhead
+pass require eight | 8
+pass require building | buildings | structure | structures | bunker | bunkers | depot | depots
+pass require lit | glowing | glow | light | lights | illuminated
+pass require dark | dim | unlit | shadowed | dormant
+pass require worker | workers | figure | figures | unit | units | robot | robots
+pass forbid photograph
+pass forbid photorealistic
+verdict pass

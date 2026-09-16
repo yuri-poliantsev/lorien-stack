@@ -1,0 +1,14 @@
+The image is a frontal view of four tall pale-grey tree trunks standing side by side against a night sky. Eight wooden balcony structures hang from the trunks in two tiers: two on the upper trunks and six in a row along a lower branch. Pale yellow-green leaves sit on the branches, and the sky runs from teal at the top through a purple band to darker teal at the bottom, with stars and thin purple clouds. Four of the balconies are pale golden-brown with gold scrollwork, lit hanging lanterns, fire in their bowls, and a figure on each; the other four are dark brown, with empty unlit bowls and no figures. Wooden plaques hang under the eight balconies and read Lërellan, Silmasívar, Nárë, Lainë, Felendir, Bythlyn, Fëalfëin, and Mithfen. Warm yellow light comes from the lanterns and fires on the four lit balconies; small green sparks sit near the trunks. A figure in a dark blue robe stands at a lectern on Lërellan, a figure in a dark robe stands at a fire bowl on Silmasívar, a figure in a pale dress stands by a fire on Felendir, and a hooded figure in a dark cloak stands by a fire on Bythlyn.
+
+--- checked against 02.spec.md ---
+pass require side view | side-on | from the side | profile | side elevation | frontal | front-facing | straight-on | eye level
+pass require eight | 8
+pass require platform | platforms | flet | flets | treehouse | treehouses | deck | decks | balcony | balconies
+pass require lantern | lanterns | lamp | lamps | lit | glowing | glow
+pass require dark | dim | unlit | shadowed | dormant
+pass require two rows | two tiers | upper | lower | high | low
+pass forbid top-down
+pass forbid overhead
+pass forbid bird's-eye
+pass forbid aerial
+verdict pass

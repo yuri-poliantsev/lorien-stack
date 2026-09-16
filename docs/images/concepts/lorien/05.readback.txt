@@ -1,0 +1,13 @@
+The image is a side-on view of a pale forest, looking straight at tall grey-white trunks and a green canopy against a peach and cream sky. Eight wooden platforms hang from thick branches in two horizontal rows of four, each a chained rectangular deck with a green mat, a curved lantern arm, a wooden lectern, and a small hanging plaque. In both rows the platforms alternate from left to right between occupied and empty. Pale bark, green leaves, brown wood, dark green robes, and gold-yellow light fill the picture, with diagonal sunbeams falling from the upper right. Four lanterns throw a bright gold glow and radiating rays, and those four platforms each hold a hooded figure in a long green robe standing at the lectern; the other four platforms hold a dark unlit lantern and an empty lectern. The hanging plaques read ÓCELT, QUNBE, QUIET, SONG, and SLEEP, and two plaques on the left occupied platforms carry flowing script.
+
+--- checked against 05.spec.md ---
+pass require side view | side-on | from the side | profile | side elevation
+pass require eight | 8
+pass require platform | platforms | flet | flets | treehouse | treehouses | deck | decks
+pass require morning | dawn | daylight | sunlight | sunrise | bright | pale sky
+pass require lantern | lanterns | lamp | lamps | lit | glowing | glow
+pass require dark | dim | unlit | shadowed | dormant
+pass forbid night sky
+pass forbid starry
+pass forbid stars
+verdict pass

@@ -59,10 +59,36 @@ export function downsampleNearest({ data, width, height, grid }) {
 	return { data: out, width: outWidth, height: outHeight };
 }
 
+// Both generators drift the requested key colour badly: a prompt asking for
+// #ff00ff came back as #aa5380, 174 away in RGB. Sampling the corners is the only
+// reliable way to learn what the flat background actually is.
+export function sampleCorners({ data, width, height }) {
+	const corners = [
+		[0, 0],
+		[width - 1, 0],
+		[0, height - 1],
+		[width - 1, height - 1],
+	].map(([x, y]) => {
+		const at = (y * width + x) * 4;
+		return { r: data[at], g: data[at + 1], b: data[at + 2] };
+	});
+	const median = (channel) => {
+		const sorted = corners.map((corner) => corner[channel]).sort((a, b) => a - b);
+		return Math.round((sorted[1] + sorted[2]) / 2);
+	};
+	return { r: median("r"), g: median("g"), b: median("b") };
+}
+
+export function toHex({ r, g, b }) {
+	return `#${[r, g, b].map((value) => value.toString(16).padStart(2, "0")).join("")}`;
+}
+
 export async function keyImage({ input, output, key, tolerance, grid, levels = 16 }) {
 	const source = await sharp(input).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
 	const { width, height } = source.info;
-	const keyed = keyPixels({ data: source.data, width, height, key: parseHex(key), tolerance });
+	const resolvedKey =
+		key === "auto" ? sampleCorners({ data: source.data, width, height }) : parseHex(key);
+	const keyed = keyPixels({ data: source.data, width, height, key: resolvedKey, tolerance });
 	const quantised = quantise({ data: keyed.data, width, height, levels });
 	const small = downsampleNearest({ data: quantised, width, height, grid });
 	await sharp(small.data, { raw: { width: small.width, height: small.height, channels: 4 } })
@@ -70,6 +96,7 @@ export async function keyImage({ input, output, key, tolerance, grid, levels = 1
 		.toFile(output);
 	const opaque = countOpaque(small.data);
 	return {
+		key: toHex(resolvedKey),
 		sourceWidth: width,
 		sourceHeight: height,
 		width: small.width,

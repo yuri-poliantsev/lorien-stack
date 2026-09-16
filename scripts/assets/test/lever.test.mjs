@@ -8,7 +8,7 @@ import { defaultOutDir, wrapperPrompt } from "../lib/gen.mjs";
 import { lastPathLike, looksLikeAuthFailure } from "../lib/grok.mjs";
 import { describeHeader, readImageHeader } from "../lib/header.mjs";
 import { authoritativeRows } from "../lib/ledger.mjs";
-import { diffAgainstSpec, mentions, parseSpec } from "../lib/readback.mjs";
+import { diffAgainstSpec, mentions, note, parseSpec } from "../lib/readback.mjs";
 import { aspectRatio, parseRequests } from "../lib/shape.mjs";
 
 const REQUEST = {
@@ -127,6 +127,18 @@ test("parseSpec collects require groups and forbid terms", () => {
 	const empty = path.join(dir, "empty.spec.md");
 	writeFileSync(empty, "# Spec\nno checks here\n");
 	assert.throws(() => parseSpec(empty), /no "- require:" lines/);
+});
+
+test("note summarises a verdict for the manifest readback column", () => {
+	const spec = { require: [["eight", "8"], ["lantern", "lanterns"]], forbid: ["crt"] };
+	assert.equal(note(diffAgainstSpec("Eight lit lanterns.", spec)), "3 checks pass");
+	assert.equal(note(diffAgainstSpec("Seven lit lanterns.", spec)), "require:eight");
+	assert.equal(note(diffAgainstSpec("Seven boxes behind a crt.", spec)), "require:eight require:lantern forbid:crt");
+	assert.equal(
+		diffAgainstSpec("Eight lit lanterns.", { require: [["lantern"]], forbid: [] }).verdict,
+		"fail",
+		"a singular-only require group misses the plural, so specs list both forms",
+	);
 });
 
 test("authoritativeRows keeps the newest row per theme and id and marks the rest superseded", () => {

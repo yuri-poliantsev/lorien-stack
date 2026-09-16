@@ -1,0 +1,13 @@
+The image is an isometric high-angle view of a snow-covered plateau under a pale lavender-white sky, with white snow streaks falling across the frame. Ten matching boxy rectangular buildings sit on rectangular concrete pads, arranged in a loose staggered grid of three diagonal bands from lower left to upper right. The units share the same windowed box form and differ in colour: teal, pale blue-grey, charcoal, light grey, dark olive, navy, purple, and three tan-brown. Warm orange light fills the windows of seven buildings and spills onto the snow in front of them; the dark olive unit at the top, the purple unit in the centre, and the navy unit to the right have dark unlit windows, red roof beacons, and, on the navy unit, a layer of snow on the roof. Yellow-and-black diagonal stripes mark the edges of several pads, and a black cable runs between the light-grey building and the purple one. Small mechanical figures stand beside several of the lit buildings, with crates and barrels at their feet. The dominant colours are ice-blue snow, pale sky, orange window glow, and the mixed greens, greys, browns, navy, and purple of the buildings.
+
+--- checked against 04.spec.md ---
+pass require isometric | axonometric | three-quarter | angled overhead | diagonal overhead
+FAIL require eight | 8
+pass require building | buildings | structure | structures | bunker | bunkers | depot | depots
+pass require blue | ice | icy | snow | cyan | cold | white | pale
+pass require warm | amber | orange | gold | yellow
+pass require dark | dim | unlit | shadowed | dormant
+pass forbid desert
+pass forbid rust
+pass forbid sand dunes
+verdict fail

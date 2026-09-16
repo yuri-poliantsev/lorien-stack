@@ -1,0 +1,17 @@
+The image is a straight-on, front-facing view of a dark interface filling the frame. Eight rounded rectangular cards sit in two rows of four against a near-black field with a faint dotted grid. The top four cards read SESSIONS 1842, REVENUE $67k, CONVERSIONS 319, and USERS 942, each with LAST 30D except USERS which reads LAST 90D, and each with a short orange horizontal bar beneath the number. The bottom four cards read BOUNCES 631, CHURN 14%, REFUNDS 27, and SUPPORT 53, each with LAST 30D and no bar. The palette is black, dark grey, white, muted grey, and orange. Lighting is flat and even, with no directional source or shadow. The top cards use bright white type and orange bars on darker panels; the bottom cards use dim grey type on slightly lighter grey panels and have no orange bars.
+
+--- checked against 04.spec.md ---
+pass require dark | black | near-black | dark background
+pass require eight | 8
+pass require card | cards | panel | panels | tile | tiles | module | modules
+pass require number | numbers | numeral | numerals | figure | figures | digit | digits | large type | big type
+pass require bar | bars | line | lines | rule | rules | stripe | stripes
+pass forbid crt
+pass forbid scanline
+pass forbid scanlines
+pass forbid phosphor
+pass forbid cathode
+pass forbid chart
+pass forbid graph
+pass forbid sparkline
+verdict pass

@@ -6,3 +6,11 @@ id	theme	kind	path	sha256	promptPath	source	attempts	readback	verdict
 02	lorien	concept	docs/images/concepts/lorien/02.jpg	5d7de9b219e60231eb0a840b5b55fb9d10e9ebf24002aaac2511efc6203ebd85	docs/images/concepts/lorien/02.prompt.txt	grok	1		unread
 07	lorien	concept	docs/images/concepts/lorien/07.jpg	f5afccf6c24883c7ac5dc09e223d8a40bb0564ec0fd6de04d9f93d9bba9f5834	docs/images/concepts/lorien/07.prompt.txt	grok	1		unread
 06	lorien	concept	docs/images/concepts/lorien/06.jpg	fc4e095f13e9586d13486bdf08657603267a68cc478c4994045321028bd8741a	docs/images/concepts/lorien/06.prompt.txt	grok	1		unread
+04	lorien	concept	docs/images/concepts/lorien/04.jpg	2176d401eeb3ec7627d93ffeea3632b06c58dd28ce9bc28813903ba91b830f45	docs/images/concepts/lorien/04.prompt.txt	grok	1		unread
+01	lorien	concept	docs/images/concepts/lorien/01.jpg	d3549eedda5621c2268c773e915fcd966fb6d9db901c4b9e46dae749b25647c8	docs/images/concepts/lorien/01.prompt.txt	grok	1	require:side view require:eight	fail
+02	lorien	concept	docs/images/concepts/lorien/02.jpg	5d7de9b219e60231eb0a840b5b55fb9d10e9ebf24002aaac2511efc6203ebd85	docs/images/concepts/lorien/02.prompt.txt	grok	1	10 checks pass	pass
+03	lorien	concept	docs/images/concepts/lorien/03.jpg	20dc5da0d05428d41d660cccef1774fc8c30dd9cc6c1559f2dcc27bed6be133c	docs/images/concepts/lorien/03.prompt.txt	grok	1	require:eight	fail
+04	lorien	concept	docs/images/concepts/lorien/04.jpg	2176d401eeb3ec7627d93ffeea3632b06c58dd28ce9bc28813903ba91b830f45	docs/images/concepts/lorien/04.prompt.txt	grok	1	require:eight require:firefly	fail
+05	lorien	concept	docs/images/concepts/lorien/05.jpg	f1f37be6cb19e35e1b1ff61c6fd67fbbe3a1048e09a935e1ec9dd094f6f32d56	docs/images/concepts/lorien/05.prompt.txt	grok	1	9 checks pass	pass
+06	lorien	concept	docs/images/concepts/lorien/06.jpg	fc4e095f13e9586d13486bdf08657603267a68cc478c4994045321028bd8741a	docs/images/concepts/lorien/06.prompt.txt	grok	1	9 checks pass	pass
+07	lorien	concept	docs/images/concepts/lorien/07.jpg	f5afccf6c24883c7ac5dc09e223d8a40bb0564ec0fd6de04d9f93d9bba9f5834	docs/images/concepts/lorien/07.prompt.txt	grok	1	10 checks pass	pass

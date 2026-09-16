@@ -29,3 +29,29 @@ id	theme	kind	path	sha256	promptPath	source	attempts	readback	verdict
 07	mission-control	concept	docs/images/concepts/mission-control/07.jpg	46aedc508bc0422bd73e2d35a8c6254d49ac072c83ccb05183b9d3ea3eb21fbf	docs/images/concepts/mission-control/07.prompt.txt	grok	1		unread
 07	mission-control	concept	docs/images/concepts/mission-control/07.jpg	46aedc508bc0422bd73e2d35a8c6254d49ac072c83ccb05183b9d3ea3eb21fbf	docs/images/concepts/mission-control/07.prompt.txt	grok	1		unread
 06	mission-control	concept	docs/images/concepts/mission-control/06.jpg	9f8067d876f694d6d8f79ef3451030e28e3912e400d2c232f9c06ca34453ba4f	docs/images/concepts/mission-control/06.prompt.txt	grok	1		unread
+04	lorien	concept	docs/images/concepts/lorien/04.jpg	2176d401eeb3ec7627d93ffeea3632b06c58dd28ce9bc28813903ba91b830f45	docs/images/concepts/lorien/04.prompt.txt	grok	1		unread
+worker	starcraft	sprite	docs/images/assets/starcraft/sprite/worker.jpg	7195a694da59e50856dace3d54206675b8d1eda42535312b1e8d3a09bf162fb4	docs/images/assets/starcraft/sprite/worker.prompt.txt	grok	1		unread
+01	lorien	concept	docs/images/concepts/lorien/01.jpg	d3549eedda5621c2268c773e915fcd966fb6d9db901c4b9e46dae749b25647c8	docs/images/concepts/lorien/01.prompt.txt	grok	1	require:side view require:eight	fail
+01	bruegel	concept	docs/images/concepts/bruegel/01.jpg	02d46f646971025d9cc4f8e425d50020051b31ce0396313632789bc1adb83758	docs/images/concepts/bruegel/01.prompt.txt	grok	1	require:eight	fail
+01	mission-control	concept	docs/images/concepts/mission-control/01.jpg	571431a0dd4cedd9b7e79af6d930146dc7d308354a1b2422c257b968e5064624	docs/images/concepts/mission-control/01.prompt.txt	grok	1	15 checks pass	pass
+01	night-city	concept	docs/images/concepts/night-city/01.jpg	4b9e44a5a517e02610d1f5bb07ab9055f2af70efd5c3e7f87779aa4b27160772	docs/images/concepts/night-city/01.prompt.txt	grok	1	9 checks pass	pass
+01	aquarium	concept	docs/images/concepts/aquarium/01.jpg	b910daa34b11c1530bb5a3f0a9a187be09e096e08e8a6791e9af7316d7a0dcb8	docs/images/concepts/aquarium/01.prompt.txt	grok	1	require:anemone	fail
+01	isometric-office	concept	docs/images/concepts/isometric-office/01.jpg	f83d84ad28a8fdc7fd17ae3769d75595f83da6e6ca40c577eb98697071ed966a	docs/images/concepts/isometric-office/01.prompt.txt	grok	1	require:eight	fail
+02	lorien	concept	docs/images/concepts/lorien/02.jpg	5d7de9b219e60231eb0a840b5b55fb9d10e9ebf24002aaac2511efc6203ebd85	docs/images/concepts/lorien/02.prompt.txt	grok	1	10 checks pass	pass
+03	lorien	concept	docs/images/concepts/lorien/03.jpg	20dc5da0d05428d41d660cccef1774fc8c30dd9cc6c1559f2dcc27bed6be133c	docs/images/concepts/lorien/03.prompt.txt	grok	1	require:eight	fail
+04	lorien	concept	docs/images/concepts/lorien/04.jpg	2176d401eeb3ec7627d93ffeea3632b06c58dd28ce9bc28813903ba91b830f45	docs/images/concepts/lorien/04.prompt.txt	grok	1	require:eight require:firefly	fail
+05	lorien	concept	docs/images/concepts/lorien/05.jpg	f1f37be6cb19e35e1b1ff61c6fd67fbbe3a1048e09a935e1ec9dd094f6f32d56	docs/images/concepts/lorien/05.prompt.txt	grok	1	9 checks pass	pass
+06	lorien	concept	docs/images/concepts/lorien/06.jpg	fc4e095f13e9586d13486bdf08657603267a68cc478c4994045321028bd8741a	docs/images/concepts/lorien/06.prompt.txt	grok	1	9 checks pass	pass
+07	lorien	concept	docs/images/concepts/lorien/07.jpg	f5afccf6c24883c7ac5dc09e223d8a40bb0564ec0fd6de04d9f93d9bba9f5834	docs/images/concepts/lorien/07.prompt.txt	grok	1	10 checks pass	pass
+02	mission-control	concept	docs/images/concepts/mission-control/02.jpg	5dd52758e04637515ae21322443560893b7b7f133b8bfd96c712ccb1a0493fd4	docs/images/concepts/mission-control/02.prompt.txt	grok	1	14 checks pass	pass
+03	mission-control	concept	docs/images/concepts/mission-control/03.jpg	bff1499f871c9abff5908f71620eaecbabf91444f92f489e294d9eb76e7cf373	docs/images/concepts/mission-control/03.prompt.txt	grok	1	14 checks pass	pass
+04	mission-control	concept	docs/images/concepts/mission-control/04.jpg	82d313fb46ebdffe03a93963eff3b5a82823dabbb2643d867f5a8f52f82b57e0	docs/images/concepts/mission-control/04.prompt.txt	grok	1	13 checks pass	pass
+05	mission-control	concept	docs/images/concepts/mission-control/05.jpg	b36f879f7ca8f009c664c0962b86d03906bbf1e0e225b3d35634e614da61c764	docs/images/concepts/mission-control/05.prompt.txt	grok	1	13 checks pass	pass
+06	mission-control	concept	docs/images/concepts/mission-control/06.jpg	9f8067d876f694d6d8f79ef3451030e28e3912e400d2c232f9c06ca34453ba4f	docs/images/concepts/mission-control/06.prompt.txt	grok	1	14 checks pass	pass
+07	mission-control	concept	docs/images/concepts/mission-control/07.jpg	46aedc508bc0422bd73e2d35a8c6254d49ac072c83ccb05183b9d3ea3eb21fbf	docs/images/concepts/mission-control/07.prompt.txt	grok	1	13 checks pass	pass
+01	starcraft	concept	docs/images/concepts/starcraft/01.jpg	dbed099ec5d83851680a3364607aee733ccb975a242f8904ced573124ecbd0e5	docs/images/concepts/starcraft/01.prompt.txt	grok	1	8 checks pass	pass
+02	starcraft	concept	docs/images/concepts/starcraft/02.jpg	8742e3f557825149d0eb586f8346c2062bb7f550c80579f8a34bf7869c224898	docs/images/concepts/starcraft/02.prompt.txt	grok	1	9 checks pass	pass
+03	starcraft	concept	docs/images/concepts/starcraft/03.jpg	2476eff62e67206c7727f60e63ef4d1643e01b065720ab541560fd525687f069	docs/images/concepts/starcraft/03.prompt.txt	grok	1	8 checks pass	pass
+04	starcraft	concept	docs/images/concepts/starcraft/04.jpg	2e502d4740132e8d2120e9609eeac02a1af0d90d4227b9adafc02607ec4610c5	docs/images/concepts/starcraft/04.prompt.txt	grok	1	require:eight	fail
+05	starcraft	concept	docs/images/concepts/starcraft/05.jpg	413826376c33d59db9db7d3d68bcd409ee037c7ce731322e0e9e1f85acc94f79	docs/images/concepts/starcraft/05.prompt.txt	grok	1	8 checks pass	pass
+06	starcraft	concept	docs/images/concepts/starcraft/06.jpg	29aee01418c54c85ca6e19f0e493947eee7792747f4fe4b1195f18fbaf64213b	docs/images/concepts/starcraft/06.prompt.txt	grok	1	require:isometric require:eight	fail

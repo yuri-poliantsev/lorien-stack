@@ -1,2 +1,3 @@
 id	theme	kind	path	sha256	promptPath	source	attempts	readback	verdict
 01	bruegel	concept	docs/images/concepts/bruegel/01.jpg	02d46f646971025d9cc4f8e425d50020051b31ce0396313632789bc1adb83758	docs/images/concepts/bruegel/01.prompt.txt	grok	1		unread
+01	bruegel	concept	docs/images/concepts/bruegel/01.jpg	02d46f646971025d9cc4f8e425d50020051b31ce0396313632789bc1adb83758	docs/images/concepts/bruegel/01.prompt.txt	grok	1	require:eight	fail
