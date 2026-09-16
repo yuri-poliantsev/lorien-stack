@@ -62,4 +62,8 @@ Squash-merged to `main` as `f257b46` in [#14](https://github.com/yuri-poliantsev
 
 ## Next step
 
-Do not merge until the root says `merge authorized at <sha>`.
+Landed.
+
+## Outcome
+
+Merged as `f257b466b5d4ff6512b2697be1e435f5f6f69a3a` (`gh pr merge 14 --squash --delete-branch`). `origin/main` advanced from `17e0b14` to that sha. CI on main run 35040825302 succeeded.
