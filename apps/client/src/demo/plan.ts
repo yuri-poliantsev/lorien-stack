@@ -16,14 +16,14 @@ const DEMO_MIN_STEP_MS = 800;
 const DEMO_QUIET_HOLD_MS = 4_000;
 const DEMO_SLEEP_HOLD_MS = 3_000;
 
-export type DemoSource = { kind: "live" } | { kind: "demo"; bots: number };
+type DemoSource = { kind: "live" } | { kind: "demo"; bots: number };
 
 export type DemoFixture = {
   record: BotRecord;
   lines: string[];
 };
 
-export type DemoSlot = DemoFixture & { startOffsetMs: number };
+type DemoSlot = DemoFixture & { startOffsetMs: number };
 
 export type DemoCue = { atMs: number } & (
   | { kind: "wake" }

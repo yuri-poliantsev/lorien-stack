@@ -7,7 +7,7 @@ import {
   expandDemoRoster,
   loadFixtureAgents,
 } from "../../../gateway/src/replay.ts";
-import { FIXTURE_ROOT, loadDemoFixtures } from "./fixtures.test.ts";
+import { FIXTURE_ROOT, loadDemoFixtures } from "./fixturesFromDisk.ts";
 import {
   demoRoster,
   demoTape,
@@ -101,7 +101,7 @@ describe("demoRoster", () => {
     }
   });
 
-  it("matches the gateway's expandDemoRoster names and start offsets", async () => {
+  it("matches the gateway's expandDemoRoster on names and start offsets, not ids", async () => {
     const gatewayFixtures = await loadFixtureAgents(FIXTURE_ROOT);
     for (const botCount of [1, 8, 18, 40]) {
       const gateway = expandDemoRoster({ fixtures: gatewayFixtures, botCount }).map((s) => [
@@ -112,7 +112,7 @@ describe("demoRoster", () => {
       assert.deepEqual(
         client,
         gateway,
-        `client demo roster at ${String(botCount)} bots must match apps/gateway/src/replay.ts expandDemoRoster`,
+        `client demo roster names and start offsets at ${String(botCount)} bots must match apps/gateway/src/replay.ts expandDemoRoster; ids are not compared, plan.test.ts asserts them separately`,
       );
     }
   });

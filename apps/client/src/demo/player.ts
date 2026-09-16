@@ -11,7 +11,7 @@ import type { DemoCue, DemoTape } from "./plan.ts";
 
 export const DEMO_TICK_MS = 100;
 
-export type DemoPlayer = {
+type DemoPlayer = {
   advance: (elapsedMs: number) => StoreMessage[];
 };
 

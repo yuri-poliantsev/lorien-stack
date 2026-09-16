@@ -5,7 +5,7 @@ import type { IsoTimestamp } from "@lorien-stack/contracts";
 
 import { applyMessage, emptyStore } from "../store.ts";
 import { demoRoster, demoTape } from "./plan.ts";
-import { loadDemoFixtures } from "./fixtures.test.ts";
+import { loadDemoFixtures } from "./fixturesFromDisk.ts";
 import { createDemoPlayer } from "./player.ts";
 
 const NOW = "2026-09-16T02:00:00.000Z" as IsoTimestamp;
