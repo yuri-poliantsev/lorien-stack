@@ -1,0 +1,13 @@
+The image is an isometric three-quarter view of a single small rectangular building on a flat magenta field. Orange-brown horizontal clapboard covers the walls, and a blue-grey corrugated metal roof slopes to both sides. Three identical six-pane windows sit in a row along the left wall, each in a grey riveted frame and filled with yellow light. A wide front opening has two grey corrugated door panels drawn to the sides, with yellow light filling the interior. A grey riveted chimney stands on the right ridge, and a red beacon lamp on the left ridge emits star-shaped rays. There is no text and no badge.
+
+--- checked against a-hut.spec.md ---
+pass require isometric | axonometric | three-quarter | angled | elevated | perspective
+pass require building | buildings | structure | shed | cabin | hut | barn | warehouse | depot | house
+pass require wood | wooden | timber | plank | planks | orange | brown
+pass require window | windows | door | doors | doorway
+pass require lit | glowing | glow | light | lights | illuminated | yellow
+pass require red
+pass require magenta | pink | purple
+pass forbid photograph
+pass forbid photorealistic
+verdict pass

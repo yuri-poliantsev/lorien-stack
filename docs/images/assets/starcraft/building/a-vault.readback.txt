@@ -1,0 +1,13 @@
+The image is an isometric three-quarter view from the front right of a single small rectangular metal shed centred on a flat magenta field. The shed has a corrugated grey-blue roof, grey panelled walls, and a large dark-grey roll-up door of stacked horizontal slats on the front face. Three grey pipes sit on the right wall in a vertical stack, with a short vertical pipe and elbow joint below them. Yellow and black diagonal stripes mark the lower front corners and a vertical strip on the right wall. A red beacon with a black base and a small yellow triangular mark sits on the roof. Lighting is even and graphic, with the near roof face paler than the far face. The red beacon is brighter and more saturated than the grey walls, door, and pipes.
+
+--- checked against a-vault.spec.md ---
+pass require isometric | axonometric | three-quarter | angled | elevated | perspective
+pass require building | buildings | structure | shed | garage | warehouse | depot | unit | container
+pass require grey | gray | steel | metal | dark
+pass require shutter | shutters | roller | door | doors
+pass require pipe | pipes | piping
+pass require red
+pass require magenta | pink | purple
+pass forbid photograph
+pass forbid photorealistic
+verdict pass

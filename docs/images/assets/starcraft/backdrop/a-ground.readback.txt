@@ -1,0 +1,9 @@
+The view is from a high angle looking down and forward across open ground toward a line of rock at the top of the frame. Four stacked, layered rock structures sit along the upper edge, arranged left to right as separate blocks with horizontal strata and lower terraces stepping onto the sand. The rest of the image is a flat tan field scattered with many small and medium gray-brown stones, denser toward the lower left and sparser toward the right, crossed by a faint winding darker streak through the center. Dominant colours are sandy tan, ochre, and brown, with gray-brown stones and darker brown on the shadowed cliff faces. Light comes from the upper right and throws long purple-brown shadows from the stones toward the lower left. There is no text and no badges.
+
+--- checked against a-ground.spec.md ---
+pass require sand | sandy | dirt | ground | desert | terrain
+pass require rock | rocks | rocky | cliff | cliffs | boulder | boulders | stone | stones
+pass require tan | brown | beige | ochre | orange
+pass forbid photograph
+pass forbid photorealistic
+verdict pass
