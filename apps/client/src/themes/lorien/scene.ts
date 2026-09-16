@@ -40,7 +40,6 @@ import {
 } from "./sprites.ts";
 
 const DEFAULT_FONT = '"IBM Plex Mono", ui-monospace, monospace';
-const FULL_LABEL_COLS = 6;
 
 const STYLE = `
 .theme-host[data-theme="lorien"] {
@@ -333,10 +332,7 @@ export function mountLorienTheme(root: HTMLElement, context: ThemeMountContext):
         const event = lastEvent(bot.id);
         const action = event === undefined ? "unknown" : actionFromEvent(event);
         const path = event === undefined ? undefined : pathFromToolEvent(event);
-        const detailed = selected || layout.cols <= FULL_LABEL_COLS;
-        const text = detailed
-          ? inSceneLabel({ pose, action, path })
-          : inSceneLabel({ pose, action, path: undefined });
+        const text = inSceneLabel({ pose, action, path });
         const centre = cellCentreX(flet.col, layout.cols);
         drawChip(ctx, {
           box: flet,

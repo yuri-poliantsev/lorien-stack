@@ -1,7 +1,15 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { actionProp, eventSignature, inSceneLabel, mixHex, poseFromPulse, skyAt } from "./model.ts";
+import {
+  actionProp,
+  eventSignature,
+  inSceneLabel,
+  mixHex,
+  poseFromPulse,
+  shortPath,
+  skyAt,
+} from "./model.ts";
 
 describe("lorien pose", () => {
   it("lights the lantern while the pulse is fresh and puts it out at 22 seconds", () => {
@@ -37,6 +45,28 @@ describe("lorien in-scene label", () => {
     assert.equal(
       inSceneLabel({ pose: "working", action: "unknown", path: undefined }),
       "WORKING \u00b7 unknown",
+    );
+  });
+
+  it("left-ellipsises a long path down to its trailing directories", () => {
+    assert.equal(shortPath("src/a.ts"), "src/a.ts");
+    assert.equal(
+      shortPath("apps/client/src/themes/lorien/layout.ts"),
+      "\u2026src/themes/lorien/layout.ts",
+    );
+    assert.equal(shortPath("apps/client/src/themes/lorien/layout.ts", 14), "\u2026layout.ts");
+    assert.equal(
+      shortPath("a/averyveryverylongfilename.ts", 12),
+      "\u2026filename.ts",
+      "a single segment longer than the budget keeps its tail",
+    );
+    assert.equal(
+      inSceneLabel({
+        pose: "working",
+        action: "writing",
+        path: "packages/contracts/src/schemas/activity-event.ts",
+      }),
+      "WORKING \u00b7 writing \u00b7 \u2026schemas/activity-event.ts",
     );
   });
 

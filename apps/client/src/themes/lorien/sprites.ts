@@ -10,7 +10,7 @@ import {
   type Branch,
   type FletBox,
 } from "./layout.ts";
-import type { ActionProp, FletPose, Sky } from "./model.ts";
+import { LABEL_SEPARATOR, type ActionProp, type FletPose, type Sky } from "./model.ts";
 
 const ASSET_BASE = "/themes/lorien";
 
@@ -698,19 +698,32 @@ export function measureFitted(
   return value;
 }
 
+// A chip is state, action, path in priority order. When it overflows, the path
+// loses characters from the left first, then whole trailing segments go, so
+// the state word is the last thing standing. A plain name trims from the right.
 export function fitText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string {
   if (maxWidth <= 0 || ctx.measureText(text).width <= maxWidth) {
     return text;
   }
-  const tail = text.slice(text.lastIndexOf("/") + 1);
-  if (tail !== text && ctx.measureText(tail).width <= maxWidth) {
-    return tail;
+  const segments = text.split(LABEL_SEPARATOR);
+  if (segments.length >= 3) {
+    const head = segments.slice(0, -1).join(LABEL_SEPARATOR) + LABEL_SEPARATOR;
+    const path = (segments[segments.length - 1] ?? "").replace(/^\u2026/, "");
+    for (let keep = path.length - 1; keep >= 4; keep -= 1) {
+      const candidate = `${head}\u2026${path.slice(path.length - keep)}`;
+      if (ctx.measureText(candidate).width <= maxWidth) {
+        return candidate;
+      }
+    }
   }
-  let cut = tail.length;
-  while (cut > 1 && ctx.measureText(`${tail.slice(0, cut)}\u2026`).width > maxWidth) {
+  if (segments.length >= 2) {
+    return fitText(ctx, segments.slice(0, -1).join(LABEL_SEPARATOR), maxWidth);
+  }
+  let cut = text.length;
+  while (cut > 1 && ctx.measureText(`${text.slice(0, cut)}\u2026`).width > maxWidth) {
     cut -= 1;
   }
-  return `${tail.slice(0, cut)}\u2026`;
+  return `${text.slice(0, cut)}\u2026`;
 }
 
 export function drawAmbience(

@@ -79,9 +79,33 @@ export function inSceneLabel(input: {
   }
   const parts = ["WORKING", input.action];
   if (input.path !== undefined && input.path.length > 0) {
-    parts.push(input.path);
+    parts.push(shortPath(input.path));
   }
-  return parts.join(" \u00b7 ");
+  return parts.join(LABEL_SEPARATOR);
+}
+
+export const LABEL_SEPARATOR = " \u00b7 ";
+export const PATH_CHARS = 28;
+
+// Keeps whole trailing segments behind an ellipsis, so the file name and its
+// nearest directories survive and the repository root is what gets cut.
+export function shortPath(path: string, maxChars: number = PATH_CHARS): string {
+  if (path.length <= maxChars) {
+    return path;
+  }
+  const parts = path.split("/").filter((part) => part.length > 0);
+  let kept = "";
+  for (let i = parts.length - 1; i >= 0; i -= 1) {
+    const next = kept.length === 0 ? (parts[i] ?? "") : `${parts[i] ?? ""}/${kept}`;
+    if (next.length + 1 > maxChars) {
+      break;
+    }
+    kept = next;
+  }
+  if (kept.length === 0) {
+    kept = path.slice(path.length - (maxChars - 1));
+  }
+  return `\u2026${kept}`;
 }
 
 export function skyAt(hours: number): Sky {
