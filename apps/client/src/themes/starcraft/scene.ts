@@ -16,6 +16,7 @@ import { PALETTE, drawStation, drawTerrain, drawUnit, unitAccent, worldToView } 
 export type StarCraftRenderInput = {
   roster: readonly BotRecord[];
   activity: ReadonlyMap<BotId, readonly ActivityEvent[]>;
+  selectedBotId: BotId | undefined;
 };
 
 export type StarCraftHandle = {
@@ -91,8 +92,8 @@ export function mountStarCraftTheme(
   let model: StarCraftRenderInput = {
     roster: [],
     activity: new Map(),
+    selectedBotId: undefined,
   };
-  let localSelected: BotId | undefined;
   const pulses = new Map<string, PulseState>();
   const seenAt = new Map<string, number>();
   let avgFrameMs = 16;
@@ -102,7 +103,7 @@ export function mountStarCraftTheme(
   const buildingHits = new Map<string, HTMLButtonElement>();
 
   function currentSelected(): BotId | undefined {
-    return localSelected;
+    return model.selectedBotId;
   }
 
   function poseFor(bot: BotRecord, now: number): UnitPose {
@@ -127,7 +128,6 @@ export function mountStarCraftTheme(
     el.addEventListener("click", (event) => {
       event.preventDefault();
       event.stopPropagation();
-      localSelected = botId;
       input.onSelect?.(botId);
     });
   }
@@ -170,6 +170,7 @@ export function mountStarCraftTheme(
       btn.dataset.botName = bot.name;
       btn.dataset.pose = pose;
       btn.dataset.stationId = seat.station.id;
+      btn.dataset.selected = String(bot.id === model.selectedBotId);
       btn.style.zIndex = "2";
       btn.setAttribute("aria-label", bot.name);
       const size = Math.max(28, 36 * box.scale);
@@ -305,6 +306,11 @@ export function mountStarCraftTheme(
       }
       canvas.dataset.unitCount = String(model.roster.length);
       canvas.dataset.theme = "starcraft";
+      if (selected === undefined) {
+        delete canvas.dataset.selectedBotId;
+      } else {
+        canvas.dataset.selectedBotId = selected;
+      }
       root.dataset.unitCount = String(model.roster.length);
       root.dataset.staleSafe = "true";
       syncHits(seats, box, now);
@@ -358,7 +364,6 @@ export function mountStarCraftTheme(
       }
     }
     if (best !== undefined) {
-      localSelected = best.botId;
       input.onSelect?.(best.botId);
     }
   }
@@ -371,10 +376,7 @@ export function mountStarCraftTheme(
       return;
     }
     const ghost: BotRecord = { id: parsed.value, name: "" };
-    model = {
-      roster: [...model.roster, ghost],
-      activity: model.activity,
-    };
+    model = { ...model, roster: [...model.roster, ghost] };
     root.dataset.staleProbe = "true";
     paint();
   }
@@ -394,9 +396,6 @@ export function mountStarCraftTheme(
   return {
     render(next) {
       model = next;
-      if (localSelected !== undefined && !next.roster.some((bot) => bot.id === localSelected)) {
-        localSelected = undefined;
-      }
       for (const id of [...pulses.keys()]) {
         if (!next.roster.some((bot) => bot.id === id)) {
           pulses.delete(id);

@@ -49,7 +49,11 @@ export function mountThemeHost(
     ids,
   });
   let activeId = entryFor(choice.id).id;
-  let model: ThemeRenderInput = { roster: [], activity: new Map() };
+  let model: ThemeRenderInput = {
+    roster: [],
+    activity: new Map(),
+    selectedBotId: undefined,
+  };
   let handle: ThemeHandle = mount(activeId);
   writeChoice(activeId);
 

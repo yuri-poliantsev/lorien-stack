@@ -7,6 +7,9 @@ import { mountStarCraftTheme } from "./starcraft/scene.ts";
 export type ThemeRenderInput = {
   roster: readonly BotRecord[];
   activity: ReadonlyMap<BotId, readonly ActivityEvent[]>;
+  // The shell owns selection. A theme that tracked its own copy would keep
+  // highlighting a bot the roster no longer has selected.
+  selectedBotId: BotId | undefined;
 };
 
 export type ThemeHandle = {

@@ -149,7 +149,11 @@ function render(): void {
       limit: TAPE_LIMIT,
     }),
   });
-  theme.render({ roster: bots, activity: store.activity });
+  theme.render({
+    roster: bots,
+    activity: store.activity,
+    selectedBotId: store.selectedBotId,
+  });
   if (bots.length !== rosterCount) {
     rosterCount = bots.length;
     refit();
