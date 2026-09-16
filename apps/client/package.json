@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --disable-warning=ExperimentalWarning --experimental-strip-types --test src/store.test.ts src/ws.test.ts src/actions.test.ts src/camera.test.ts src/shell/format.test.ts src/shell/frameBudget.test.ts src/shell/model.test.ts src/themes/choice.test.ts src/themes/starcraft/layout.test.ts src/demo/plan.test.ts src/demo/player.test.ts src/themes/lorien/layout.test.ts src/themes/lorien/model.test.ts src/themes/lorien/sprites.test.ts",
+    "test": "node --disable-warning=ExperimentalWarning --experimental-strip-types --test src/store.test.ts src/ws.test.ts src/actions.test.ts src/camera.test.ts src/shell/format.test.ts src/shell/frameBudget.test.ts src/shell/model.test.ts src/themes/choice.test.ts src/themes/mission-control/layout.test.ts src/themes/mission-control/model.test.ts src/themes/starcraft/layout.test.ts src/demo/plan.test.ts src/demo/player.test.ts src/themes/lorien/layout.test.ts src/themes/lorien/model.test.ts src/themes/lorien/sprites.test.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
