@@ -45,9 +45,16 @@ already exist without spending calls.
 ## What evidence decided it
 
 **The lever runs.** 63 Grok Build calls (32 `image_gen`, 31 read-back) and 32 images, all
-logged in `scripts/assets/calls.tsv`. `npm run assets -- ledger --verify` re-hashes every
-authoritative manifest row against the file on disk and re-reads each header: 0 bad rows,
-31 superseded rows skipped.
+logged in `scripts/assets/calls.tsv`. `npm run assets -- ledger --verify` re-hashes all 50
+path-bearing manifest rows against the files on disk and re-reads each header: 0 bad rows,
+6 rows tolerated because they are named with a reason in `scripts/assets/superseded.tsv`.
+
+**The night's spend is three calls higher than this branch records.** The live verifier
+re-proved `gen`, `readback`, `key`, the lock and the ledger against real artifacts in a
+throwaway worktree, spending 3 calls and 2 images that this branch's `calls.tsv` never saw
+because the ledger is per-checkout. The night's running total is **67 calls and 35 images**,
+against caps of 500 and 400. Whoever merges should read the branch total as an undercount of
+3 calls and 2 images.
 
 **The plan's recorded facts held, with two corrections.** Every output is JPEG with 4:2:0
 chroma, as the plan says. But the frames came back at **1280x720**, not 1024x1024, when the
@@ -63,7 +70,9 @@ four opaque cells at `2,2 3,2 2,3 3,3` in an 8x8 PNG with alpha, and at toleranc
 349 of 4096 pixels clear, so the tolerance is doing real work rather than passing
 everything. On the real artifact:
 `scripts/assets/examples/starcraft-worker-keyed.png`, a 128x128 palette PNG with 5,452
-opaque and 10,932 transparent pixels, keyed from the generated `worker.jpg`. 24 tests pass.
+opaque and 10,932 transparent pixels, keyed from the generated `worker.jpg`, which
+`readImageHeader` now reports as `alpha=true` because its transparency lives in a `tRNS`
+chunk rather than a per-pixel alpha sample. 30 tests pass.
 
 **Blind read-back found defects that looking at the images did not.** Frame
 `lorien/04` is the all-asleep frame, and by eye it looked like a dark forest with the
@@ -135,15 +144,21 @@ as a card. No count check, no state check and no forbid line was touched.
 
 ## Deviations
 
-- **Six duplicate images and twelve duplicate calls were spent.** Two long-running batches
-  executed twice, the first read-back batch and the mission-control generation batch, which
-  is visible in `calls.tsv` as two interleaved runs 51 seconds apart. The manifest recorded
-  both, so the older rows' hashes no longer matched their overwritten files. Fixed two ways:
-  `gen` now takes an exclusive `scripts/assets/.gen.lock` so two runs cannot spend the same
-  budget, and `readback` refuses an image that already has a newer `readback.txt` unless
-  `--force` is passed. `ledger --verify` now checks the newest row per theme and id and
-  reports older ones as superseded rather than as corruption, which is the correct reading of
-  an append-only log.
+- **Six duplicate images and twelve duplicate calls were spent, and six manifest rows are
+  permanently unverifiable because of it.** Two long-running batches executed twice, the first
+  read-back batch and the mission-control generation batch, visible in `calls.tsv` as two
+  interleaved runs 51 seconds apart. `gen` overwrote the outputs, so six append-only rows now
+  hash files that no longer exist in that form and never can again. They are named one by one,
+  with a reason each, in `scripts/assets/superseded.tsv`: `mission-control/02`, `03`, `04`,
+  `05` and `06` (manifest lines 20, 21, 22, 24, 27) from the concurrent batches, and
+  `lorien/04` (line 9) from a retry that reused its own id. `ledger --verify` tolerates a hash
+  mismatch only for those six and fails on any other, so the damage is bounded and visible
+  rather than skipped. Three fixes stop it recurring: `gen` takes an exclusive
+  `scripts/assets/.gen.lock` so two runs cannot spend the same budget; `gen` refuses to write
+  over an existing output at all, which is what makes every future row verifiable; and
+  `readback` refuses an image that already has a newer `readback.txt` unless `--force` is
+  passed. Nothing should ever be added to `superseded.tsv`; a seventh entry would mean the
+  refusal had been circumvented.
 - **The cap ledger is per-checkout.** Each owner works in a separate git worktree, so each has
   its own `calls.tsv` and the 500-call and 400-image caps are only enforced night-wide once
   this branch is merged and later owners share the file. Steps 5b, 6 and 7 all run after this

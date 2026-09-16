@@ -9,6 +9,7 @@ import {
 	assertUnderCaps,
 	capLine,
 	discardsFor,
+	displayPath,
 	logCall,
 	logManifest,
 	repoRelative,
@@ -74,7 +75,7 @@ export function existingOutput(outDir, id) {
 export async function generate(request, { outDir = defaultOutDir(request), dryRun = false } = {}) {
 	const clash = existingOutput(outDir, request.id);
 	if (clash !== undefined) {
-		return { ok: false, clash: repoRelative(clash) };
+		return { ok: false, clash: displayPath(clash) };
 	}
 
 	const discards = discardsFor(request.theme, request.id);

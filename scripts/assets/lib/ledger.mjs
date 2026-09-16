@@ -158,6 +158,13 @@ export function repoRelative(file) {
 	return path.relative(REPO_ROOT, file).split(path.sep).join("/");
 }
 
+// For messages rather than manifest rows: a path outside the repo would come back from
+// repoRelative as a walk up through `..`, which is worse to read than the absolute path.
+export function displayPath(file) {
+	const relative = repoRelative(file);
+	return relative.startsWith("../") ? file : relative;
+}
+
 // Frame ids restart at 01 per theme, so an asset is only identified by the pair.
 export function attemptsFor(theme, id) {
 	return readManifest().filter((row) => row.theme === theme && row.id === id).length;

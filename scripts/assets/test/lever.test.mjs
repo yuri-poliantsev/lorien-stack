@@ -235,7 +235,12 @@ test("gen refuses an output path that already exists, spending no call and appen
 	);
 	assert.equal(run.status, 1);
 	assert.match(run.stderr, /REFUSED/);
-	assert.ok(run.stderr.includes(path.join(dir, "01.jpg")), `stderr names the clashing path: ${run.stderr}`);
+	assert.match(run.stderr, /pick a new id \(01-2\)/);
+	assert.ok(
+		run.stderr.split("\n").some((line) => line.includes(`REFUSED, ${path.join(dir, "01.jpg")} already exists`)),
+		`stderr names the clashing path outright rather than as a walk up out of the repo: ${run.stderr}`,
+	);
+	assert.doesNotMatch(run.stderr, /\.\.\/\.\.\//);
 	assert.equal(readFileSync(ROOT_MANIFEST, "utf8"), before, "no manifest row appended");
 	assert.equal(readFileSync(CALL_LEDGER, "utf8"), callsBefore, "no call logged");
 });
