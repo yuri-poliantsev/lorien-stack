@@ -12,7 +12,10 @@ import {
 } from "./layout.ts";
 import { LABEL_SEPARATOR, type ActionProp, type FletPose, type Sky } from "./model.ts";
 
-const ASSET_BASE = "/themes/lorien";
+export function assetUrl(name: string, base: string): string {
+  const prefix = base.endsWith("/") ? base : `${base}/`;
+  return `${prefix}themes/lorien/${name}.png`;
+}
 
 export const PALETTE = {
   sign: "#6d4f2b",
@@ -63,7 +66,7 @@ export function loadImages(): LorienImages {
   const load = (name: string): HTMLImageElement => {
     const img = new Image();
     img.decoding = "sync";
-    img.src = `${ASSET_BASE}/${name}.png`;
+    img.src = assetUrl(name, import.meta.env.BASE_URL);
     return img;
   };
   return {

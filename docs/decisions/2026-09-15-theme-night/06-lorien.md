@@ -80,10 +80,26 @@ Every candidate wrote `sprite/flet.jpg` and `sprite/lantern.jpg` to `docs/images
 
 Grok calls this step: 0. Images generated: 0.
 
+## Pages prefix
+
+`ASSET_BASE = "/themes/lorien"` is a root-absolute URL. A Pages build with `--base /lorien-stack/` copies the five PNGs to `/lorien-stack/themes/lorien/`, so the hosted demo 404s them and paints flets on a bare sky. Vite-served at `/` hid this.
+
+`assetUrl(name, base)` joins the sprite name onto the Vite base. `loadImages` passes `import.meta.env.BASE_URL`. A unit test pins `/`, `/lorien-stack/`, and `/lorien-stack` to literal URLs.
+
+Hosted proof, no gateway, static serve on 5210:
+
+- curl 200 for all five PNGs under `/lorien-stack/themes/lorien/`
+- Playwright at `/lorien-stack/?theme=lorien&demo=40`: 40 units, zero sockets, page requests those five URLs at 200
+- `/tmp/theme-night/06-lorien/proof/hosted-40-before.png` has flets and no trunks
+- `/tmp/theme-night/06-lorien/proof/hosted-40-after.png` has trunks and canopy
+
+Vite preview at base `/` on 5211: `/?theme=lorien` requests `/themes/lorien/*.png` at 200, trunks and canopy still paint.
+
 ## Deviations
 
 - Losers' ledger rows are re-themed and their raw outputs relocated as above, rather than appended verbatim under `docs/images/assets/lorien/`.
 - The lever on `main` prints manifest lines to stdout and writes no `manifest.tsv` in `--out`; the lines are saved by hand beside each run under `/tmp/theme-night/06-lorien/`.
+- One commit for the Pages prefix, not a failing-test commit then a fix. The wrap-up asked for one.
 
 ## Next step
 
