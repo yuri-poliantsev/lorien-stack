@@ -4,10 +4,12 @@ import { describe, it } from "node:test";
 import { parseBotId, type BotId, type BotRecord } from "@lorien-stack/contracts";
 
 import {
+  ROSTER_GUTTER,
   WORLD_HEIGHT,
   WORLD_WIDTH,
   branchYAt,
   branchesFor,
+  cellCentreX,
   cellWidth,
   colsFor,
   fletRect,
@@ -156,13 +158,13 @@ describe("lorien flet placement", () => {
   });
 
   it("shrinks the flet instead of letting 40 bots collide", () => {
-    assert.equal(Number(fletScale(4, 6).toFixed(4)), 0.8171, "24 bots keep a near-full-size flet");
-    assert.equal(Number(fletScale(5, 8).toFixed(4)), 0.6398, "40 bots shrink to 64 percent");
+    assert.equal(Number(fletScale(4, 6).toFixed(4)), 0.7607, "24 bots keep a three-quarter flet");
+    assert.equal(Number(fletScale(5, 8).toFixed(4)), 0.5705, "40 bots shrink to 57 percent");
     const forty = boxes(40);
     const box = forty[0] as FletBox;
-    assert.equal(cellWidth(8).toFixed(2), "220.50");
-    assert.equal(box.width.toFixed(2), "134.35");
-    assert.equal(box.signMaxWidth.toFixed(2), "154.35");
+    assert.equal(cellWidth(8).toFixed(2), "193.25");
+    assert.equal(box.width.toFixed(2), "119.82");
+    assert.equal(box.signMaxWidth.toFixed(2), "135.27");
     assert.equal(worstClearance(forty) > 20, true, "40 bots keep more than 20 world px of air");
     for (let i = 0; i < forty.length; i += 1) {
       for (let j = i + 1; j < forty.length; j += 1) {
@@ -173,6 +175,23 @@ describe("lorien flet placement", () => {
         );
       }
     }
+  });
+
+  it("keeps every flet, figure and nametag clear of the roster panel's gutter", () => {
+    assert.equal(ROSTER_GUTTER, 296);
+    for (let n = 1; n <= 40; n += 1) {
+      for (const box of boxes(n)) {
+        const rect = unitRect(box);
+        assert.equal(
+          rect.x >= ROSTER_GUTTER,
+          true,
+          `unit at x=${rect.x.toFixed(1)} clears the gutter at ${String(n)} bots`,
+        );
+      }
+    }
+    assert.equal(cellCentreX(0, 1), 1069, "one cell centres in the space right of the roster");
+    const forty = boxes(40).sort((a, b) => a.x - b.x);
+    assert.equal(unitRect(forty[0] as FletBox).x.toFixed(2), "305.66", "the leftmost of 40 starts past the gutter");
   });
 
   it("holds every flet inside the world the camera fits to", () => {

@@ -3,7 +3,11 @@ import type { BotId, BotRecord } from "@lorien-stack/contracts";
 export const WORLD_WIDTH = 1920;
 export const WORLD_HEIGHT = 1080;
 
-const MARGIN_X = 78;
+// The shell's roster panel overlays the top-left of the world at up to 17rem.
+// 296 world px on a 1920 world clears it at a 1920-wide viewport, the same
+// reservation Mission Control makes.
+export const ROSTER_GUTTER = 296;
+const MARGIN_RIGHT = 78;
 const CANOPY_TOP = 168;
 const FOREST_FLOOR = 980;
 const MAX_TIERS = 5;
@@ -95,11 +99,11 @@ export function tierSpacing(tiers: number): number {
 }
 
 export function cellWidth(cols: number): number {
-  return (WORLD_WIDTH - 2 * MARGIN_X) / cols;
+  return (WORLD_WIDTH - ROSTER_GUTTER - MARGIN_RIGHT) / cols;
 }
 
 export function cellCentreX(col: number, cols: number): number {
-  return MARGIN_X + cellWidth(cols) * (col + 0.5);
+  return ROSTER_GUTTER + cellWidth(cols) * (col + 0.5);
 }
 
 // A flet shrinks when its cell does, in whichever axis runs out first, so
