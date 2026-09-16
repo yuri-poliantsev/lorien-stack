@@ -11,6 +11,7 @@ import {
   type Seat,
   type UnitPose,
 } from "./layout.ts";
+import { THEME_CANVAS_TESTID, THEME_UNIT_TESTID, type ThemePose } from "../hooks.ts";
 import { PALETTE, drawStation, drawTerrain, drawUnit, unitAccent, worldToView } from "./sprites.ts";
 
 export type StarCraftRenderInput = {
@@ -35,7 +36,7 @@ const STYLE = `
   background: #070a06;
   overflow: hidden;
 }
-.theme-host[data-theme="starcraft"] canvas[data-testid="starcraft-canvas"] {
+.theme-host[data-theme="starcraft"] canvas[data-testid="${THEME_CANVAS_TESTID}"] {
   display: block;
   width: 100%;
   height: 100%;
@@ -81,7 +82,8 @@ export function mountStarCraftTheme(
   }
 
   const canvas = document.createElement("canvas");
-  canvas.dataset.testid = "starcraft-canvas";
+  canvas.dataset.testid = THEME_CANVAS_TESTID;
+  canvas.dataset.unitCount = "0";
   canvas.setAttribute("role", "img");
   canvas.setAttribute("aria-label", "StarCraft-inspired command view");
   const hits = document.createElement("div");
@@ -161,14 +163,15 @@ export function mountStarCraftTheme(
         btn = document.createElement("button");
         btn.type = "button";
         btn.className = "sc-hit";
-        btn.dataset.testid = "sc-unit";
+        btn.dataset.testid = THEME_UNIT_TESTID;
         bindHit(bot.id, btn);
         unitHits.set(bot.id, btn);
         hits.append(btn);
       }
       btn.dataset.botId = bot.id;
       btn.dataset.botName = bot.name;
-      btn.dataset.pose = pose;
+      const hookPose: ThemePose = pose;
+      btn.dataset.pose = hookPose;
       btn.dataset.stationId = seat.station.id;
       btn.dataset.selected = String(bot.id === model.selectedBotId);
       btn.style.zIndex = "2";

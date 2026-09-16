@@ -7,9 +7,24 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 
+import {
+	PREFLIGHT_WAIT_MS,
+	THEME_CANVAS,
+	THEME_UNIT,
+	WORKING_WAIT_MS,
+	countPoses,
+	formatManifestLine,
+	formatWorkingTimeout,
+	preflightHooks,
+	resolveCapturePorts,
+	workingNeed,
+} from "./ready.mjs";
+
 const repoRoot = fileURLToPath(new URL("../..", import.meta.url));
-const GATEWAY_PORTS = [8044, 8045, 8046, 8047, 8048, 8049];
-const PREVIEW_PORTS = [5184, 5185, 5186, 5187, 5188, 5189];
+const DEFAULT_GATEWAY_PORTS = [8044, 8045, 8046, 8047, 8048, 8049];
+const DEFAULT_PREVIEW_PORTS = [5184, 5185, 5186, 5187, 5188, 5189];
+let GATEWAY_PORTS = DEFAULT_GATEWAY_PORTS;
+let PREVIEW_PORTS = DEFAULT_PREVIEW_PORTS;
 const HOMEBREW_FFMPEG = "/opt/homebrew/bin/ffmpeg";
 const MAC_CHROME = path.join(
 	os.homedir(),
@@ -93,6 +108,15 @@ function parseArgs(argv) {
 		throw new Error("--record must be a positive integer");
 	}
 	return options;
+}
+
+function applyCapturePorts(env) {
+	const ports = resolveCapturePorts(env, {
+		gateway: DEFAULT_GATEWAY_PORTS,
+		preview: DEFAULT_PREVIEW_PORTS,
+	});
+	GATEWAY_PORTS = ports.gateway;
+	PREVIEW_PORTS = ports.preview;
 }
 
 function parseBots(raw) {
@@ -414,12 +438,51 @@ async function readAvgFrameMs(page) {
 		if (html !== undefined && html.length > 0) {
 			return { value: html, source: "html" };
 		}
-		const canvas = document.querySelector("[data-testid=starcraft-canvas]");
+		const canvas = document.querySelector('[data-testid="theme-canvas"]');
 		if (canvas instanceof HTMLElement && canvas.dataset.avgFrameMs) {
 			return { value: canvas.dataset.avgFrameMs, source: "canvas" };
 		}
 		return { value: "n/a", source: "missing" };
 	});
+}
+
+async function readHookSnapshot(page) {
+	return page.evaluate(
+		({ canvasTestId, unitTestId }) => {
+			const canvases = [...document.querySelectorAll(`[data-testid="${canvasTestId}"]`)].map(
+				(el) => ({
+					unitCount: el instanceof HTMLElement ? (el.dataset.unitCount ?? "") : "",
+				}),
+			);
+			const units = [...document.querySelectorAll(`[data-testid="${unitTestId}"]`)].map((el) => ({
+				botId: el instanceof HTMLElement ? (el.dataset.botId ?? "") : "",
+				pose: el instanceof HTMLElement ? (el.dataset.pose ?? "") : "",
+			}));
+			return { canvases, units };
+		},
+		{ canvasTestId: THEME_CANVAS, unitTestId: THEME_UNIT },
+	);
+}
+
+async function assertThemeHooks(page, input) {
+	const deadline = Date.now() + PREFLIGHT_WAIT_MS;
+	let report;
+	while (true) {
+		const snap = await readHookSnapshot(page);
+		report = preflightHooks({
+			theme: input.theme,
+			bots: input.bots,
+			canvases: snap.canvases,
+			units: snap.units,
+		});
+		if (report.ok) {
+			return;
+		}
+		if (Date.now() >= deadline) {
+			throw new Error(report.message);
+		}
+		await pause(150);
+	}
 }
 
 async function preparePage(page, input) {
@@ -430,6 +493,7 @@ async function preparePage(page, input) {
 		null,
 		{ timeout: 30000 },
 	);
+	await assertThemeHooks(page, { theme: input.theme, bots: input.bots });
 	const htmlTheme = await page.evaluate(() => document.documentElement.dataset.theme ?? "");
 	if (htmlTheme !== input.theme) {
 		process.stderr.write(
@@ -443,50 +507,98 @@ async function preparePage(page, input) {
 	);
 }
 
-async function waitWorking(page) {
-	await page.waitForSelector('[data-testid="sc-unit"][data-pose="working"]', {
-		timeout: 45000,
-	});
+async function readPoseCounts(page) {
+	const poses = await page.evaluate((unitTestId) => {
+		return [...document.querySelectorAll(`[data-testid="${unitTestId}"]`)].map((el) =>
+			el instanceof HTMLElement ? (el.dataset.pose ?? "") : "",
+		);
+	}, THEME_UNIT);
+	return countPoses(poses);
+}
+
+async function waitWorking(page, input) {
+	const need = workingNeed(input.bots);
+	try {
+		await page.waitForFunction(
+			({ unitTestId, needCount }) => {
+				const units = [...document.querySelectorAll(`[data-testid="${unitTestId}"]`)];
+				const working = units.filter(
+					(el) => el instanceof HTMLElement && el.dataset.pose === "working",
+				).length;
+				return working >= needCount;
+			},
+			{ unitTestId: THEME_UNIT, needCount: need },
+			{ timeout: WORKING_WAIT_MS },
+		);
+	} catch (error) {
+		let poses;
+		try {
+			poses = await readPoseCounts(page);
+		} catch {
+			throw error;
+		}
+		throw new Error(
+			formatWorkingTimeout({
+				theme: input.theme,
+				n: input.bots,
+				need,
+				working: poses.working,
+				idle: poses.idle,
+				sleeping: poses.sleeping,
+			}),
+		);
+	}
 }
 
 async function waitAsleep(page) {
 	await page.waitForFunction(
-		() => {
-			const units = [...document.querySelectorAll('[data-testid="sc-unit"]')];
-			return units.length > 0 && units.every((el) => el.dataset.pose === "sleeping");
+		(unitTestId) => {
+			const units = [...document.querySelectorAll(`[data-testid="${unitTestId}"]`)];
+			return (
+				units.length > 0 &&
+				units.every((el) => el instanceof HTMLElement && el.dataset.pose === "sleeping")
+			);
 		},
-		null,
+		THEME_UNIT,
 		{ timeout: 35000 },
 	);
 }
 
 async function assertPainted(page, bots) {
-	const info = await page.evaluate((count) => {
-		const canvas = document.querySelector("[data-testid=starcraft-canvas]");
-		if (!(canvas instanceof HTMLCanvasElement)) {
-			return { ok: false, reason: "missing canvas" };
-		}
-		const unitCount = canvas.dataset.unitCount;
-		const rows = document.querySelectorAll("[data-testid=bot-row]").length;
-		const ctx = canvas.getContext("2d");
-		if (ctx === null) {
-			return { ok: false, reason: "no 2d context" };
-		}
-		const sample = ctx.getImageData(
-			Math.floor(canvas.width / 2),
-			Math.floor(canvas.height / 2),
-			48,
-			48,
-		).data;
-		const colors = new Set();
-		for (let i = 0; i < sample.length; i += 16) {
-			colors.add(`${sample[i]},${sample[i + 1]},${sample[i + 2]}`);
-		}
-		return {
-			ok: unitCount === String(count) && rows === count && colors.size >= 3,
-			reason: `unitCount=${unitCount} rows=${rows} colors=${colors.size}`,
-		};
-	}, bots);
+	const info = await page.evaluate(
+		({ count, canvasTestId, unitTestId }) => {
+			const canvas = document.querySelector(`[data-testid="${canvasTestId}"]`);
+			if (!(canvas instanceof HTMLElement)) {
+				return { ok: false, reason: "missing theme-canvas" };
+			}
+			const unitCount = canvas.dataset.unitCount;
+			const units = document.querySelectorAll(`[data-testid="${unitTestId}"]`).length;
+			let colors = 0;
+			if (canvas instanceof HTMLCanvasElement) {
+				const ctx = canvas.getContext("2d");
+				if (ctx === null) {
+					return { ok: false, reason: "no 2d context" };
+				}
+				const sample = ctx.getImageData(
+					Math.floor(canvas.width / 2),
+					Math.floor(canvas.height / 2),
+					48,
+					48,
+				).data;
+				const seen = new Set();
+				for (let i = 0; i < sample.length; i += 16) {
+					seen.add(`${sample[i]},${sample[i + 1]},${sample[i + 2]}`);
+				}
+				colors = seen.size;
+			}
+			const paintOk = canvas instanceof HTMLCanvasElement ? colors >= 3 : true;
+			return {
+				ok: unitCount === String(count) && units === count && paintOk,
+				reason: `unitCount=${unitCount} units=${units} colors=${colors}`,
+			};
+		},
+		{ count: bots, canvasTestId: THEME_CANVAS, unitTestId: THEME_UNIT },
+	);
 	if (!info.ok) {
 		throw new Error(`blank or empty capture: ${info.reason}`);
 	}
@@ -500,9 +612,7 @@ async function assertFile(filePath) {
 }
 
 function printManifest(input) {
-	process.stdout.write(
-		`${input.path}\tN=${String(input.n)}\ttheme=${input.theme}\tavgFrameMs=${input.avgFrameMs}\n`,
-	);
+	process.stdout.write(`${formatManifestLine(input)}\n`);
 	artifacts.push(input.path);
 }
 
@@ -518,10 +628,11 @@ async function captureStill(input) {
 		if (input.idle) {
 			await waitAsleep(page);
 		} else {
-			await waitWorking(page);
+			await waitWorking(page, { theme: input.theme, bots: input.bots });
 		}
 		await pause(800);
 		await assertPainted(page, input.bots);
+		const poses = await readPoseCounts(page);
 		const avg = await readAvgFrameMs(page);
 		if (avg.source === "missing") {
 			process.stderr.write("capture: warn document.documentElement.dataset.avgFrameMs is absent\n");
@@ -533,6 +644,9 @@ async function captureStill(input) {
 			n: input.bots,
 			theme: input.theme,
 			avgFrameMs: avg.source === "html" ? avg.value : "n/a",
+			working: poses.working,
+			idle: poses.idle,
+			sleeping: poses.sleeping,
 		});
 	} finally {
 		await page.close();
@@ -580,7 +694,7 @@ async function captureRecord(input) {
 	const page = await context.newPage();
 	try {
 		await preparePage(page, { url: pair.url, theme: input.theme, bots: RECORD_N });
-		await waitWorking(page);
+		await waitWorking(page, { theme: input.theme, bots: RECORD_N });
 		await pause(input.seconds * 1000);
 		const avg = await readAvgFrameMs(page);
 		if (avg.source === "missing") {
@@ -642,6 +756,7 @@ async function main() {
 		usage();
 		throw error;
 	}
+	applyCapturePorts(process.env);
 	await mkdir(options.out, { recursive: true });
 	if (options.record !== undefined) {
 		ffmpegBin = await resolveFfmpeg();

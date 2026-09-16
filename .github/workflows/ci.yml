@@ -16,6 +16,16 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - id: playwright-version
+        run: |
+          node -e "const pkg = require('./package-lock.json').packages['node_modules/playwright']; if (pkg === undefined || typeof pkg.version !== 'string') { throw new Error('playwright version missing from package-lock.json'); } process.stdout.write('version=' + pkg.version + '\n');" >> "$GITHUB_OUTPUT"
+      - id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
+      - if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install chromium
       - run: npm test
       - run: npm run typecheck
       - run: npm run build -w apps/client
