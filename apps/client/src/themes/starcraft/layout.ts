@@ -193,21 +193,3 @@ export function eventSignature(events: readonly ActivityEvent[] | undefined): st
   }
   return `${events.length}:${last.id}`;
 }
-
-export function fitLetterbox(input: {
-  worldW: number;
-  worldH: number;
-  viewW: number;
-  viewH: number;
-}): { x: number; y: number; w: number; h: number; scale: number } {
-  const scale = Math.min(input.viewW / input.worldW, input.viewH / input.worldH);
-  const w = input.worldW * scale;
-  const h = input.worldH * scale;
-  return {
-    x: (input.viewW - w) / 2,
-    y: (input.viewH - h) / 2,
-    w,
-    h,
-    scale,
-  };
-}

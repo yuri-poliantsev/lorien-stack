@@ -1,12 +1,12 @@
 import { parseBotId, type ActivityEvent, type BotId, type BotRecord } from "@lorien-stack/contracts";
 
+import type { Camera } from "../../camera.ts";
 import {
   STATIONS,
   WORLD_HEIGHT,
   WORLD_WIDTH,
   assignSeats,
   eventSignature,
-  fitLetterbox,
   poseFromPulse,
   type Seat,
   type UnitPose,
@@ -16,6 +16,7 @@ import { PALETTE, drawStation, drawTerrain, drawUnit, unitAccent, worldToView } 
 export type StarCraftRenderInput = {
   roster: readonly BotRecord[];
   activity: ReadonlyMap<BotId, readonly ActivityEvent[]>;
+  selectedBotId: BotId | undefined;
 };
 
 export type StarCraftHandle = {
@@ -64,8 +65,9 @@ type PulseState = {
 
 export function mountStarCraftTheme(
   root: HTMLElement,
-  input: { onSelect?: (botId: BotId) => void } = {},
+  input: { onSelect?: (botId: BotId) => void; camera: Camera },
 ): StarCraftHandle {
+  const camera = input.camera;
   root.dataset.theme = "starcraft";
   root.dataset.themeHost = "starcraft";
   root.dataset.themeDefault = "starcraft";
@@ -90,8 +92,8 @@ export function mountStarCraftTheme(
   let model: StarCraftRenderInput = {
     roster: [],
     activity: new Map(),
+    selectedBotId: undefined,
   };
-  let localSelected: BotId | undefined;
   const pulses = new Map<string, PulseState>();
   const seenAt = new Map<string, number>();
   let avgFrameMs = 16;
@@ -101,7 +103,7 @@ export function mountStarCraftTheme(
   const buildingHits = new Map<string, HTMLButtonElement>();
 
   function currentSelected(): BotId | undefined {
-    return localSelected;
+    return model.selectedBotId;
   }
 
   function poseFor(bot: BotRecord, now: number): UnitPose {
@@ -126,7 +128,6 @@ export function mountStarCraftTheme(
     el.addEventListener("click", (event) => {
       event.preventDefault();
       event.stopPropagation();
-      localSelected = botId;
       input.onSelect?.(botId);
     });
   }
@@ -169,6 +170,7 @@ export function mountStarCraftTheme(
       btn.dataset.botName = bot.name;
       btn.dataset.pose = pose;
       btn.dataset.stationId = seat.station.id;
+      btn.dataset.selected = String(bot.id === model.selectedBotId);
       btn.style.zIndex = "2";
       btn.setAttribute("aria-label", bot.name);
       const size = Math.max(28, 36 * box.scale);
@@ -216,6 +218,23 @@ export function mountStarCraftTheme(
     }
   }
 
+  function worldBox(): {
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+    scale: number;
+  } {
+    const origin = camera.worldToScreen({ x: 0, y: 0 });
+    return {
+      x: origin.x,
+      y: origin.y,
+      w: WORLD_WIDTH * camera.zoom,
+      h: WORLD_HEIGHT * camera.zoom,
+      scale: camera.zoom,
+    };
+  }
+
   function paint(): void {
     const started = performance.now();
     const now = started;
@@ -235,12 +254,7 @@ export function mountStarCraftTheme(
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.fillStyle = PALETTE.bar;
     ctx.fillRect(0, 0, cssW, cssH);
-    const box = fitLetterbox({
-      worldW: WORLD_WIDTH,
-      worldH: WORLD_HEIGHT,
-      viewW: cssW,
-      viewH: cssH,
-    });
+    const box = worldBox();
     ctx.save();
     ctx.beginPath();
     ctx.rect(box.x, box.y, box.w, box.h);
@@ -292,6 +306,11 @@ export function mountStarCraftTheme(
       }
       canvas.dataset.unitCount = String(model.roster.length);
       canvas.dataset.theme = "starcraft";
+      if (selected === undefined) {
+        delete canvas.dataset.selectedBotId;
+      } else {
+        canvas.dataset.selectedBotId = selected;
+      }
       root.dataset.unitCount = String(model.roster.length);
       root.dataset.staleSafe = "true";
       syncHits(seats, box, now);
@@ -316,21 +335,20 @@ export function mountStarCraftTheme(
 
   function onCanvasClick(event: MouseEvent): void {
     const rect = canvas.getBoundingClientRect();
-    const cssW = Math.max(1, rect.width);
-    const cssH = Math.max(1, rect.height);
-    const box = fitLetterbox({
-      worldW: WORLD_WIDTH,
-      worldH: WORLD_HEIGHT,
-      viewW: cssW,
-      viewH: cssH,
+    const world = camera.screenToWorld({
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top,
     });
-    const x = ((event.clientX - rect.left) / cssW) * cssW;
-    const y = ((event.clientY - rect.top) / cssH) * cssH;
-    if (x < box.x || y < box.y || x > box.x + box.w || y > box.y + box.h) {
+    if (
+      world.x < 0 ||
+      world.y < 0 ||
+      world.x > WORLD_WIDTH ||
+      world.y > WORLD_HEIGHT
+    ) {
       return;
     }
-    const worldX = (x - box.x) / box.scale;
-    const worldY = (y - box.y) / box.scale;
+    const worldX = world.x;
+    const worldY = world.y;
     const seats = assignSeats({ bots: model.roster });
     let best: { botId: BotId; d: number } | undefined;
     for (const bot of model.roster) {
@@ -346,7 +364,6 @@ export function mountStarCraftTheme(
       }
     }
     if (best !== undefined) {
-      localSelected = best.botId;
       input.onSelect?.(best.botId);
     }
   }
@@ -359,10 +376,7 @@ export function mountStarCraftTheme(
       return;
     }
     const ghost: BotRecord = { id: parsed.value, name: "" };
-    model = {
-      roster: [...model.roster, ghost],
-      activity: model.activity,
-    };
+    model = { ...model, roster: [...model.roster, ghost] };
     root.dataset.staleProbe = "true";
     paint();
   }
@@ -382,9 +396,6 @@ export function mountStarCraftTheme(
   return {
     render(next) {
       model = next;
-      if (localSelected !== undefined && !next.roster.some((bot) => bot.id === localSelected)) {
-        localSelected = undefined;
-      }
       for (const id of [...pulses.keys()]) {
         if (!next.roster.some((bot) => bot.id === id)) {
           pulses.delete(id);
