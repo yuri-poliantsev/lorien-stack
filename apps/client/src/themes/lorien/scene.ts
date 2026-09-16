@@ -3,6 +3,7 @@ import type { ActivityEvent, BotId, BotRecord } from "@lorien-stack/contracts";
 import { actionFromEvent, nametagFromBotName, pathFromToolEvent } from "../../actions.ts";
 import type { ThemeHandle, ThemeMountContext, ThemeRenderInput } from "../registry.ts";
 import {
+  FLET_BASE_WIDTH,
   WORLD_HEIGHT,
   WORLD_WIDTH,
   cellCentreX,
@@ -44,7 +45,6 @@ const DEFAULT_FONT = '"IBM Plex Mono", ui-monospace, monospace';
 const STYLE = `
 .theme-host[data-theme="lorien"] {
   position: relative;
-  padding: 0 !important;
   flex: 1 1 auto;
   width: 100%;
   height: 100%;
@@ -142,8 +142,6 @@ export function mountLorienTheme(root: HTMLElement, context: ThemeMountContext):
     });
   }
 
-  // Placement is pure in the roster, so it only has to be recomputed when the
-  // roster itself changes rather than on every frame.
   function currentLayout(): LorienLayout {
     const key = model.roster.map((bot) => bot.id).join(",");
     if (cachedLayout === undefined || cachedLayout.key !== key) {
@@ -171,8 +169,6 @@ export function mountLorienTheme(root: HTMLElement, context: ThemeMountContext):
     };
   }
 
-  // The clock is bucketed to ten minutes so the cached sky and layer bitmaps
-  // survive between frames instead of being rebuilt on every paint.
   function currentSky(): Sky {
     const now = new Date();
     const minutes = now.getHours() * 60 + Math.floor(now.getMinutes() / 10) * 10;
@@ -248,9 +244,10 @@ export function mountLorienTheme(root: HTMLElement, context: ThemeMountContext):
       poseNow.set(bot.id, poseFor(bot, now));
     }
 
-    // Quantised so a drag or a pinch does not re-rasterise every frame.
     const fletPx =
-      Math.round((layout.flets.values().next().value?.width ?? 210) * box.scale * dpr * 0.25) * 4;
+      Math.round(
+        (layout.flets.values().next().value?.width ?? FLET_BASE_WIDTH) * box.scale * dpr * 0.25,
+      ) * 4;
     const skinKey = `${String(sky.ambient)}|${String(fletPx)}`;
     if (skins === undefined || skinKey !== skinAmbient) {
       if (imagesReady(images) || skins === undefined) {

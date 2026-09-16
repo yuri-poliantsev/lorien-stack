@@ -3,16 +3,13 @@ import type { BotId, BotRecord } from "@lorien-stack/contracts";
 export const WORLD_WIDTH = 1920;
 export const WORLD_HEIGHT = 1080;
 
-// The shell's roster panel overlays the top-left of the world at up to 17rem.
-// 296 world px on a 1920 world clears it at a 1920-wide viewport, the same
-// reservation Mission Control makes.
 export const ROSTER_GUTTER = 296;
 const MARGIN_RIGHT = 78;
 const CANOPY_TOP = 168;
 const FOREST_FLOOR = 980;
 const MAX_TIERS = 5;
 
-const FLET_BASE_WIDTH = 210;
+export const FLET_BASE_WIDTH = 210;
 const FIGURE_RISE = 80;
 const SIGN_GAP = 16;
 const SIGN_HEIGHT = 34;
@@ -23,16 +20,11 @@ const SIGN_FILL = 0.7;
 const X_JITTER = 0.1;
 const Y_JITTER = 0.06;
 
-// The keyed flet raster's opaque bounding box, and where the deck surface falls
-// inside it. Every vertical measurement below hangs off the deck line, because
-// that is the line a figure stands on and a nametag hangs under.
 export const FLET_SPRITE = { sx: 13, sy: 88, sw: 232, sh: 113, deckFraction: 0.301 } as const;
 export const LANTERN_SPRITE = { sx: 79, sy: 47, sw: 98, sh: 159, glassFraction: 0.616 } as const;
 
 const FLET_ASPECT = FLET_SPRITE.sh / FLET_SPRITE.sw;
 
-// Everything one bot occupies vertically at scale 1: the figure above the deck,
-// the part of the raster below it, the drop to the sign, and the sign.
 const UNIT_EXTENT =
   FIGURE_RISE +
   FLET_BASE_WIDTH * FLET_ASPECT * (1 - FLET_SPRITE.deckFraction) +
@@ -106,10 +98,6 @@ export function cellCentreX(col: number, cols: number): number {
   return ROSTER_GUTTER + cellWidth(cols) * (col + 0.5);
 }
 
-// A flet shrinks when its cell does, in whichever axis runs out first, so
-// crowding above 24 bots costs size rather than clearance. The height term
-// leaves TIER_MARGIN of air even where two branches have jittered towards
-// each other, which is the case that decides whether 40 bots collide.
 export function fletScale(tiers: number, cols: number): number {
   const byWidth = (cellWidth(cols) * CELL_FILL) / FLET_BASE_WIDTH;
   const usable = tierSpacing(tiers) * (1 - 2 * Y_JITTER) - TIER_MARGIN;
@@ -184,8 +172,6 @@ export function layoutFlets(input: { bots: readonly BotRecord[] }): LorienLayout
 
   const flets = new Map<BotId, FletBox>();
   const taken = new Set<number>();
-  // Sorted by id so a reshuffled roster of the same bots probes the cells in
-  // the same order and every flet keeps its place.
   const ordered = [...input.bots].sort((a, b) => a.id.localeCompare(b.id));
 
   for (const bot of ordered) {

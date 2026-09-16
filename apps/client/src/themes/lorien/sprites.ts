@@ -83,9 +83,6 @@ export function robeFor(seed: number): string {
   return ROBES[seed % ROBES.length] ?? ROBES[0];
 }
 
-// The lantern haloes are the most expensive thing in the frame, because they are
-// the only large alpha blends. Their radius falls as the roster grows, which
-// holds total blended area roughly flat instead of letting it scale with N.
 export function glowScaleFor(count: number): number {
   return 1.4 * Math.sqrt(12 / Math.max(12, count));
 }
@@ -146,14 +143,8 @@ function glowBlob(radius: number, core: string, edge: string): HTMLCanvasElement
   return canvas;
 }
 
-// The lantern's drawn height as a share of the flet's drawn width, so both
-// skins can be rasterised at the size they are actually blitted at.
 const LANTERN_TO_FLET = 0.282;
 
-// One skin per pose rather than a per-flet filter: at 40 bots a filter change
-// per draw call is the difference between a 1ms frame and a 20ms one. The skins
-// are rasterised at their drawn size too, because resampling them on every one
-// of 40 blits cost more than the filter ever did.
 export function buildSkins(images: LorienImages, ambient: number, fletPx: number): LorienSkins {
   const fletW = Math.max(24, Math.round(fletPx));
   const fletH = Math.round((fletW * FLET_SPRITE.sh) / FLET_SPRITE.sw);
@@ -219,9 +210,6 @@ function parallax(box: ScreenBox, cssW: number, cssH: number, depth: number): { 
   };
 }
 
-// A branch is a filled ribbon rather than a stroke, so it can taper: thick where
-// it leaves the trunks at the frame edges, thin where it carries the flets.
-// Stroked at a constant width it read as a handrail.
 function branchHalfWidth(x: number, maxWidth: number): number {
   const fromCentre = Math.abs(x - WORLD_WIDTH / 2) / (WORLD_WIDTH / 2);
   return (maxWidth * (0.26 + 0.74 * fromCentre * fromCentre)) / 2;
@@ -247,7 +235,6 @@ function branchRibbon(
   ctx.fill();
 }
 
-// Twigs hanging off the underside, so a bough reads as growing rather than built.
 function branchTwigs(ctx: CanvasRenderingContext2D, branch: Branch, maxWidth: number): void {
   for (let i = 0; i < 18; i += 1) {
     const seed = hash32(`twig:${String(branch.tier)}:${String(i)}`);
@@ -312,8 +299,6 @@ export function paintBackdrop(input: {
   ctx.save();
   ctx.translate(box.x, box.y);
   ctx.scale(box.scale, box.scale);
-  // Warm grey-brown rather than near-black, with a cool lit edge along the top,
-  // so the bough belongs to the same wood as the trunks behind it.
   const tone = 64 + sky.ambient * 96;
   const rgb = (r: number, g: number, b: number, a: number): string =>
     `rgba(${String(Math.round(tone * r))},${String(Math.round(tone * g))},${String(
@@ -330,10 +315,6 @@ export function paintBackdrop(input: {
   }
   ctx.restore();
 
-  // Only the leaf crowns clear the bottom edge. An earlier pass drew this layer
-  // at half the frame height and it buried the lowest tier of flets. The canvas
-  // is cropped to the band it actually covers, because blending a full-viewport
-  // layer every frame cost more than everything drawn into it.
   const near = parallax(box, cssW, cssH, 1.22);
   const frontTop = Math.max(0, Math.floor(box.y + near.dy + box.h * 0.84));
   const front = surface(cssW, Math.max(1, cssH - frontTop));
@@ -635,8 +616,6 @@ const CHIP_INK: Record<FletPose, string> = {
   sleeping: PALETTE.inkDim,
 };
 
-// Clamped inside the bot's own cell. Cells are disjoint, so two chips can never
-// reach each other however long the path is.
 export function drawChip(
   ctx: CanvasRenderingContext2D,
   input: {
@@ -676,8 +655,6 @@ export function drawChip(
 
 const fittedText = new Map<string, { fitted: string; width: number }>();
 
-// Fitting a long path walks it a character at a time, and measureText is the
-// most expensive call in the frame. At 40 bots the uncached version cost 8.4ms.
 export function measureFitted(
   ctx: CanvasRenderingContext2D,
   text: string,
@@ -698,9 +675,6 @@ export function measureFitted(
   return value;
 }
 
-// A chip is state, action, path in priority order. When it overflows, the path
-// loses characters from the left first, then whole trailing segments go, so
-// the state word is the last thing standing. A plain name trims from the right.
 export function fitText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string {
   if (maxWidth <= 0 || ctx.measureText(text).width <= maxWidth) {
     return text;
@@ -733,8 +707,6 @@ export function drawAmbience(
   const flies = Math.min(34, 18 + Math.floor(input.count / 3));
   const dim = 1 - input.ambient * 0.55;
   ctx.fillStyle = PALETTE.firefly;
-  // Brightness is bucketed so the whole swarm draws in four fills rather than
-  // one globalAlpha change and one fill per firefly.
   for (let bucket = 0; bucket < 4; bucket += 1) {
     ctx.globalAlpha = dim * (0.34 + bucket * 0.22);
     ctx.beginPath();
@@ -763,8 +735,6 @@ export function drawLeafDrift(
   input: { t: number; ambient: number },
 ): void {
   ctx.fillStyle = `rgba(198,206,150,${(0.16 + input.ambient * 0.2).toFixed(3)})`;
-  // One path per leaf. Batching them into a single path joins each ellipse to
-  // the last with a line, which drew long diagonal streaks across the frame.
   for (let i = 0; i < 12; i += 1) {
     const phase = i * 1.7561;
     const fall = (input.t * 22 + phase * 260) % (WORLD_HEIGHT + 200);

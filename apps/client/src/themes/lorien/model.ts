@@ -28,8 +28,6 @@ const PROPS: Record<Action, ActionProp> = {
   unknown: "token",
 };
 
-// Every phase stays inside the concept frame's teal-to-purple range, so no
-// hour of the cycle reads paler than its dusk.
 const NIGHT: Sky = { name: "night", zenith: "#102838", mid: "#243050", horizon: "#12283c", ambient: 0.4 };
 const DAWN: Sky = { name: "dawn", zenith: "#3a4868", mid: "#8a5a58", horizon: "#2a4050", ambient: 0.58 };
 const DAY: Sky = { name: "day", zenith: "#3a7080", mid: "#6a88a0", horizon: "#2a5868", ambient: 0.95 };
@@ -85,8 +83,6 @@ export function inSceneLabel(input: {
 export const LABEL_SEPARATOR = " \u00b7 ";
 export const PATH_CHARS = 28;
 
-// Keeps whole trailing segments behind an ellipsis, so the file name and its
-// nearest directories survive and the repository root is what gets cut.
 export function shortPath(path: string, maxChars: number = PATH_CHARS): string {
   if (path.length <= maxChars) {
     return path;
@@ -106,9 +102,6 @@ export function shortPath(path: string, maxChars: number = PATH_CHARS): string {
   return `\u2026${kept}`;
 }
 
-// Minutes past midnight on the real clock. Night holds until 05:00, dawn
-// arrives by 07:00, day by 10:00, dusk at 20:00, and night again by midnight.
-// Reduced motion pins the concept frame's dusk.
 export function skyFromClock(input: { minutes: number; reducedMotion: boolean }): Sky {
   if (input.reducedMotion) {
     return DUSK;
