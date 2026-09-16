@@ -84,7 +84,8 @@ export function mountRosterPanel(
     const button = document.createElement("button");
     button.type = "button";
     button.className = "roster-row";
-    // Step 4's capture lever counts [data-testid=bot-row]; scripts/ is not this step's to edit.
+    // scripts/capture/capture.mjs counts this selector to know the roster has
+    // settled. Renaming it makes every captured screenshot fire early.
     button.dataset.testid = "bot-row";
     button.dataset.botId = row.botId;
     const dot = document.createElement("span");
