@@ -22,7 +22,7 @@ startOffsetMs(i) = i * staggerMs(N)
 
 40-bot stills on trunk read mostly idle because clones staggered by 1600 ms take 64 s to start and the lever shoots at about 10 s. Live presence over 60 s already showed 13-18 working.
 
-`.audit/bakeoff-common.md` already names `theme-canvas` and `theme-unit`.
+The hook contract is `data-testid="theme-canvas"` with `data-unit-count` on the surface, one `data-testid="theme-unit"` per bot with `data-bot-id` and `data-pose` in `working | idle | sleeping`, and click or Enter calling `onSelect`.
 
 Rebase onto `origin/main` `902731f` (PR 13 `b9dab72`, PR 12 `902731f`) was clean. `ThemeRenderInput.selectedBotId` was already on main. Scene kept that field and dropped the old test ids.
 
@@ -56,3 +56,5 @@ Waiting on header counts. The 03-shell strip uses its own event window, so heade
 ## Next step
 
 Wait for merge authorization at this head. Do not merge until the root says `merge authorized at <sha>`.
+
+A later owner should give the shell header strip and the theme's `poseFromPulse` one classification. At N=40 they disagreed (header 14 working, unit poses 17) because the strip uses its own event window.
