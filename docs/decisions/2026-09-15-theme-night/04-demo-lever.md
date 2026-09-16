@@ -76,6 +76,10 @@ Hardcoding only the laptop Homebrew ffmpeg path and the mac Playwright cache. Cl
 
 A fourth theme, a gallery picker, or client-side fixture replay. Those belong to later steps.
 
+## Outcome
+
+Squash-merged to `main` as `17e0b14` in [#11](https://github.com/yuri-poliantsev/lorien-stack/pull/11). The PR body records the four gates and the `ci` check passing at the head that merged; neither it nor this entry records test counts.
+
 ## Next step
 
 Step 5. Asset lever and the StarCraft rework, via bakeoff. The N=40 still shows twelve stations with stacked nametags. Generative layout is that step's job. Do not merge this PR until the root says `merge authorized at <sha>`.
