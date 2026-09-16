@@ -200,18 +200,29 @@ export function drawGround(
 
 const DUST_COUNT = 70;
 
+// Seeded once at module load rather than per frame; the loop runs sixty times a second and
+// the particles are meant to be the same specks drifting, not a new field each frame.
+const DUST = ((): readonly { speed: number; size: number; x: number; y: number }[] => {
+  const rnd = mulberry32(0x3af1);
+  const out: { speed: number; size: number; x: number; y: number }[] = [];
+  for (let i = 0; i < DUST_COUNT; i += 1) {
+    out.push({ speed: 12 + rnd() * 46, size: 1.4 + rnd() * 3.1, x: rnd(), y: rnd() });
+  }
+  return out;
+})();
+
 export function drawDust(
   ctx: CanvasRenderingContext2D,
   input: { w: number; h: number; t: number },
 ): void {
-  const rnd = mulberry32(0x3af1);
   ctx.fillStyle = "rgba(240, 222, 188, 0.30)";
-  for (let i = 0; i < DUST_COUNT; i += 1) {
-    const speed = 12 + rnd() * 46;
-    const size = 1.4 + rnd() * 3.1;
-    const baseY = rnd() * input.h;
-    const x = (rnd() * input.w + input.t * speed) % input.w;
-    const y = baseY + Math.sin(input.t * 0.5 + i) * input.h * 0.012;
-    ctx.fillRect(x, y, size, size);
+  for (let i = 0; i < DUST.length; i += 1) {
+    const mote = DUST[i];
+    if (mote === undefined) {
+      continue;
+    }
+    const x = (mote.x * input.w + input.t * mote.speed) % input.w;
+    const y = mote.y * input.h + Math.sin(input.t * 0.5 + i) * input.h * 0.012;
+    ctx.fillRect(x, y, mote.size, mote.size);
   }
 }

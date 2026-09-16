@@ -361,7 +361,7 @@ export function drawPlotLabel(ctx: CanvasRenderingContext2D, view: PlotView): vo
   ctx.font = `600 ${nameSize.toFixed(1)}px ${view.font}`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  const width = ctx.measureText(view.label.name).width + nameSize * 0.9;
+  const width = plateWidth(ctx, view.label.name, nameSize) + nameSize * 0.9;
   const height = nameSize * 1.5;
   ctx.fillStyle = asleep ? "rgba(222, 217, 200, 0.44)" : "rgba(240, 236, 218, 0.96)";
   ctx.fillRect(view.x - width / 2, plateY - height / 2, width, height);
@@ -399,6 +399,24 @@ export function drawPlotLabel(ctx: CanvasRenderingContext2D, view: PlotView): vo
     fill: "#d7dee6",
     font: view.font,
   });
+}
+
+// measureText runs a full text layout, and a forty-plot field asks for forty of them every
+// frame for names that change about once a minute.
+const PLATE_WIDTHS = new Map<string, number>();
+
+function plateWidth(ctx: CanvasRenderingContext2D, name: string, size: number): number {
+  const key = `${size.toFixed(1)}|${name}`;
+  const cached = PLATE_WIDTHS.get(key);
+  if (cached !== undefined) {
+    return cached;
+  }
+  const measured = ctx.measureText(name).width;
+  if (PLATE_WIDTHS.size > 400) {
+    PLATE_WIDTHS.clear();
+  }
+  PLATE_WIDTHS.set(key, measured);
+  return measured;
 }
 
 // Sand and concrete are both mid-tone, so a drop shadow left the action line half
