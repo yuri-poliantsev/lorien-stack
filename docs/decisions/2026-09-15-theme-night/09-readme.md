@@ -15,7 +15,7 @@ Product lines that were now false were rewritten in the same file.
 - The client table row names three themes, StarCraft default.
 - Next steps drops "a second theme only after observation". The list is friction from real runs, optional auth, and the Lorien Bot template. Friction here means reconnect and presence.
 
-The marketplace line keeps the three refusals. The sentence in front of it names the seam: three themes share one roster and activity feed.
+The marketplace line keeps the three refusals. The sentence in front of it names the seam. Three themes share one roster and activity feed.
 
 `docs/live.md` and the setup prompt were left alone. Neither claims a theme count.
 
