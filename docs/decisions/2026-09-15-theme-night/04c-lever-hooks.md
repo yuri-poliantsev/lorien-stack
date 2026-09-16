@@ -6,7 +6,7 @@ The capture lever waits on `theme-canvas` and `theme-unit` with poses `working |
 
 Demo start stagger is `min(1600, floor(12000 / N))` ms so every tape starts within about 12 s. Quiet and sleep holds stay at 4000 ms and 3000 ms.
 
-StarCraft switches to the same hook names after PR 13 merges. Constants live in `apps/client/src/themes/hooks.ts`.
+StarCraft emits the same hook names through constants in `apps/client/src/themes/hooks.ts`. `theme-canvas` is on the canvas before the first paint, with `data-unit-count` updated on every render. Each bot has one `theme-unit` button with `data-bot-id` and `data-pose`. Click (and native Enter on that button) calls `onSelect`.
 
 ## Data shape
 
@@ -24,11 +24,26 @@ startOffsetMs(i) = i * staggerMs(N)
 
 `.audit/bakeoff-common.md` already names `theme-canvas` and `theme-unit`.
 
-Gates at `d6f5267` plus the follow-up ready tests: `npm test`, `typecheck`, `build -w apps/client`, and `docs:smoke` pass. Injected-clock first emit times are `[0]`, `[0, 1500, …, 10500]`, and `[0, 300, …, 11700]`. `workingNeed` is 1 / 3 / 14 at N=1 / 8 / 40. A still manifest line is `…\tworking=14\tidle=18\tsleeping=8`.
+Rebase onto `origin/main` `902731f` (PR 13 `b9dab72`, PR 12 `902731f`) was clean. `ThemeRenderInput.selectedBotId` was already on main. Scene kept that field and dropped the old test ids.
 
-`rg -n "sc-unit|starcraft-canvas" apps scripts docs` still hits `apps/client/src/themes/starcraft/scene.ts` (three lines) and two decision entries. Those scene lines wait for PR 13. Capture no longer names them.
+Gates after the hook switch: `npm test`, `typecheck`, `build -w apps/client`, and `docs:smoke` pass. Injected-clock first emit times are `[0]`, `[0, 1500, …, 10500]`, and `[0, 300, …, 11700]`. `workingNeed` is 1 / 3 / 14 at N=1 / 8 / 40.
 
-The 40-unit `theme-canvas` / `theme-unit` page assertion and the reshoot of `docs/images/themes/starcraft-{1,8,18,40}.png` wait on the rebase onto 13. This branch does not touch `scene.ts` or `registry.ts` until then.
+`scripts/capture/hooks-page.test.mjs` loads a StarCraft page against `--demo --bots 40` and asserts one `theme-canvas` with `data-unit-count="40"` and 40 `theme-unit` nodes. `npm test` ran it in 1.5 s.
+
+`rg -n "sc-unit|starcraft-canvas" apps scripts` is empty. The same search over `docs` hits only `04-demo-lever.md` and this file.
+
+Capture on this head, `npm run capture -- --theme starcraft --bots 1,8,18,40 --out docs/images/themes --record 20`:
+
+```
+starcraft-1.png	N=1	working=1	idle=0	sleeping=0	avgFrameMs=1.26
+starcraft-8.png	N=8	working=3	idle=5	sleeping=0	avgFrameMs=0.86
+starcraft-18.png	N=18	working=7	idle=11	sleeping=0	avgFrameMs=1.04
+starcraft-40.png	N=40	working=17	idle=23	sleeping=0	avgFrameMs=1.68
+starcraft-8-asleep.png	N=8	working=0	idle=0	sleeping=8	avgFrameMs=0.98
+starcraft.mp4	N=18	avgFrameMs=1.12
+```
+
+Viewed every still. Header counts: 1/0/0, 3/5/0, 7/11/0, **14/26/0**, 0/0/8. The 40-bot header is 14 working. The manifest line is 17 working. Both are at least 13. Header and unit poses still disagree (step 3 strip vs `poseFromPulse`).
 
 ## What was rejected and why
 
@@ -40,4 +55,4 @@ Waiting on header counts. The 03-shell strip uses its own event window, so heade
 
 ## Next step
 
-Wait for PR 13 to merge. Rebase onto `origin/main` and resolve `scene.ts` toward 13's `ThemeRenderInput.selectedBotId` (no `localSelected`). Switch StarCraft to the hook constants, add the 40-unit page assertion, reshoot the stills, then open the PR. Do not merge until authorized.
+Wait for merge authorization at this head. Do not merge until the root says `merge authorized at <sha>`.
