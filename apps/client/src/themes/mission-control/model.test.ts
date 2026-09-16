@@ -13,12 +13,14 @@ import {
 import {
   SPARK_BUCKETS,
   accentForHour,
+  actionLine,
   activityBars,
   boardClock,
   cardModel,
   metricText,
   poseFor,
   tallyPoses,
+  truncateLeft,
 } from "./model.ts";
 
 const NOW = Date.parse("2026-09-15T21:00:00.000Z");
@@ -122,25 +124,43 @@ describe("mission control card model", () => {
       ],
       nowMs: NOW,
       firstSeenMs: NOW - 90_000,
+      lineChars: 40,
     });
     assert.deepEqual(
       {
         pose: model.pose,
         state: model.state,
-        action: model.action,
-        path: model.path,
+        line: model.line,
         age: model.age,
         events: model.events,
       },
       {
         pose: "working",
         state: "working",
-        action: "reading",
-        path: "apps/gateway/src/presence.ts",
+        line: "\u2192 reading \u00B7 apps/gateway/src/presence.ts",
         age: "6s",
         events: 1,
       },
     );
+  });
+
+  it("truncates a long path from the left so the file name survives a narrow card", () => {
+    const model = cardModel({
+      bot: bot("Anouk"),
+      events: [
+        toolEvent({
+          seq: 6,
+          agoMs: 6_000,
+          toolName: "read_file",
+          text: '{"path":"apps/gateway/src/presence.ts"}',
+        }),
+      ],
+      nowMs: NOW,
+      firstSeenMs: NOW - 90_000,
+      lineChars: 22,
+    });
+    assert.equal(model.line, "\u2192 reading \u00B7 \u2026esence.ts");
+    assert.equal(model.line.length, 22);
   });
 
   it("normalises the nametag to NFKC", () => {
@@ -149,6 +169,7 @@ describe("mission control card model", () => {
       events: undefined,
       nowMs: NOW,
       firstSeenMs: NOW,
+      lineChars: 40,
     });
     assert.equal(model.name, "Luc\u00EDa");
   });
@@ -159,10 +180,11 @@ describe("mission control card model", () => {
       events: [toolEvent({ seq: 7, agoMs: 15_000, toolName: "shell", text: "{}" })],
       nowMs: NOW,
       firstSeenMs: NOW - 300_000,
+      lineChars: 40,
     });
     assert.deepEqual(
-      { pose: model.pose, action: model.action, path: model.path, age: model.age },
-      { pose: "idle", action: "shell", path: "", age: "15s" },
+      { pose: model.pose, line: model.line, age: model.age },
+      { pose: "idle", line: "$ shell", age: "15s" },
     );
   });
 
@@ -179,10 +201,11 @@ describe("mission control card model", () => {
       ],
       nowMs: NOW,
       firstSeenMs: NOW - 300_000,
+      lineChars: 40,
     });
     assert.deepEqual(
-      { pose: model.pose, state: model.state, name: model.name, action: model.action, path: model.path, age: model.age },
-      { pose: "sleeping", state: "asleep", name: "Reed", action: "", path: "", age: "\u2013" },
+      { pose: model.pose, state: model.state, name: model.name, line: model.line, age: model.age },
+      { pose: "sleeping", state: "asleep", name: "Reed", line: "", age: "\u2013" },
     );
   });
 
@@ -192,6 +215,7 @@ describe("mission control card model", () => {
       events: undefined,
       nowMs: NOW,
       firstSeenMs: NOW - 3_000,
+      lineChars: 40,
     });
     assert.deepEqual(
       {
@@ -203,6 +227,34 @@ describe("mission control card model", () => {
       },
       { pose: "idle", state: "idle", name: "Ivo", age: "\u2013", events: 0 },
     );
+  });
+});
+
+describe("mission control action line", () => {
+  it("prefixes each action word with its glyph and joins the path with a middle dot", () => {
+    assert.deepEqual(
+      (["reading", "writing", "shell", "talking", "thinking", "unknown"] as const).map((action) =>
+        actionLine({ action, path: undefined, maxChars: 40 }),
+      ),
+      ["\u2192 reading", "\u270E writing", "$ shell", "\u2026 talking", "? thinking", "\u00B7 unknown"],
+    );
+    assert.equal(
+      actionLine({ action: "writing", path: "src/a.ts", maxChars: 40 }),
+      "\u270E writing \u00B7 src/a.ts",
+    );
+  });
+
+  it("keeps at least six path characters even when the budget is tighter than the action word", () => {
+    assert.equal(
+      actionLine({ action: "reading", path: "apps/client/src/main.ts", maxChars: 8 }),
+      "\u2192 reading \u00B7 \u2026in.ts",
+    );
+  });
+
+  it("truncates from the left with one leading ellipsis", () => {
+    assert.equal(truncateLeft("abcdef", 6), "abcdef");
+    assert.equal(truncateLeft("abcdef", 4), "\u2026def");
+    assert.equal(truncateLeft("abcdef", 1), "\u2026");
   });
 });
 

@@ -14,6 +14,9 @@ export const SPARK_BUCKETS = 20;
 export const SPARK_BUCKET_MS = 3_000;
 
 const DASH = "\u2013";
+const ELLIPSIS = "\u2026";
+const MIDDLE_DOT = "\u00B7";
+const MIN_PATH_CHARS = 6;
 
 export type CardPose = "working" | "idle" | "sleeping";
 
@@ -86,13 +89,47 @@ export function metricText(n: number): string {
   return String(n).padStart(2, "0");
 }
 
+export const ACTION_GLYPHS: Record<Action, string> = {
+  reading: "\u2192",
+  writing: "\u270E",
+  shell: "$",
+  talking: "\u2026",
+  thinking: "?",
+  unknown: "\u00B7",
+};
+
+// Keeps the file name, the part a watcher reads, and drops leading directories.
+// String logic rather than a CSS `direction: rtl` ellipsis, which reorders bidi text.
+export function truncateLeft(text: string, maxChars: number): string {
+  if (text.length <= maxChars) {
+    return text;
+  }
+  if (maxChars <= 1) {
+    return ELLIPSIS;
+  }
+  return `${ELLIPSIS}${text.slice(text.length - (maxChars - 1))}`;
+}
+
+export function actionLine(input: {
+  action: Action;
+  path: string | undefined;
+  maxChars: number;
+}): string {
+  const head = `${ACTION_GLYPHS[input.action]} ${input.action}`;
+  if (input.path === undefined) {
+    return head;
+  }
+  const separator = ` ${MIDDLE_DOT} `;
+  const room = input.maxChars - head.length - separator.length;
+  return `${head}${separator}${truncateLeft(input.path, Math.max(MIN_PATH_CHARS, room))}`;
+}
+
 export type CardModel = {
   botId: BotId;
   name: string;
   pose: CardPose;
   state: string;
-  action: Action | "";
-  path: string;
+  line: string;
   age: string;
   events: number;
   bars: readonly number[];
@@ -103,6 +140,7 @@ export function cardModel(input: {
   events: readonly ActivityEvent[] | undefined;
   nowMs: number;
   firstSeenMs: number;
+  lineChars: number;
 }): CardModel {
   const events = input.events ?? [];
   const last = events[events.length - 1];
@@ -116,8 +154,14 @@ export function cardModel(input: {
     name: nametagFromBotName(input.bot.name),
     pose,
     state: POSE_WORDS[pose],
-    action: last === undefined || quiet ? "" : actionFromEvent(last),
-    path: last === undefined || quiet ? "" : (pathFromToolEvent(last) ?? ""),
+    line:
+      last === undefined || quiet
+        ? ""
+        : actionLine({
+            action: actionFromEvent(last),
+            path: pathFromToolEvent(last),
+            maxChars: input.lineChars,
+          }),
     age: lastAt === undefined || quiet ? DASH : ageLabel(msSinceActivity),
     events: events.length,
     bars: activityBars({ events, nowMs: input.nowMs }),

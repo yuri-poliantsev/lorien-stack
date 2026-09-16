@@ -118,10 +118,18 @@ export type CardScale = {
   name: number;
   state: number;
   meta: number;
-  path: number;
   pad: number;
   spark: number;
+  chars: number;
 };
+
+// Mono advance measured at 0.58em in the shell's font stack; 0.6 leaves slack for
+// the arrow and ellipsis glyphs, which fall back to a proportional font.
+const MONO_ADVANCE = 0.6;
+const AGE_CHARS = 3;
+// 4px accent edge, 4px extra left padding, 1px right border.
+const CARD_EDGE = 9;
+const META_GAP = 10;
 
 function step(low: number, value: number, high: number): number {
   return Math.min(high, Math.max(low, Math.round(value)));
@@ -130,15 +138,18 @@ function step(low: number, value: number, high: number): number {
 export function cardScale(card: { cardW: number; cardH: number }): CardScale {
   const w = Number.isFinite(card.cardW) ? Math.max(0, card.cardW) : 0;
   const h = Number.isFinite(card.cardH) ? Math.max(0, card.cardH) : 0;
+  const meta = step(10, w * 0.055, 15);
+  const pad = step(10, w * 0.05, 22);
+  const lineWidth = w - pad * 2 - CARD_EDGE - META_GAP - AGE_CHARS * MONO_ADVANCE * meta;
   return {
     name: step(15, w * 0.105, 34),
     state: step(9, w * 0.042, 13),
-    meta: step(10, w * 0.055, 15),
-    path: step(9, w * 0.05, 13),
-    pad: step(10, w * 0.05, 22),
+    meta,
+    pad,
     // The chart is the card's body, not a footnote: it takes the slack the header
     // leaves, so a roomy card reads as a plot and a crowded one still reads as bars.
     spark: step(20, h * 0.42, 176),
+    chars: Math.max(8, Math.floor(lineWidth / (MONO_ADVANCE * meta))),
   };
 }
 

@@ -57,7 +57,6 @@ const STYLE = `
   --mc-name-size: 24px;
   --mc-state-size: 11px;
   --mc-meta-size: 12px;
-  --mc-path-size: 11px;
   --mc-pad: 16px;
   --mc-spark-h: 20px;
   display: block;
@@ -224,15 +223,16 @@ const STYLE = `
   color: var(--mc-dim);
   font-variant-numeric: tabular-nums;
 }
-.mc-path {
-  margin-top: 0.3em;
+.mc-line {
+  min-width: 0;
   overflow: hidden;
-  color: var(--mc-dim);
-  direction: rtl;
-  font-size: var(--mc-path-size);
-  text-align: left;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+.mc-head,
+.mc-name,
+.mc-meta {
+  flex-shrink: 0;
 }
 .mc-foot {
   display: flex;
@@ -358,9 +358,8 @@ type Card = {
   el: HTMLButtonElement;
   state: HTMLElement;
   name: HTMLElement;
-  action: HTMLElement;
+  line: HTMLElement;
   age: HTMLElement;
-  path: HTMLElement;
   count: HTMLElement;
   bars: readonly HTMLElement[];
   written: CardModel | undefined;
@@ -509,9 +508,8 @@ export function mountMissionControlTheme(
     span("mc-dot", head);
     const name = span("mc-name", el);
     const meta = span("mc-meta", el);
-    const action = span("mc-action", meta);
+    const line = span("mc-line", meta);
     const age = span("mc-age", meta);
-    const path = span("mc-path", el);
     const foot = span("mc-foot", el);
     const spark = span("mc-spark", foot);
     const bars: HTMLElement[] = [];
@@ -524,9 +522,8 @@ export function mountMissionControlTheme(
       el,
       state,
       name,
-      action,
+      line,
       age,
-      path,
       count,
       bars,
       written: undefined,
@@ -544,14 +541,11 @@ export function mountMissionControlTheme(
     if (prev === undefined || prev.name !== next.name) {
       card.name.textContent = next.name;
     }
-    if (prev === undefined || prev.action !== next.action) {
-      card.action.textContent = next.action;
+    if (prev === undefined || prev.line !== next.line) {
+      card.line.textContent = next.line;
     }
     if (prev === undefined || prev.age !== next.age) {
       card.age.textContent = next.age;
-    }
-    if (prev === undefined || prev.path !== next.path) {
-      card.path.textContent = next.path;
     }
     if (prev === undefined || prev.events !== next.events) {
       setCount(next.botId, card.count, next.events);
@@ -578,7 +572,6 @@ export function mountMissionControlTheme(
     grid.style.setProperty("--mc-name-size", `${String(scale.name)}px`);
     grid.style.setProperty("--mc-state-size", `${String(scale.state)}px`);
     grid.style.setProperty("--mc-meta-size", `${String(scale.meta)}px`);
-    grid.style.setProperty("--mc-path-size", `${String(scale.path)}px`);
     grid.style.setProperty("--mc-pad", `${String(scale.pad)}px`);
     grid.style.setProperty("--mc-spark-h", `${String(scale.spark)}px`);
   }
@@ -635,6 +628,7 @@ export function mountMissionControlTheme(
         events: model.activity.get(bot.id),
         nowMs,
         firstSeenMs: firstSeen.get(bot.id) ?? nowMs,
+        lineChars: scale.chars,
       });
       poses.push(next.pose);
       writeCard(card, next);

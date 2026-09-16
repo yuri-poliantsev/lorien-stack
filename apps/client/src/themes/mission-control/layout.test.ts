@@ -162,14 +162,14 @@ describe("mission control type scale", () => {
     assert.equal(cardScale({ cardW: 0, cardH: 0 }).name, 15);
   });
 
-  it("holds the meta and path type at a readable floor at forty", () => {
+  it("holds the meta type at a readable floor at forty and leaves room for a short action line", () => {
     assert.deepEqual(cardScale(gridFor(40)), {
       name: 19,
       state: 9,
       meta: 10,
-      path: 9,
       pad: 10,
       spark: 66,
+      chars: 21,
     });
   });
 
@@ -178,10 +178,15 @@ describe("mission control type scale", () => {
       name: 34,
       state: 13,
       meta: 15,
-      path: 13,
       pad: 22,
       spark: 156,
+      chars: 38,
     });
+  });
+
+  it("never asks for fewer than eight characters on the action line", () => {
+    assert.equal(cardScale({ cardW: 0, cardH: 0 }).chars, 8);
+    assert.equal(cardScale(gridFor(8)).chars, 33);
   });
 
   it("grows the chart with the card so a roomy card is not mostly empty", () => {
