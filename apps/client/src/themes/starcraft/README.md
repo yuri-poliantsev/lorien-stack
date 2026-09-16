@@ -22,8 +22,9 @@ column, which is what makes a rectangular field read as an isometric floor and l
 world fill up instead of leaving a diamond's empty corners.
 
 The grid shape is chosen by trying every row count and keeping the one that yields the
-largest cell, capped at 400 so a single bot does not fill the screen. Eight bots land on
-four columns by two rows at a 400-unit cell, forty on eight by five at 190.
+largest cell, capped at 400 so a single bot does not fill the screen. The left edge of
+every pad stays at or right of 296 so the roster panel never covers a plot. Eight bots
+land on four columns by two rows at a 352-unit cell, forty on eight by five at 186.
 
 ## Files
 

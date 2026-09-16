@@ -3,7 +3,8 @@ import type { BotId, BotRecord } from "@lorien-stack/contracts";
 export const WORLD_WIDTH = 1920;
 export const WORLD_HEIGHT = 1040;
 
-const MARGIN_X = 40;
+export const ROSTER_GUTTER = 296;
+const MARGIN_RIGHT = 40;
 // The back row is meant to crowd the rock wall the backdrop paints across the top, the
 // way the concept frame does, so the top margin only keeps nametags on canvas.
 const MARGIN_TOP = 56;
@@ -43,7 +44,7 @@ export function hash32(input: string): number {
 
 export function planGrid(count: number): Grid {
   const n = Math.min(MAX_BOTS, Math.max(1, Math.trunc(count)));
-  const availW = WORLD_WIDTH - 2 * MARGIN_X;
+  const availW = WORLD_WIDTH - ROSTER_GUTTER - MARGIN_RIGHT;
   const availH = WORLD_HEIGHT - MARGIN_TOP - MARGIN_BOTTOM;
   let cols = 1;
   let rows = 1;
@@ -62,7 +63,7 @@ export function planGrid(count: number): Grid {
     cols,
     rows,
     cell,
-    originX: (WORLD_WIDTH - spanX) / 2,
+    originX: ROSTER_GUTTER + (availW - spanX) / 2,
     originY: MARGIN_TOP + (availH - rows * PLOT_HEIGHT * cell) / 2 + PLOT_ABOVE * cell,
   };
 }

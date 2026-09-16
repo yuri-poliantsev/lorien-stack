@@ -67,7 +67,7 @@ describe("starcraft grid plan", () => {
     const eight = planGrid(8).cell;
     const twentyFour = planGrid(24).cell;
     const forty = planGrid(40).cell;
-    assert.equal(Math.round(eight), 400, "eight bots sit at the cell cap");
+    assert.equal(Math.round(eight), 352, "eight bots fill the width left of the roster");
     assert.equal(Math.round(twentyFour), 233, "twenty-four bots shrink to 233");
     assert.equal(Math.round(forty), 186, "forty bots shrink to 186");
     assert.ok(eight > twentyFour && twentyFour > forty, "cell size falls as the roster grows");
@@ -149,6 +149,19 @@ describe("starcraft plot assignment", () => {
       "forty bots hold forty distinct cells",
     );
     assert.equal(layout.grid.cols * layout.grid.rows, 40, "the grid is exactly full at forty");
+  });
+
+  it("keeps every pad left of the roster panel from one bot through forty", () => {
+    for (let n = 1; n <= 40; n += 1) {
+      const layout = layoutFor(roster(n));
+      const half = layout.grid.cell * 0.44;
+      for (const plot of layout.plots.values()) {
+        assert.ok(
+          plot.x - half >= 296,
+          `n=${String(n)} plot ${String(plot.index)} left edge ${String(plot.x - half)} sits under the roster`,
+        );
+      }
+    }
   });
 
   it("staggers odd rows by half a column so the field reads as isometric", () => {
