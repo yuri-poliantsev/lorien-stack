@@ -5,14 +5,16 @@ import type { ThemePose } from "../hooks.ts";
 
 export type PlotLabel = { name: string; status: string; path: string };
 
-// Budgeted so the path line stays narrower than a pad at forty bots, where the plot is
-// 167 world units wide and the mono glyph is about 7.
+// At eight bots a pad takes about 24 mono glyphs. At forty the chip is narrower, so the
+// path budget drops to 16 and shortenPath keeps the filename.
 export const PATH_CHARS = 24;
+export const PATH_CHARS_CROWDED = 16;
 
 export function plotLabel(input: {
   name: string;
   pose: ThemePose;
   events: readonly ActivityEvent[] | undefined;
+  maxChars?: number;
 }): PlotLabel {
   const name = nametagFromBotName(input.name);
   if (input.pose === "sleeping") {
@@ -26,10 +28,11 @@ export function plotLabel(input: {
   if (last === undefined) {
     return { name, status: "WORKING", path: "" };
   }
+  const budget = input.maxChars ?? PATH_CHARS;
   return {
     name,
     status: `WORKING · ${actionFromEvent(last).toUpperCase()}`,
-    path: shortenPath(pathFromToolEvent(last) ?? "", PATH_CHARS),
+    path: shortenPath(pathFromToolEvent(last) ?? "", budget),
   };
 }
 

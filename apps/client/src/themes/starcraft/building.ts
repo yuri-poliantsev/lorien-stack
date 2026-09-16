@@ -21,6 +21,7 @@ export type PlotView = {
   motion: boolean;
   font: string;
   sprite: Sprite | undefined;
+  tagLift: number;
 };
 
 type Point = { x: number; y: number };
@@ -356,7 +357,7 @@ export function drawPlotLabel(ctx: CanvasRenderingContext2D, view: PlotView): vo
   const asleep = view.pose === "sleeping";
   const nameSize = Math.max(9, S * 0.078);
   // Clear of the roof beacon, which sits within a pixel or two of the sheet's top edge.
-  const plateY = buildingRect(view).y - S * 0.095;
+  const plateY = buildingRect(view).y - S * 0.095 - view.tagLift;
 
   ctx.font = `600 ${nameSize.toFixed(1)}px ${view.font}`;
   ctx.textAlign = "center";

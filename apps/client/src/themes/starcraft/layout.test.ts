@@ -179,4 +179,25 @@ describe("starcraft plot assignment", () => {
       "row one sits one plot height below row zero",
     );
   });
+
+  it("lifts nametags on odd cells once the roster passes twenty-four", () => {
+    const packed = layoutFor(roster(24));
+    for (const plot of packed.plots.values()) {
+      assert.equal(plot.tagLift, 0, `n=24 plot ${String(plot.index)} stays unlifted`);
+    }
+    const full = layoutFor(roster(40));
+    const odd = [...full.plots.values()].filter((plot) => (plot.col + plot.row) % 2 === 1);
+    const even = [...full.plots.values()].filter((plot) => (plot.col + plot.row) % 2 === 0);
+    assert.ok(odd.length > 0 && even.length > 0, "forty bots occupy both parities");
+    for (const plot of even) {
+      assert.equal(plot.tagLift, 0, `even cell ${String(plot.index)} stays unlifted`);
+    }
+    for (const plot of odd) {
+      assert.equal(
+        Math.round(plot.tagLift),
+        22,
+        `odd cell ${String(plot.index)} lifts 22 world units at forty`,
+      );
+    }
+  });
 });

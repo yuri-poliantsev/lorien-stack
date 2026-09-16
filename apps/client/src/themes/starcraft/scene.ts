@@ -4,7 +4,7 @@ import { actionFromEvent } from "../../actions.ts";
 import type { Camera } from "../../camera.ts";
 import { THEME_CANVAS_TESTID, THEME_UNIT_TESTID, type ThemePose } from "../hooks.ts";
 import { drawPlot, drawPlotLabel, kindFor, propFor, type PlotView } from "./building.ts";
-import { plotLabel } from "./label.ts";
+import { PATH_CHARS, PATH_CHARS_CROWDED, plotLabel } from "./label.ts";
 import {
   PLOT_ABOVE,
   PLOT_HEIGHT,
@@ -147,13 +147,19 @@ export function mountStarCraftTheme(
       prop: propFor(bot.id),
       pose,
       action: pose === "working" && last !== undefined ? actionFromEvent(last) : "unknown",
-      label: plotLabel({ name: bot.name, pose, events }),
+      label: plotLabel({
+        name: bot.name,
+        pose,
+        events,
+        maxChars: model.roster.length > 24 ? PATH_CHARS_CROWDED : PATH_CHARS,
+      }),
       selected: bot.id === model.selectedBotId,
       phase: (hash32(bot.id) % 1000) / 1000,
       t,
       motion,
       font,
       sprite: sprites[kind],
+      tagLift: plot.tagLift,
     };
   }
 

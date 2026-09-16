@@ -22,6 +22,7 @@ export const PLOT_HEIGHT = PLOT_ABOVE + PLOT_BELOW;
 // Odd rows shift half a column, which is what makes a rectangular field of plots read
 // as an isometric floor instead of a spreadsheet.
 const ROW_STAGGER = 0.5;
+const TAG_LIFT = 0.12;
 
 export type Grid = {
   cols: number;
@@ -31,7 +32,7 @@ export type Grid = {
   originY: number;
 };
 
-export type Plot = { index: number; col: number; row: number; x: number; y: number };
+export type Plot = { index: number; col: number; row: number; x: number; y: number; tagLift: number };
 
 export function hash32(input: string): number {
   let h = 2166136261;
@@ -68,15 +69,17 @@ export function planGrid(count: number): Grid {
   };
 }
 
-export function plotAt(grid: Grid, index: number): Plot {
+export function plotAt(grid: Grid, index: number, count = 0): Plot {
   const row = Math.floor(index / grid.cols);
   const col = index - row * grid.cols;
+  const odd = (col + row) % 2 === 1;
   return {
     index,
     col,
     row,
     x: grid.originX + (col + (row % 2) * ROW_STAGGER) * grid.cell,
     y: grid.originY + row * PLOT_HEIGHT * grid.cell,
+    tagLift: count > 24 && odd ? grid.cell * TAG_LIFT : 0,
   };
 }
 
@@ -99,7 +102,7 @@ export function layoutFor(bots: readonly BotRecord[]): Layout {
       }
     }
     taken.add(chosen);
-    plots.set(bot.id, plotAt(grid, chosen));
+    plots.set(bot.id, plotAt(grid, chosen, bots.length));
   }
   return { grid, plots };
 }

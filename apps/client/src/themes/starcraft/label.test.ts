@@ -93,6 +93,20 @@ describe("starcraft path shortening", () => {
     assert.equal(shortenPath("a/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 12), "…bbbbbbbbbbb");
   });
 
+  it("keeps the filename at the forty-bot budget of sixteen characters", () => {
+    assert.equal(
+      shortenPath("apps/gateway/src/presence.ts", 16),
+      "…/presence.ts",
+    );
+    const label = plotLabel({
+      name: "Anouk",
+      pose: "working",
+      events: [toolEvent("read_file", '{"target_file":"apps/gateway/src/presence.ts"}')],
+      maxChars: 16,
+    });
+    assert.equal(label.path, "…/presence.ts", "plotLabel uses the crowded budget");
+  });
+
   it("returns an empty string unchanged", () => {
     assert.equal(shortenPath("", 30), "");
   });
