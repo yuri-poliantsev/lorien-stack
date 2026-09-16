@@ -7,7 +7,7 @@
     "apps/*"
   ],
   "scripts": {
-    "test": "npm test --workspaces",
+    "test": "npm test --workspaces && node --test scripts/capture/ready.test.mjs",
     "docs:smoke": "node scripts/docs-smoke.mjs",
     "typecheck": "npm run typecheck --workspaces",
     "gateway": "node --disable-warning=ExperimentalWarning --experimental-strip-types apps/gateway/src/main.ts",

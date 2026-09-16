@@ -7,6 +7,15 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 
+import {
+	THEME_CANVAS,
+	THEME_UNIT,
+	WORKING_WAIT_MS,
+	countPoses,
+	formatManifestLine,
+	workingNeed,
+} from "./ready.mjs";
+
 const repoRoot = fileURLToPath(new URL("../..", import.meta.url));
 const GATEWAY_PORTS = [8044, 8045, 8046, 8047, 8048, 8049];
 const PREVIEW_PORTS = [5184, 5185, 5186, 5187, 5188, 5189];
@@ -20,9 +29,6 @@ const DEFAULT_BOTS = [1, 8, 18, 40];
 const ASLEEP_N = 8;
 const RECORD_N = 18;
 const KILL_GRACE_MS = 1500;
-const THEME_CANVAS = "theme-canvas";
-const THEME_UNIT = "theme-unit";
-const WORKING_WAIT_MS = 40_000;
 
 const children = [];
 const artifacts = [];
@@ -447,24 +453,16 @@ async function preparePage(page, input) {
 }
 
 async function readPoseCounts(page) {
-	return page.evaluate((unitTestId) => {
-		const units = [...document.querySelectorAll(`[data-testid="${unitTestId}"]`)];
-		const counts = { working: 0, idle: 0, sleeping: 0 };
-		for (const el of units) {
-			if (!(el instanceof HTMLElement)) {
-				continue;
-			}
-			const pose = el.dataset.pose;
-			if (pose === "working" || pose === "idle" || pose === "sleeping") {
-				counts[pose] += 1;
-			}
-		}
-		return counts;
+	const poses = await page.evaluate((unitTestId) => {
+		return [...document.querySelectorAll(`[data-testid="${unitTestId}"]`)].map((el) =>
+			el instanceof HTMLElement ? (el.dataset.pose ?? "") : "",
+		);
 	}, THEME_UNIT);
+	return countPoses(poses);
 }
 
 async function waitWorking(page, bots) {
-	const need = Math.ceil(bots / 3);
+	const need = workingNeed(bots);
 	const started = Date.now();
 	try {
 		await page.waitForFunction(
@@ -547,13 +545,7 @@ async function assertFile(filePath) {
 }
 
 function printManifest(input) {
-	const mix =
-		input.working !== undefined
-			? `\tworking=${String(input.working)}\tidle=${String(input.idle)}\tsleeping=${String(input.sleeping)}`
-			: "";
-	process.stdout.write(
-		`${input.path}\tN=${String(input.n)}\ttheme=${input.theme}\tavgFrameMs=${input.avgFrameMs}${mix}\n`,
-	);
+	process.stdout.write(`${formatManifestLine(input)}\n`);
 	artifacts.push(input.path);
 }
 

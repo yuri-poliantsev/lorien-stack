@@ -24,6 +24,12 @@ startOffsetMs(i) = i * staggerMs(N)
 
 `.audit/bakeoff-common.md` already names `theme-canvas` and `theme-unit`.
 
+Gates at `d6f5267` plus the follow-up ready tests: `npm test`, `typecheck`, `build -w apps/client`, and `docs:smoke` pass. Injected-clock first emit times are `[0]`, `[0, 1500, …, 10500]`, and `[0, 300, …, 11700]`. `workingNeed` is 1 / 3 / 14 at N=1 / 8 / 40. A still manifest line is `…\tworking=14\tidle=18\tsleeping=8`.
+
+`rg -n "sc-unit|starcraft-canvas" apps scripts docs` still hits `apps/client/src/themes/starcraft/scene.ts` (three lines) and two decision entries. Those scene lines wait for PR 13. Capture no longer names them.
+
+The 40-unit `theme-canvas` / `theme-unit` page assertion and the reshoot of `docs/images/themes/starcraft-{1,8,18,40}.png` wait on the rebase onto 13. This branch does not touch `scene.ts` or `registry.ts` until then.
+
 ## What was rejected and why
 
 Keeping `sc-unit` / `starcraft-canvas` as aliases. Bakeoff themes would have to emit two names. The lever reads the contract only.
@@ -34,4 +40,4 @@ Waiting on header counts. The 03-shell strip uses its own event window, so heade
 
 ## Next step
 
-Finish part A after PR 13 merges, rebase, reshoot stills, open the PR. Do not merge until authorized.
+Wait for PR 13 to merge. Rebase onto `origin/main` and resolve `scene.ts` toward 13's `ThemeRenderInput.selectedBotId` (no `localSelected`). Switch StarCraft to the hook constants, add the 40-unit page assertion, reshoot the stills, then open the PR. Do not merge until authorized.
