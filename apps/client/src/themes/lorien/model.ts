@@ -28,14 +28,12 @@ const PROPS: Record<Action, ActionProp> = {
   unknown: "token",
 };
 
-// Anchored on the hour each phase reads most strongly, and blended between the
-// two that bracket the clock, so the cycle has no visible step at a boundary.
-const ANCHORS: readonly (Sky & { hour: number })[] = [
-  { hour: 0, name: "night", zenith: "#08131d", mid: "#15243a", horizon: "#0d1c26", ambient: 0.4 },
-  { hour: 6.5, name: "dawn", zenith: "#1f3a54", mid: "#4d5570", horizon: "#9c7860", ambient: 0.58 },
-  { hour: 12.5, name: "day", zenith: "#2f6a86", mid: "#6d9aa2", horizon: "#a9c3b6", ambient: 0.95 },
-  { hour: 19, name: "dusk", zenith: "#1d4350", mid: "#5c4468", horizon: "#1b3b48", ambient: 0.55 },
-];
+// Every phase stays inside the concept frame's teal-to-purple range, so no
+// hour of the cycle reads paler than its dusk.
+const NIGHT: Sky = { name: "night", zenith: "#102838", mid: "#243050", horizon: "#12283c", ambient: 0.4 };
+const DAWN: Sky = { name: "dawn", zenith: "#3a4868", mid: "#8a5a58", horizon: "#2a4050", ambient: 0.58 };
+const DAY: Sky = { name: "day", zenith: "#3a7080", mid: "#6a88a0", horizon: "#2a5868", ambient: 0.95 };
+const DUSK: Sky = { name: "dusk", zenith: "#1c4a58", mid: "#4a3a68", horizon: "#163848", ambient: 0.55 };
 
 export function poseFromPulse(input: {
   eventCount: number;
@@ -108,28 +106,30 @@ export function shortPath(path: string, maxChars: number = PATH_CHARS): string {
   return `\u2026${kept}`;
 }
 
-export function skyAt(hours: number): Sky {
-  const hour = ((hours % 24) + 24) % 24;
-  let from = ANCHORS[ANCHORS.length - 1];
-  let to = ANCHORS[0];
-  if (from === undefined || to === undefined) {
-    throw new Error("sky anchors must not be empty");
+// Minutes past midnight on the real clock. Night holds until 05:00, dawn
+// arrives by 07:00, day by 10:00, dusk at 20:00, and night again by midnight.
+// Reduced motion pins the concept frame's dusk.
+export function skyFromClock(input: { minutes: number; reducedMotion: boolean }): Sky {
+  if (input.reducedMotion) {
+    return DUSK;
   }
-  for (let i = 0; i < ANCHORS.length; i += 1) {
-    const anchor = ANCHORS[i];
-    if (anchor === undefined) {
-      continue;
-    }
-    if (hour >= anchor.hour) {
-      from = anchor;
-      to = ANCHORS[i + 1] ?? ANCHORS[0];
-    }
+  const minutes = ((input.minutes % 1440) + 1440) % 1440;
+  if (minutes < 5 * 60) {
+    return NIGHT;
   }
-  if (to === undefined) {
-    throw new Error("sky anchors must not be empty");
+  if (minutes < 7 * 60) {
+    return mixSky(NIGHT, DAWN, (minutes - 5 * 60) / 120);
   }
-  const span = ((to.hour - from.hour + 24) % 24) || 24;
-  const t = (((hour - from.hour + 24) % 24) % 24) / span;
+  if (minutes < 17 * 60) {
+    return mixSky(DAWN, DAY, Math.min(1, (minutes - 7 * 60) / 180));
+  }
+  if (minutes < 20 * 60) {
+    return mixSky(DAY, DUSK, (minutes - 17 * 60) / 180);
+  }
+  return mixSky(DUSK, NIGHT, Math.min(1, (minutes - 20 * 60) / 240));
+}
+
+function mixSky(from: Sky, to: Sky, t: number): Sky {
   return {
     name: t < 0.5 ? from.name : to.name,
     zenith: mixHex(from.zenith, to.zenith, t),

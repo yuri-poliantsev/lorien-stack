@@ -18,7 +18,7 @@ import {
   eventSignature,
   inSceneLabel,
   poseFromPulse,
-  skyAt,
+  skyFromClock,
   type FletPose,
   type Sky,
 } from "./model.ts";
@@ -175,8 +175,8 @@ export function mountLorienTheme(root: HTMLElement, context: ThemeMountContext):
   // survive between frames instead of being rebuilt on every paint.
   function currentSky(): Sky {
     const now = new Date();
-    const bucket = Math.floor(now.getMinutes() / 10) / 6;
-    return skyAt(now.getHours() + bucket);
+    const minutes = now.getHours() * 60 + Math.floor(now.getMinutes() / 10) * 10;
+    return skyFromClock({ minutes, reducedMotion: context.reducedMotion });
   }
 
   function syncHits(layout: LorienLayout, box: ScreenBox, now: number): void {

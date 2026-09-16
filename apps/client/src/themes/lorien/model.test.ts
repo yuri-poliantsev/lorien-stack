@@ -8,7 +8,7 @@ import {
   mixHex,
   poseFromPulse,
   shortPath,
-  skyAt,
+  skyFromClock,
 } from "./model.ts";
 
 describe("lorien pose", () => {
@@ -86,35 +86,51 @@ describe("lorien in-scene label", () => {
 });
 
 describe("lorien sky clock", () => {
-  it("lands exactly on an anchor palette at that anchor's hour", () => {
-    assert.deepEqual(skyAt(0), {
+  const DUSK = {
+    name: "dusk",
+    zenith: "#1c4a58",
+    mid: "#4a3a68",
+    horizon: "#163848",
+    ambient: 0.55,
+  };
+
+  it("holds night until five and reaches the concept's dusk at eight in the evening", () => {
+    assert.deepEqual(skyFromClock({ minutes: 0, reducedMotion: false }), {
       name: "night",
-      zenith: "#08131d",
-      mid: "#15243a",
-      horizon: "#0d1c26",
+      zenith: "#102838",
+      mid: "#243050",
+      horizon: "#12283c",
       ambient: 0.4,
     });
-    assert.deepEqual(skyAt(19), {
-      name: "dusk",
-      zenith: "#1d4350",
-      mid: "#5c4468",
-      horizon: "#1b3b48",
-      ambient: 0.55,
-    });
-    assert.equal(skyAt(12.5).name, "day");
-    assert.equal(skyAt(12.5).ambient, 0.95);
+    assert.equal(skyFromClock({ minutes: 4 * 60 + 59, reducedMotion: false }).zenith, "#102838");
+    assert.deepEqual(skyFromClock({ minutes: 20 * 60, reducedMotion: false }), DUSK);
+    assert.equal(skyFromClock({ minutes: 12 * 60, reducedMotion: false }).name, "day");
+    assert.equal(skyFromClock({ minutes: 12 * 60, reducedMotion: false }).ambient, 0.95);
   });
 
-  it("blends between the two anchors that bracket the clock", () => {
-    assert.deepEqual(skyAt(3.25), {
+  it("blends between the phases that bracket the clock", () => {
+    assert.deepEqual(skyFromClock({ minutes: 6 * 60, reducedMotion: false }), {
       name: "dawn",
-      zenith: "#142739",
-      mid: "#313d55",
-      horizon: "#554a43",
+      zenith: "#253850",
+      mid: "#574554",
+      horizon: "#1e3446",
       ambient: 0.49,
     });
-    assert.equal(skyAt(21.5).name, "night", "half past nine reads as night, not dusk");
-    assert.deepEqual(skyAt(24), skyAt(0), "the cycle wraps at midnight");
+    assert.equal(
+      skyFromClock({ minutes: 23 * 60, reducedMotion: false }).name,
+      "night",
+      "eleven at night reads as night, not dusk",
+    );
+    assert.deepEqual(
+      skyFromClock({ minutes: 1440, reducedMotion: false }),
+      skyFromClock({ minutes: 0, reducedMotion: false }),
+      "the cycle wraps at midnight",
+    );
+  });
+
+  it("pins the sky to dusk under reduced motion whatever the clock says", () => {
+    assert.deepEqual(skyFromClock({ minutes: 0, reducedMotion: true }), DUSK);
+    assert.deepEqual(skyFromClock({ minutes: 12 * 60, reducedMotion: true }), DUSK);
   });
 
   it("mixes two colours by weight", () => {
