@@ -8,9 +8,51 @@
 
 lorien-stack observes Grok Bots; it does not wake bots or provide chat.
 
-The stack tails Grok Bot `$AGENT_DATA` on disk and streams roster, activity, and presence to a browser. The default UI is a StarCraft-inspired 2D command view.
+The stack tails Grok Bot `$AGENT_DATA` on disk and streams roster, activity, and presence to a browser. The default theme is StarCraft, an isometric outpost. The header picker also mounts Lórien and Mission Control.
 
-It is **not** a Chat kit, a theme marketplace, or a 3D engine.
+Three themes share one roster and activity feed. Sharing that feed is the theme seam. The stack is not a Chat kit, a theme marketplace, or a 3D engine.
+
+## Themes
+
+The [hosted demo](https://yuri-poliantsev.github.io/lorien-stack/) is the static client replaying bundled fixtures, with no gateway. Add `?theme=` or `?demo=` to that URL. They work together.
+
+Each row is a still at 8 bots, a still at 40 bots, and a still of 8 bots asleep. The clip is 20 seconds at 16:9.
+
+### StarCraft
+
+StarCraft is the default theme. Each bot has one hut or vault on the canyon floor. A worker appears when the bot is active. Asleep is a dark building with one red beacon.
+
+[Open StarCraft in the hosted demo](https://yuri-poliantsev.github.io/lorien-stack/?theme=starcraft)
+
+| 8 bots | 40 bots | 8 asleep |
+| --- | --- | --- |
+| ![StarCraft, 8 bots. Three workers on an isometric canyon outpost.](docs/images/themes/starcraft-8.png) | ![StarCraft, 40 bots. A generative grid of huts and vaults.](docs/images/themes/starcraft-40.png) | ![StarCraft, 8 bots asleep. Dark buildings, each with one red beacon.](docs/images/themes/starcraft-8-asleep.png) |
+
+[StarCraft 20-second clip](docs/images/themes/starcraft.mp4)
+
+### Lórien
+
+Lórien is a side view. A flet is a tree platform. One flet per bot sits on a mallorn trunk under a dusk canopy. Working elves stand at a rail. Asleep is a dark flet with a sleeping figure and green lanterns.
+
+[Open Lórien in the hosted demo](https://yuri-poliantsev.github.io/lorien-stack/?theme=lorien)
+
+| 8 bots | 40 bots | 8 asleep |
+| --- | --- | --- |
+| ![Lórien, 8 bots. Flets on two mallorn levels, three elves working.](docs/images/themes/lorien-8.png) | ![Lórien, 40 bots. Flets along mallorn branches at four heights.](docs/images/themes/lorien-40.png) | ![Lórien, 8 bots asleep. Dark flets, sleeping figures, green lanterns.](docs/images/themes/lorien-8-asleep.png) |
+
+[Lórien 20-second clip](docs/images/themes/lorien.mp4)
+
+### Mission Control
+
+Mission Control is an editorial dark dashboard. The board shows one card per bot. A status band shows roster, live, and asleep counts. Asleep cards go dim.
+
+[Open Mission Control in the hosted demo](https://yuri-poliantsev.github.io/lorien-stack/?theme=mission-control)
+
+| 8 bots | 40 bots | 8 asleep |
+| --- | --- | --- |
+| ![Mission Control, 8 bots. Eight cards, three marked working.](docs/images/themes/mission-control-8.png) | ![Mission Control, 40 bots. A dense card grid with live counts.](docs/images/themes/mission-control-40.png) | ![Mission Control, 8 bots asleep. Dim cards, 08 asleep in the band.](docs/images/themes/mission-control-8-asleep.png) |
+
+[Mission Control 20-second clip](docs/images/themes/mission-control.mp4)
 
 ## Vision
 
@@ -22,8 +64,9 @@ Inspiration is one-shot generated villages that burn tokens to rebuild the whole
 
 Shipped and exercised on real Grok Bot hosts.
 
-- Contracts, gateway, Vite client, and StarCraft theme on `main`
+- Contracts, gateway, Vite client, and three themes on `main` (StarCraft, Lórien, Mission Control)
 - Demo mode with fixture bots and compressed replay
+- Hosted demo on GitHub Pages, replaying bundled fixtures in the browser
 - Live mode against `$AGENT_DATA`, including large transcript files
 - Live presence hints from a quiet clock (heuristic, not lifecycle)
 - OSS live how-to and a paste-ready [setup prompt](docs/prompts/lorien-stack-setup.md) for installing on a host
@@ -34,16 +77,15 @@ Known limits.
 - `GET /api/bots` and `GET /ws` are reachable by anyone who can open the port. The bind address plus the Tailscale ACL are the access control.
 - Presence is a quiet-time hint. Long tool calls with no JSONL growth can look asleep
 - No WebSocket reconnect. Reload the page after a gateway restart
-- One disk layout (grok driver). One default theme mount
+- One disk layout (grok driver)
 
 ## Next steps
 
-In priority order for maintainers and contributors.
+Three themes ship, so the theme seam is proven.
 
 1. Fix friction from real runs. Reconnect, presence feel, and doc gaps beat new features.
 2. Optional read-path auth for roster and `/ws` when the UI sits on a wide Tailscale ACL.
 3. Publish Lorien Bot as a Grok Bot template per [Publish a Lorien Bot template](docs/prompts/lorien-bot-template.md). Confirm a freshly added copy can see `$AGENT_DATA` before a wide share.
-4. A second theme only after observation and reachability feel solid. That is how the theme host earns its keep.
 
 ## Requirements
 
@@ -74,7 +116,7 @@ This repo is lorien-stack, the core under Lorien Bot.
 | --- | --- | --- |
 | Contracts | `packages/contracts` | Versioned wire types and parsers |
 | Gateway | `apps/gateway` | Disk tail, roster, presence, WebSocket fan-out |
-| Client | `apps/client` | Vite UI, bot list, StarCraft canvas |
+| Client | `apps/client` | Vite UI, overlay roster, three themes (StarCraft default) |
 | Demo data | `fixtures/demo` | Eight fake bots in the on-disk `$AGENT_DATA` layout |
 
 Themes consume roster and activity only. Swap the mount in `apps/client/src/themeHost.ts`. Do not import the gateway from a theme.
