@@ -116,6 +116,10 @@ Hosted proof, no gateway, static serve of `vite build --base /lorien-stack/` on 
 - One commit for the Pages prefix, not a failing-test commit then a fix. Lorien did the same.
 - Graft 5 skipped on the measured number, not implemented then reverted.
 
+## Outcome
+
+Squash-merged to `main` as `f393ac1` from PR head `e6307b5` on the root's authorization, https://github.com/yuri-poliantsev/lorien-stack/pull/24. The merge commit's workflow run is https://github.com/yuri-poliantsev/lorien-stack/actions/runs/35073201775. `ci` succeeded in 28s and `pages` in 29s.
+
 ## Next step
 
-Candidate branches `theme-night/05b-starcraft-cand-a` through `theme-night/05b-starcraft-cand-d` stay on origin until the root confirms deletion. Do not merge until "merge authorized at <sha>". The README gallery in step 9 picks up `docs/images/themes/starcraft-8.png` and `starcraft.mp4`.
+Candidate branches `theme-night/05b-starcraft-cand-a` through `theme-night/05b-starcraft-cand-d` stay on origin until the root confirms deletion. The README gallery in step 9 picks up `docs/images/themes/starcraft-8.png` and `starcraft.mp4`.
