@@ -14,7 +14,7 @@ Hold and stagger (chosen after measuring tape length):
 - `DEMO_STAGGER_MS` = 3500 (unchanged)
 - `DEMO_CLONE_STAGGER_MS` = 1600 (was 400)
 
-A cycle is about 12s. Sleep is a quarter of that. `--replay-idle` still sleeps everyone with no tape.
+A cycle is about 12s. Occupancy at hold=3000 peaked at 14 of 40 asleep (35%). `--replay-idle` still sleeps everyone with no tape.
 
 ## Data shape
 
@@ -36,19 +36,23 @@ Tape waits are 3.2s to 4.8s. The old 24s hold meant each bot spent most of the c
 
 60s WS logs on 8078 and 8079 (`/tmp/theme-night/04b/presence-8.log`, `presence-40.log`): 97 and 451 presence lines, reasons `recent,quiet,sleep`, no `2026-08-27` timestamps, freshness 0 on wake/quiet and about 4000ms on sleep.
 
-A 45s remeasure at hold=3000 (`/tmp/theme-night/04b/presence-40-hold3.log`) peaked at 14 of 40 asleep at 39.9s. Last snapshot was 18 recent / 13 quiet / 9 sleep.
+A 45s remeasure at hold=3000 (`/tmp/theme-night/04b/presence-40-hold3.log`) peaked at 14 of 40 asleep (35%) at 39.9s. Last snapshot was 18 recent / 13 quiet / 9 sleep. The live lane on this head measured the same peak, 14 of 40.
 
-Capture with `origin/theme-night/03-shell` merged locally at `/tmp/theme-night/04b/scratch` (not pushed):
+Capture with `origin/theme-night/03-shell` merged locally at `/tmp/theme-night/04b/scratch` (not pushed). Re-opened the three stills at mtime 2026-09-16T00:24:47Z. The header strip reads:
 
-- `/tmp/theme-night/04b/starcraft-8.png`: header 4 working / 2 idle / 2 asleep
-- `/tmp/theme-night/04b/starcraft-40.png`: header 21 working / 11 idle / 8 asleep
-- `/tmp/theme-night/04b/starcraft-8-asleep.png`: `--replay-idle` still 0 / 0 / 8
+- `/tmp/theme-night/04b/starcraft-8.png`: 1 working / 7 idle / 0 asleep / 2 ev/min
+- `/tmp/theme-night/04b/starcraft-40.png`: 2 working / 38 idle / 0 asleep / 3 ev/min
+- `/tmp/theme-night/04b/starcraft-8-asleep.png`: 0 working / 0 idle / 8 asleep / 0 ev/min
+
+The earlier 4 / 2 / 2 and 21 / 11 / 8 figures were a misread of these same stills, not a second capture and not a WS-log count. Mix evidence is the WS occupancy (14 of 40 asleep, 13–18 working / 10–16 idle / 9–14 asleep in the live 60s run), not the still headers.
+
+The 03-shell strip in those stills classifies working / idle from its own event window, not from presence reason. That is why a still can read 2 working while the roster badges show 13–18 recent. That is step 3's surface.
 
 ## What was rejected and why
 
 Fixing this in the client. The gateway minted the stale hint. The shell already maps live reasons correctly.
 
-Keeping the 24s hold and only correcting `lastActivityAt`. The duty cycle would still leave more than a third of 40 bots asleep.
+Keeping the 24s hold and only correcting `lastActivityAt`. That hold put most of a 40-bot roster in sleep. The measured peak after the 3s hold is 14 of 40 (35%).
 
 Driving idle from freshness aging on a live clock during demo. Demo does not run that timer. Explicit `quiet` and `sleep` hints are the same vocabulary without a second clock.
 
