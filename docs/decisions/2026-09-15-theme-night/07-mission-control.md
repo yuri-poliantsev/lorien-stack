@@ -110,8 +110,8 @@ Gates at the head: `npm test`, `npm run typecheck`, `npm run build -w apps/clien
 
 ## Outcome
 
-PR 20, `feat(client): Mission Control theme`. Merge sha recorded after merge.
+Squash-merged to `main` as `99d1970` from PR head `22146d9` on the root's authorization, https://github.com/yuri-poliantsev/lorien-stack/pull/20. The merge commit's workflow run is https://github.com/yuri-poliantsev/lorien-stack/actions/runs/35066904185. `ci` succeeded in 26s and `pages` in 17s.
 
 ## Next step
 
-Step 8, hosted demo on GitHub Pages (`theme-night/08-hosted-demo` is already pushed). After step 6 and this step merge, the picker shows three themes and the README gallery in step 9 takes `docs/images/themes/mission-control-{8,40,8-asleep}.png` and `mission-control.mp4`. After merge and root's confirmation, delete `theme-night/07-mission-control-cand-{a,b,c,d}` on origin.
+Candidate branches `theme-night/07-mission-control-cand-{a,b,c,d}` stay on origin until the root confirms deletion. Step 8, hosted demo on GitHub Pages (`theme-night/08-hosted-demo` is already pushed). The README gallery in step 9 takes `docs/images/themes/mission-control-{8,40,8-asleep}.png` and `mission-control.mp4`.
