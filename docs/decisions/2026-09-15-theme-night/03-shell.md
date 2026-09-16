@@ -211,4 +211,4 @@ Insetting the camera fit by the roster panel's width. The panel is translucent a
 
 ## Next step
 
-Step 4 merges `scripts/capture/` and gateway `--bots N`. Rebase onto it and recapture the committed stills through the lever. Step 5 is the StarCraft rework, which is the first theme to consume `ThemeMountContext.palette` for real.
+Step 5, the StarCraft rework, via the bakeoff in the plan's Process section. It is the first theme to consume `ThemeMountContext.palette` and `ThemeEntry.world` for real, and the first to apply the camera transform to art rather than to the placeholder scene. It also owns the crowding this step left alone: 40 nametags overlap on the twelve fixed stations, and Q4 replaces them with a generative layout. Judge its candidates at 8 and 40 bots with `npm run capture`, and hold them to the same 4ms budget, which the shell now leaves 2.5ms of headroom under.
