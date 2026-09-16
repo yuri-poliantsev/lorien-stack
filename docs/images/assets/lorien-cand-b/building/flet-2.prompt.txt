@@ -1,0 +1,15 @@
+A single ornate elven tree platform sprite, shown in a perfectly flat front elevation: one shallow honey-brown wooden balcony with a carved leaf-scroll rail, two slim end posts, and one small blank wood plaque hanging directly below the deck. Elegant hand-painted 2D fantasy game art with a crisp symmetrical silhouette and cool dusk shading. Centre the isolated platform alone on a completely uniform bright magenta field filling the square, without branches, lanterns, figures, flames, lettering, scenery, floor, or shadow.
+
+--- wrapper handed to /Users/iuriipoliantsev/.grok/bin/grok ---
+Produce exactly one image file and stop.
+
+Step 1. Call image_gen exactly once. Pass aspect_ratio "1:1". Pass this prompt text verbatim, with no additions, no rewording, and no style notes of your own:
+<<<PROMPT
+A single ornate elven tree platform sprite, shown in a perfectly flat front elevation: one shallow honey-brown wooden balcony with a carved leaf-scroll rail, two slim end posts, and one small blank wood plaque hanging directly below the deck. Elegant hand-painted 2D fantasy game art with a crisp symmetrical silhouette and cool dusk shading. Centre the isolated platform alone on a completely uniform bright magenta field filling the square, without branches, lanterns, figures, flames, lettering, scenery, floor, or shadow.
+PROMPT
+
+Step 2. Copy the resulting image to exactly this absolute path, creating parent directories if they are missing: /var/folders/pg/03wfg4_x5ms5n_1vthnkmdm40000gn/T/asset-scratch/72a1f985e988c856/out.jpg
+
+Step 3. Print that absolute path as your entire final message. No prose, no markdown, no code fences, no trailing text.
+
+Hard rules. Exactly one image call, and no second attempt even if the result looks wrong. Do not call image_edit if you called image_gen, or image_gen if you called image_edit. Do not write, move, or delete any file outside /var/folders/pg/03wfg4_x5ms5n_1vthnkmdm40000gn/T/asset-scratch/72a1f985e988c856. Do not run git. Do not ask questions.

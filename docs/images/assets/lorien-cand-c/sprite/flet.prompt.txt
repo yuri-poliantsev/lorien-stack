@@ -1,0 +1,15 @@
+One wooden elven balcony platform seen in flat side elevation, a short carved rail with gold-leaf scrollwork along the front edge, honey-brown planks, centred in the frame. Painterly stylised 2D game art with a clean silhouette and a bold outline. Isolated alone: no hanging sign, no figure, no lantern, no tree, no ground, no cast shadow. Completely flat uniform magenta field the colour of #ff00ec filling the entire background.
+
+--- wrapper handed to /Users/iuriipoliantsev/.grok/bin/grok ---
+Produce exactly one image file and stop.
+
+Step 1. Call image_gen exactly once. Pass aspect_ratio "1:1". Pass this prompt text verbatim, with no additions, no rewording, and no style notes of your own:
+<<<PROMPT
+One wooden elven balcony platform seen in flat side elevation, a short carved rail with gold-leaf scrollwork along the front edge, honey-brown planks, centred in the frame. Painterly stylised 2D game art with a clean silhouette and a bold outline. Isolated alone: no hanging sign, no figure, no lantern, no tree, no ground, no cast shadow. Completely flat uniform magenta field the colour of #ff00ec filling the entire background.
+PROMPT
+
+Step 2. Copy the resulting image to exactly this absolute path, creating parent directories if they are missing: /var/folders/pg/03wfg4_x5ms5n_1vthnkmdm40000gn/T/asset-scratch/503cb854ef6d5532/out.jpg
+
+Step 3. Print that absolute path as your entire final message. No prose, no markdown, no code fences, no trailing text.
+
+Hard rules. Exactly one image call, and no second attempt even if the result looks wrong. Do not call image_edit if you called image_gen, or image_gen if you called image_edit. Do not write, move, or delete any file outside /var/folders/pg/03wfg4_x5ms5n_1vthnkmdm40000gn/T/asset-scratch/503cb854ef6d5532. Do not run git. Do not ask questions.

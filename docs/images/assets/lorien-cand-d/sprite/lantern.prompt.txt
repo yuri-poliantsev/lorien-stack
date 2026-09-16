@@ -1,0 +1,15 @@
+One hanging elven lantern seen from the side, a small wooden cage with frosted panes and a warm gold glow inside, painterly stylised 2D game art with crisp outline. Centred alone on a completely flat uniform magenta field, no chain above, no ground, no shadow, no scenery.
+
+--- wrapper handed to /Users/iuriipoliantsev/.grok/bin/grok ---
+Produce exactly one image file and stop.
+
+Step 1. Call image_edit exactly once. Pass image "/var/folders/pg/03wfg4_x5ms5n_1vthnkmdm40000gn/T/asset-scratch/ae6a36cd2703eb2b/source.jpg" as the single source image. Pass aspect_ratio "1:1". Pass this prompt text verbatim, with no additions, no rewording, and no style notes of your own:
+<<<PROMPT
+One hanging elven lantern seen from the side, a small wooden cage with frosted panes and a warm gold glow inside, painterly stylised 2D game art with crisp outline. Centred alone on a completely flat uniform magenta field, no chain above, no ground, no shadow, no scenery.
+PROMPT
+
+Step 2. Copy the resulting image to exactly this absolute path, creating parent directories if they are missing: /var/folders/pg/03wfg4_x5ms5n_1vthnkmdm40000gn/T/asset-scratch/ae6a36cd2703eb2b/out.jpg
+
+Step 3. Print that absolute path as your entire final message. No prose, no markdown, no code fences, no trailing text.
+
+Hard rules. Exactly one image call, and no second attempt even if the result looks wrong. Do not call image_edit if you called image_gen, or image_gen if you called image_edit. Do not write, move, or delete any file outside /var/folders/pg/03wfg4_x5ms5n_1vthnkmdm40000gn/T/asset-scratch/ae6a36cd2703eb2b. Do not run git. Do not ask questions.

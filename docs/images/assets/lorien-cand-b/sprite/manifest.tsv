@@ -1,0 +1,2 @@
+id	theme	kind	path	sha256	promptPath	source	attempts	readback	verdict
+lantern	lorien-cand-b	sprite	docs/images/assets/lorien-cand-b/sprite/lantern.jpg	bf0bb59f62fdb91e7bae2d40654b8c237a26e8146a6e3f8af16449eadd1a307c	docs/images/assets/lorien-cand-b/sprite/lantern.prompt.txt	grok	1		unread

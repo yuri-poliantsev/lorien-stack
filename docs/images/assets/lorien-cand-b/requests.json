@@ -1,0 +1,49 @@
+{
+  "requests": [
+    {
+      "id": "far-trunks",
+      "theme": "lorien",
+      "kind": "backdrop",
+      "size": "16:9",
+      "keyColour": "#ff00ec",
+      "spec": "docs/images/assets/lorien/assets.spec.md",
+      "prompt": "A sparse single depth layer of colossal distant silver-white mallorn tree trunks seen straight-on from the side, tall vertical forms with soft misty edges and a few thin far boughs. Painterly stylised 2D fantasy game art matching an elegant hand-painted storybook, cool blue-grey bark with subtle moss, quiet dusk lighting. The isolated forest layer spans the full wide frame on a completely flat uniform magenta background, with no sky, ground, platforms, lanterns, figures, text, or cast shadow."
+    },
+    {
+      "id": "mid-canopy",
+      "theme": "lorien",
+      "kind": "backdrop",
+      "size": "16:9",
+      "keyColour": "#ff00ec",
+      "spec": "docs/images/assets/lorien/assets.spec.md",
+      "prompt": "One airy middle-distance canopy layer of long silver mallorn boughs seen straight-on from the side, sweeping horizontally with small clusters of pale gold-green leaves and generous open gaps. Painterly stylised 2D fantasy game art matching an elegant hand-painted storybook, muted cool teal shadows and delicate leaf shapes at dusk. The isolated branch layer spans the full wide frame on a completely flat uniform magenta background, with no sky, ground, platforms, lanterns, figures, text, or cast shadow."
+    },
+    {
+      "id": "near-branches",
+      "theme": "lorien",
+      "kind": "backdrop",
+      "size": "16:9",
+      "keyColour": "#ff00ec",
+      "spec": "docs/images/assets/lorien/assets.spec.md",
+      "prompt": "One foreground frame layer of graceful silver-barked mallorn branches entering from the upper corners and lower edges, seen straight-on from the side, with crisp clusters of pale golden leaves around the perimeter and an open centre. Painterly stylised 2D fantasy game art matching an elegant hand-painted storybook, detailed bark and deep teal leaf shadows at dusk. The isolated near layer spans the full wide frame on a completely flat uniform magenta background, with no sky, ground, platforms, lanterns, figures, text, or cast shadow."
+    },
+    {
+      "id": "flet",
+      "theme": "lorien",
+      "kind": "building",
+      "size": "1:1",
+      "keyColour": "#ff00ec",
+      "spec": "docs/images/assets/lorien/assets.spec.md",
+      "prompt": "One ornate wooden elven flet platform seen perfectly straight-on from the side: a shallow balcony deck with a warm carved rail, delicate interlaced leaf scrollwork, two slim posts and a small blank wooden plaque hanging beneath. Painterly stylised 2D fantasy game sprite matching an elegant hand-painted storybook, symmetrical readable silhouette, honey-brown wood with cool dusk shadows. The single isolated platform is centred on a completely flat uniform magenta background, with no branch, lantern, figure, flame, text, ground, scenery, or cast shadow."
+    },
+    {
+      "id": "lantern",
+      "theme": "lorien",
+      "kind": "sprite",
+      "size": "1:1",
+      "keyColour": "#ff00ec",
+      "spec": "docs/images/assets/lorien/assets.spec.md",
+      "prompt": "One slender hanging elven lantern seen straight-on, an elegant dark bronze frame around clear amber glass with an unlit dark wick, suspended from a small curved hook. Painterly stylised 2D fantasy game sprite matching an elegant hand-painted storybook, crisp simple silhouette and restrained ornament. The single isolated lantern is centred on a completely flat uniform magenta background, with no flame, glow, branch, platform, figure, text, ground, scenery, or cast shadow."
+    }
+  ]
+}
