@@ -1,111 +1,203 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { parseBotId, parseSeatId, type BotRecord } from "@lorien-stack/contracts";
+import { parseBotId, type BotRecord } from "@lorien-stack/contracts";
 
 import {
-  STATIONS,
-  assignSeats,
-  eventSignature,
-  poseFromPulse,
+  PLOT_ABOVE,
+  PLOT_BELOW,
+  WORLD_HEIGHT,
+  WORLD_WIDTH,
+  layoutFor,
+  planGrid,
+  plotAt,
 } from "./layout.ts";
 
-function bot(id: string, name: string, seatId?: string): BotRecord {
+function bot(id: string, name: string): BotRecord {
   const parsed = parseBotId(id);
-  assert.equal(parsed.ok, true);
+  assert.equal(parsed.ok, true, `${id} is a valid bot id`);
   if (!parsed.ok) {
     throw new Error("bot id");
   }
-  if (seatId === undefined) {
-    return { id: parsed.value, name };
-  }
-  const seat = parseSeatId(seatId);
-  assert.equal(seat.ok, true);
-  if (!seat.ok) {
-    throw new Error("seat id");
-  }
-  return { id: parsed.value, name, spatial: { kind: "seat", seatId: seat.value } };
+  return { id: parsed.value, name };
 }
 
-const lauren = bot("af4c6d21-9ef6-4435-8232-bf09ca561583", "Lauren");
-const wren = bot("2b40667e-d345-4db1-bbf0-9b26b7f904e9", "Wren");
-const sable = bot("7820582a-8fe5-4ef5-8ba5-30bf7641f8cc", "Sable");
-const koji = bot("a77fae77-0494-4981-acf5-2de5bd793fe4", "Koji");
-const mira = bot("ae9531d3-ca13-43e2-92eb-3bf156010408", "Mira");
-const anouk = bot("97350d45-cace-4d40-8628-e8bece188dac", "Anouk");
-const reed = bot("7a330915-6d55-4b1c-8fab-80b899126fa0", "Reed");
-const ivo = bot("15aafeb5-603a-4d4b-b25d-8bc5a5287fb9", "Ivo");
+const IDS = [
+  "af4c6d21-9ef6-4435-8232-bf09ca561583",
+  "2b40667e-d345-4db1-bbf0-9b26b7f904e9",
+  "7820582a-8fe5-4ef5-8ba5-30bf7641f8cc",
+  "a77fae77-0494-4981-acf5-2de5bd793fe4",
+  "ae9531d3-ca13-43e2-92eb-3bf156010408",
+  "97350d45-cace-4d40-8628-e8bece188dac",
+  "7a330915-6d55-4b1c-8fab-80b899126fa0",
+  "15aafeb5-603a-4d4b-b25d-8bc5a5287fb9",
+];
 
-const demoRoster: BotRecord[] = [lauren, wren, sable, koji, mira, anouk, reed, ivo];
-
-function seatIds(roster: readonly BotRecord[]): Record<string, string> {
-  const seats = assignSeats({ bots: roster });
-  const out: Record<string, string> = {};
-  for (const botRow of roster) {
-    const seat = seats.get(botRow.id);
-    assert.notEqual(seat, undefined);
-    if (seat === undefined) {
-      continue;
-    }
-    out[botRow.id] = seat.station.id;
+function roster(n: number): BotRecord[] {
+  const out: BotRecord[] = [];
+  for (let i = 0; i < n; i += 1) {
+    const base = IDS[i % IDS.length] ?? IDS[0] ?? "";
+    // Vary the last hex digit block so every generated roster has distinct ids.
+    const id = `${base.slice(0, 24)}${i.toString(16).padStart(12, "0")}`;
+    out.push(bot(id, `Bot ${String(i)}`));
   }
   return out;
 }
 
-describe("starcraft layout seats", () => {
-  it("keeps the same station when the roster is shuffled with the same ids", () => {
-    const forward = seatIds(demoRoster);
-    const reversed = [...demoRoster].reverse();
-    const backward = seatIds(reversed);
-    assert.deepEqual(backward, forward);
-    const scrambled = [ivo, lauren, reed, sable, anouk, wren, mira, koji];
-    assert.deepEqual(seatIds(scrambled), forward);
+describe("starcraft grid plan", () => {
+  it("picks two rows of four for the demo roster of eight", () => {
+    const grid = planGrid(8);
+    assert.equal(grid.cols, 4, "eight plots split into four columns");
+    assert.equal(grid.rows, 2, "eight plots split into two rows");
   });
 
-  it("does not put two demo bots on the same station", () => {
-    const seats = assignSeats({ bots: demoRoster });
-    const used = [...seats.values()].map((seat) => seat.station.id);
-    assert.equal(new Set(used).size, used.length);
-    assert.equal(seats.size, demoRoster.length);
+  it("picks eight columns by five rows at the full roster of forty", () => {
+    const grid = planGrid(40);
+    assert.equal(grid.cols, 8, "forty plots split into eight columns");
+    assert.equal(grid.rows, 5, "forty plots split into five rows");
+    assert.equal(grid.cols * grid.rows, 40, "the forty-bot grid has no spare cell");
   });
 
-  it("honors an explicit spatial seat when that station is free", () => {
-    const parked = bot("af4c6d21-9ef6-4435-8232-bf09ca561583", "Lauren", "core");
-    const seats = assignSeats({ bots: [parked, wren] });
-    assert.equal(seats.get(parked.id)?.station.id, "core");
-    assert.notEqual(seats.get(wren.id)?.station.id, "core");
+  it("caps the cell size so a single bot does not fill the world", () => {
+    assert.equal(planGrid(1).cell, 400, "one bot draws at the cell cap");
+    assert.equal(planGrid(0).cell, 400, "an empty roster still plans one capped cell");
   });
 
-  it("still assigns a seat when more bots than stations share ids across reshuffles", () => {
-    const extra = demoRoster.map((row, index) =>
-      bot(
-        row.id,
-        row.name,
-        index === 0 ? STATIONS[0]?.id : undefined,
-      ),
-    );
-    const a = assignSeats({ bots: extra });
-    const b = assignSeats({ bots: [...extra].reverse() });
-    for (const row of extra) {
-      assert.equal(a.get(row.id)?.station.id, b.get(row.id)?.station.id);
+  it("shrinks the cell as the roster grows and never below the forty-bot size", () => {
+    const eight = planGrid(8).cell;
+    const twentyFour = planGrid(24).cell;
+    const forty = planGrid(40).cell;
+    assert.equal(Math.round(eight), 352, "eight bots fill the width left of the roster");
+    assert.equal(Math.round(twentyFour), 233, "twenty-four bots shrink to 233");
+    assert.equal(Math.round(forty), 186, "forty bots shrink to 186");
+    assert.ok(eight > twentyFour && twentyFour > forty, "cell size falls as the roster grows");
+  });
+
+  it("keeps every plot inside the world at one, eight, twenty-four and forty", () => {
+    for (const n of [1, 8, 24, 40]) {
+      const grid = planGrid(n);
+      for (let i = 0; i < grid.cols * grid.rows; i += 1) {
+        const plot = plotAt(grid, i);
+        const half = grid.cell * 0.44;
+        assert.ok(plot.x - half >= 0, `n=${String(n)} plot ${String(i)} clears the left edge`);
+        assert.ok(
+          plot.x + half <= WORLD_WIDTH,
+          `n=${String(n)} plot ${String(i)} clears the right edge`,
+        );
+        assert.ok(
+          plot.y - grid.cell * PLOT_ABOVE >= 0,
+          `n=${String(n)} plot ${String(i)} clears the top edge`,
+        );
+        assert.ok(
+          plot.y + grid.cell * PLOT_BELOW <= WORLD_HEIGHT,
+          `n=${String(n)} plot ${String(i)} clears the bottom edge`,
+        );
+      }
     }
   });
 });
 
-describe("starcraft layout pose", () => {
-  it("marks a bot working while the pulse is fresh", () => {
-    assert.equal(poseFromPulse({ eventCount: 3, msSincePulse: 400 }), "working");
-    assert.equal(poseFromPulse({ eventCount: 3, msSincePulse: 13_000 }), "idle");
-    assert.equal(poseFromPulse({ eventCount: 3, msSincePulse: 30_000 }), "sleeping");
+describe("starcraft plot assignment", () => {
+  it("gives the same plot to the same id whatever order the roster arrives in", () => {
+    const bots = roster(8);
+    const forward = layoutFor(bots);
+    const backward = layoutFor([...bots].reverse());
+    const scrambled = layoutFor([...bots].sort((a, b) => a.name.localeCompare(b.name)));
+    for (const row of bots) {
+      const seat = forward.plots.get(row.id)?.index;
+      assert.equal(backward.plots.get(row.id)?.index, seat, `${row.name} keeps its plot reversed`);
+      assert.equal(scrambled.plots.get(row.id)?.index, seat, `${row.name} keeps its plot resorted`);
+    }
   });
 
-  it("keeps a quiet bot visible as idle, then sleeping", () => {
-    assert.equal(poseFromPulse({ eventCount: 0, msSincePulse: 100 }), "idle");
-    assert.equal(poseFromPulse({ eventCount: 0, msSincePulse: 30_000 }), "sleeping");
+  it("seats every bot on its own cell up to twenty-four", () => {
+    for (const n of [1, 2, 7, 8, 18, 24]) {
+      const layout = layoutFor(roster(n));
+      assert.equal(layout.plots.size, n, `n=${String(n)} seats every bot`);
+      const used = [...layout.plots.values()].map((plot) => plot.index);
+      assert.equal(new Set(used).size, n, `n=${String(n)} puts no two bots on one cell`);
+    }
   });
 
-  it("changes the activity signature when events grow", () => {
-    assert.equal(eventSignature(undefined), "0");
-    assert.equal(eventSignature([]), "0");
+  it("keeps plots apart by at least a pad width up to twenty-four", () => {
+    for (const n of [8, 18, 24]) {
+      const layout = layoutFor(roster(n));
+      const seats = [...layout.plots.values()];
+      const padW = layout.grid.cell * 0.88;
+      const plotH = layout.grid.cell * (PLOT_ABOVE + PLOT_BELOW);
+      for (let i = 0; i < seats.length; i += 1) {
+        for (let j = i + 1; j < seats.length; j += 1) {
+          const a = seats[i];
+          const b = seats[j];
+          if (a === undefined || b === undefined) {
+            continue;
+          }
+          const apart =
+            Math.abs(a.x - b.x) >= padW - 0.001 || Math.abs(a.y - b.y) >= plotH - 0.001;
+          assert.ok(apart, `n=${String(n)} plots ${String(i)} and ${String(j)} do not overlap`);
+        }
+      }
+    }
+  });
+
+  it("still seats all forty on distinct cells with the grid exactly full", () => {
+    const layout = layoutFor(roster(40));
+    assert.equal(layout.plots.size, 40, "forty bots are all seated");
+    assert.equal(
+      new Set([...layout.plots.values()].map((plot) => plot.index)).size,
+      40,
+      "forty bots hold forty distinct cells",
+    );
+    assert.equal(layout.grid.cols * layout.grid.rows, 40, "the grid is exactly full at forty");
+  });
+
+  it("keeps every pad left of the roster panel from one bot through forty", () => {
+    for (let n = 1; n <= 40; n += 1) {
+      const layout = layoutFor(roster(n));
+      const half = layout.grid.cell * 0.44;
+      for (const plot of layout.plots.values()) {
+        assert.ok(
+          plot.x - half >= 296,
+          `n=${String(n)} plot ${String(plot.index)} left edge ${String(plot.x - half)} sits under the roster`,
+        );
+      }
+    }
+  });
+
+  it("staggers odd rows by half a column so the field reads as isometric", () => {
+    const grid = planGrid(8);
+    const first = plotAt(grid, 0);
+    const second = plotAt(grid, grid.cols);
+    assert.equal(
+      Math.round(second.x - first.x),
+      Math.round(grid.cell * 0.5),
+      "row one sits half a cell to the right of row zero",
+    );
+    assert.equal(
+      Math.round(second.y - first.y),
+      Math.round(grid.cell * (PLOT_ABOVE + PLOT_BELOW)),
+      "row one sits one plot height below row zero",
+    );
+  });
+
+  it("lifts nametags on odd cells once the roster passes twenty-four", () => {
+    const packed = layoutFor(roster(24));
+    for (const plot of packed.plots.values()) {
+      assert.equal(plot.tagLift, 0, `n=24 plot ${String(plot.index)} stays unlifted`);
+    }
+    const full = layoutFor(roster(40));
+    const odd = [...full.plots.values()].filter((plot) => (plot.col + plot.row) % 2 === 1);
+    const even = [...full.plots.values()].filter((plot) => (plot.col + plot.row) % 2 === 0);
+    assert.ok(odd.length > 0 && even.length > 0, "forty bots occupy both parities");
+    for (const plot of even) {
+      assert.equal(plot.tagLift, 0, `even cell ${String(plot.index)} stays unlifted`);
+    }
+    for (const plot of odd) {
+      assert.equal(
+        Math.round(plot.tagLift),
+        22,
+        `odd cell ${String(plot.index)} lifts 22 world units at forty`,
+      );
+    }
   });
 });

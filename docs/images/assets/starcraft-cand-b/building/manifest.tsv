@@ -1,0 +1,3 @@
+id	theme	kind	path	sha256	promptPath	source	attempts	readback	verdict
+timber-depot	starcraft-cand-b	building	docs/images/assets/starcraft-cand-b/building/timber-depot.png	8214fce42785ee2119d23457147ff47d9528dd8e9239e0672564cb8822ee6da5		grok	1		unread
+steel-depot	starcraft-cand-b	building	docs/images/assets/starcraft-cand-b/building/steel-depot.png	5ccfb68ba5d6be70d556f10baf44c4796f9874064de07015df0db47764ba5d66		grok	1		unread

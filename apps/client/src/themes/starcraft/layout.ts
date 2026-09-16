@@ -1,57 +1,38 @@
-import type { ActivityEvent, BotId, BotRecord, SpatialAnchor } from "@lorien-stack/contracts";
+import type { BotId, BotRecord } from "@lorien-stack/contracts";
 
-import type { ThemePose } from "../hooks.ts";
+export const WORLD_WIDTH = 1920;
+export const WORLD_HEIGHT = 1040;
 
-export const WORLD_WIDTH = 960;
-export const WORLD_HEIGHT = 540;
+export const ROSTER_GUTTER = 296;
+const MARGIN_RIGHT = 40;
+// The back row is meant to crowd the rock wall the backdrop paints across the top, the
+// way the concept frame does, so the top margin only keeps nametags on canvas.
+const MARGIN_TOP = 56;
+const MARGIN_BOTTOM = 16;
+const CELL_MAX = 400;
+const MAX_BOTS = 40;
 
-export const WORK_MS = 12_000;
-export const SLEEP_MS = 22_000;
+// A plot's drawn height as a multiple of the column pitch. Above the pad centre sits
+// the building and its nametag, below it the action line, and the row behind has to
+// clear both or the grid stops being countable.
+export const PLOT_ABOVE = 0.66;
+export const PLOT_BELOW = 0.38;
+export const PLOT_HEIGHT = PLOT_ABOVE + PLOT_BELOW;
 
-export type StationKind =
-  | "core"
-  | "bay"
-  | "well"
-  | "depot"
-  | "lab"
-  | "turret"
-  | "works"
-  | "bunker"
-  | "pad"
-  | "silo"
-  | "yard"
-  | "relay";
+// Odd rows shift half a column, which is what makes a rectangular field of plots read
+// as an isometric floor instead of a spreadsheet.
+const ROW_STAGGER = 0.5;
+const TAG_LIFT = 0.12;
 
-export type Station = {
-  id: string;
-  kind: StationKind;
-  x: number;
-  y: number;
-  label: string;
+export type Grid = {
+  cols: number;
+  rows: number;
+  cell: number;
+  originX: number;
+  originY: number;
 };
 
-export type Seat = {
-  station: Station;
-  unitX: number;
-  unitY: number;
-};
-
-export type UnitPose = ThemePose;
-
-export const STATIONS: readonly Station[] = [
-  { id: "core", kind: "core", x: 470, y: 250, label: "Core" },
-  { id: "bay-a", kind: "bay", x: 250, y: 180, label: "Bay A" },
-  { id: "bay-b", kind: "bay", x: 700, y: 170, label: "Bay B" },
-  { id: "well", kind: "well", x: 140, y: 320, label: "Well" },
-  { id: "depot", kind: "depot", x: 820, y: 300, label: "Depot" },
-  { id: "lab", kind: "lab", x: 560, y: 120, label: "Lab" },
-  { id: "turret", kind: "turret", x: 360, y: 400, label: "Turret" },
-  { id: "works", kind: "works", x: 640, y: 390, label: "Works" },
-  { id: "bunker", kind: "bunker", x: 200, y: 430, label: "Bunker" },
-  { id: "pad", kind: "pad", x: 800, y: 430, label: "Pad" },
-  { id: "silo", kind: "silo", x: 90, y: 140, label: "Silo" },
-  { id: "relay", kind: "relay", x: 880, y: 110, label: "Relay" },
-];
+export type Plot = { index: number; col: number; row: number; x: number; y: number; tagLift: number };
 
 export function hash32(input: string): number {
   let h = 2166136261;
@@ -62,136 +43,66 @@ export function hash32(input: string): number {
   return h >>> 0;
 }
 
-function unitOffset(station: Station, botId: string): { x: number; y: number } {
-  const h = hash32(`unit:${station.id}:${botId}`);
-  const dx = (h % 37) - 18;
-  const dy = 28 + (Math.floor(h / 37) % 11);
-  return { x: station.x + dx, y: station.y + dy };
-}
-
-function stationById(stations: readonly Station[], id: string): Station | undefined {
-  return stations.find((station) => station.id === id);
-}
-
-function nearestStation(stations: readonly Station[], x: number, y: number): Station {
-  const first = stations[0];
-  if (first === undefined) {
-    throw new Error("stations must not be empty");
-  }
-  let best = first;
-  let bestD = Number.POSITIVE_INFINITY;
-  for (const station of stations) {
-    const dx = station.x - x;
-    const dy = station.y - y;
-    const d = dx * dx + dy * dy;
-    if (d < bestD) {
-      bestD = d;
-      best = station;
+export function planGrid(count: number): Grid {
+  const n = Math.min(MAX_BOTS, Math.max(1, Math.trunc(count)));
+  const availW = WORLD_WIDTH - ROSTER_GUTTER - MARGIN_RIGHT;
+  const availH = WORLD_HEIGHT - MARGIN_TOP - MARGIN_BOTTOM;
+  let cols = 1;
+  let rows = 1;
+  let cell = 0;
+  for (let r = 1; r <= n; r += 1) {
+    const c = Math.ceil(n / r);
+    const fit = Math.min(availW / (c + ROW_STAGGER), availH / (r * PLOT_HEIGHT), CELL_MAX);
+    if (fit > cell) {
+      cell = fit;
+      cols = c;
+      rows = r;
     }
   }
-  return best;
+  const spanX = (cols - 1 + ROW_STAGGER) * cell;
+  return {
+    cols,
+    rows,
+    cell,
+    originX: ROSTER_GUTTER + (availW - spanX) / 2,
+    originY: MARGIN_TOP + (availH - rows * PLOT_HEIGHT * cell) / 2 + PLOT_ABOVE * cell,
+  };
 }
 
-function preferredStation(
-  spatial: SpatialAnchor | undefined,
-  stations: readonly Station[],
-): Station | undefined {
-  if (spatial === undefined) {
-    return undefined;
-  }
-  if (spatial.kind === "seat") {
-    return stationById(stations, spatial.seatId);
-  }
-  const gx = 80 + spatial.gridX * 70;
-  const gy = 80 + spatial.gridY * 50;
-  return nearestStation(stations, gx, gy);
+export function plotAt(grid: Grid, index: number, count = 0): Plot {
+  const row = Math.floor(index / grid.cols);
+  const col = index - row * grid.cols;
+  const odd = (col + row) % 2 === 1;
+  return {
+    index,
+    col,
+    row,
+    x: grid.originX + (col + (row % 2) * ROW_STAGGER) * grid.cell,
+    y: grid.originY + row * PLOT_HEIGHT * grid.cell,
+    tagLift: count > 24 && odd ? grid.cell * TAG_LIFT : 0,
+  };
 }
 
-export function assignSeats(input: {
-  bots: readonly BotRecord[];
-  stations?: readonly Station[];
-}): Map<BotId, Seat> {
-  const stations = input.stations ?? STATIONS;
-  const taken = new Set<string>();
-  const seats = new Map<BotId, Seat>();
-  const ordered = [...input.bots].sort((a, b) => a.id.localeCompare(b.id));
+export type Layout = { grid: Grid; plots: Map<BotId, Plot> };
 
-  function occupy(bot: BotRecord, station: Station): void {
-    taken.add(station.id);
-    const offset = unitOffset(station, bot.id);
-    seats.set(bot.id, {
-      station,
-      unitX: offset.x,
-      unitY: offset.y,
-    });
-  }
-
-  for (const bot of ordered) {
-    const preferred = preferredStation(bot.spatial, stations);
-    if (preferred !== undefined && !taken.has(preferred.id)) {
-      occupy(bot, preferred);
-    }
-  }
-
-  for (const bot of ordered) {
-    if (seats.has(bot.id)) {
-      continue;
-    }
-    const start = hash32(bot.id) % stations.length;
-    let chosen: Station | undefined;
-    for (let n = 0; n < stations.length; n += 1) {
-      const station = stations[(start + n) % stations.length];
-      if (station !== undefined && !taken.has(station.id)) {
-        chosen = station;
+export function layoutFor(bots: readonly BotRecord[]): Layout {
+  const grid = planGrid(bots.length);
+  const slots = grid.cols * grid.rows;
+  const taken = new Set<number>();
+  const plots = new Map<BotId, Plot>();
+  // Sorted by id so the same roster produces the same field whatever order it arrives in.
+  for (const bot of [...bots].sort((a, b) => a.id.localeCompare(b.id))) {
+    const start = hash32(bot.id) % slots;
+    let chosen = start;
+    for (let step = 0; step < slots; step += 1) {
+      const slot = (start + step) % slots;
+      if (!taken.has(slot)) {
+        chosen = slot;
         break;
       }
     }
-    if (chosen === undefined) {
-      const fallback = stations[hash32(bot.id) % stations.length] ?? stations[0];
-      if (fallback === undefined) {
-        continue;
-      }
-      const offset = unitOffset(fallback, bot.id);
-      seats.set(bot.id, {
-        station: fallback,
-        unitX: offset.x + 22,
-        unitY: offset.y + 10,
-      });
-      continue;
-    }
-    occupy(bot, chosen);
+    taken.add(chosen);
+    plots.set(bot.id, plotAt(grid, chosen, bots.length));
   }
-
-  return seats;
-}
-
-export function poseFromPulse(input: {
-  eventCount: number;
-  msSincePulse: number;
-  workMs?: number;
-  sleepMs?: number;
-}): UnitPose {
-  const workMs = input.workMs ?? WORK_MS;
-  const sleepMs = input.sleepMs ?? SLEEP_MS;
-  if (input.eventCount === 0) {
-    return input.msSincePulse >= sleepMs ? "sleeping" : "idle";
-  }
-  if (input.msSincePulse < workMs) {
-    return "working";
-  }
-  if (input.msSincePulse < sleepMs) {
-    return "idle";
-  }
-  return "sleeping";
-}
-
-export function eventSignature(events: readonly ActivityEvent[] | undefined): string {
-  if (events === undefined || events.length === 0) {
-    return "0";
-  }
-  const last = events[events.length - 1];
-  if (last === undefined) {
-    return String(events.length);
-  }
-  return `${events.length}:${last.id}`;
+  return { grid, plots };
 }

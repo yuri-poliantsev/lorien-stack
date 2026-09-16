@@ -1,0 +1,40 @@
+{
+  "requests": [
+    {
+      "id": "wood-lit",
+      "theme": "starcraft",
+      "kind": "building",
+      "size": "1:1",
+      "keyColour": "#ff00ec",
+      "spec": "docs/images/assets/starcraft/building/wood-lit.spec.md",
+      "prompt": "One small orange-brown corrugated industrial shack building in isometric three-quarter view, open doorway with warm yellow interior glow visible through windows, flat slatted roof, red emergency beacon on roof, grey concrete foundation pad beneath, clean stylised 2D game art with crisp cel shading and bold dark outline. The building is centred alone on a completely flat uniform magenta field that fills the entire background, with no ground, no floor, no shadow beneath it and no scenery of any kind."
+    },
+    {
+      "id": "steel-dark",
+      "theme": "starcraft",
+      "kind": "building",
+      "size": "1:1",
+      "keyColour": "#ff00ec",
+      "spec": "docs/images/assets/starcraft/building/steel-dark.spec.md",
+      "prompt": "One small dark grey corrugated metal hangar building in isometric three-quarter view, closed roll-up shutter door, no windows, no interior glow, red emergency beacon on roof, yellow and black hazard stripes on corners, grey concrete foundation pad beneath, clean stylised 2D game art with crisp cel shading and bold dark outline. The building is centred alone on a completely flat uniform magenta field that fills the entire background, with no ground, no floor, no shadow beneath it and no scenery of any kind."
+    },
+    {
+      "id": "pad",
+      "theme": "starcraft",
+      "kind": "tile",
+      "size": "1:1",
+      "keyColour": "#ff00ec",
+      "spec": "docs/images/assets/starcraft/building/pad.spec.md",
+      "prompt": "One flat grey concrete foundation pad tile in isometric three-quarter view, simple rectangular slab with subtle surface texture, clean stylised 2D game art with crisp cel shading. The pad is centred alone on a completely flat uniform magenta field that fills the entire background, with no ground, no floor, no shadow beneath it and no scenery of any kind."
+    },
+    {
+      "id": "ground",
+      "theme": "starcraft",
+      "kind": "tile",
+      "size": "1:1",
+      "keyColour": "#ff00ec",
+      "spec": "docs/images/assets/starcraft/building/ground.spec.md",
+      "prompt": "One sandy tan desert ground tile in isometric three-quarter view, subtle grid lines and scattered small rocks, warm ochre sand texture, clean stylised 2D game art with crisp cel shading. The tile is centred alone on a completely flat uniform magenta field that fills the entire background, with no ground beneath the tile itself, no shadow beneath it and no scenery of any kind."
+    }
+  ]
+}

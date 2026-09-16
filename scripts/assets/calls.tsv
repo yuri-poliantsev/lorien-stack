@@ -90,3 +90,19 @@ ts	id	op	images	exit	seconds
 2026-09-16T02:32:21.553Z	lorien-cand-c/lantern	image_gen	1	0	38.7
 2026-09-16T02:32:24.392Z	flet.jpg	readback	0	0	70.8
 2026-09-16T02:33:15.155Z	lantern.jpg	readback	0	0	50.4
+2026-09-16T04:25:14.875Z	starcraft-cand-d/wood-lit	image_gen	1	0	36.4
+2026-09-16T04:25:15.917Z	starcraft-cand-d/ground	image_gen	1	0	37.5
+2026-09-16T04:25:18.818Z	starcraft-cand-d/pad	image_gen	1	0	40.4
+2026-09-16T04:25:26.469Z	starcraft-cand-d/steel-dark	image_gen	1	0	48.0
+2026-09-16T04:30:56.867Z	starcraft-cand-c/sand	image_gen	1	0	36.0
+2026-09-16T04:30:58.551Z	starcraft-cand-c/wood	image_gen	1	0	37.7
+2026-09-16T04:30:59.595Z	starcraft-cand-c/steel	image_gen	1	0	38.7
+2026-09-16T04:31:01.353Z	starcraft-cand-c/pad	image_gen	1	0	40.5
+2026-09-16T05:14:59.609Z	starcraft/a-vault	image_gen	1	0	21.8
+2026-09-16T05:15:06.451Z	starcraft/a-hut	image_gen	1	0	28.7
+2026-09-16T05:15:10.551Z	starcraft/a-ground	image_gen	1	0	32.8
+2026-09-16T05:37:38.878Z	a-ground.jpg	readback	0	0	34.4
+2026-09-16T05:38:02.905Z	a-hut.jpg	readback	0	0	23.6
+2026-09-16T05:38:40.655Z	a-vault.jpg	readback	0	0	37.4
+2026-09-16T06:28:21.000Z	starcraft-cand-b/timber-depot	image_gen	1	0	
+2026-09-16T06:28:21.000Z	starcraft-cand-b/steel-depot	image_gen	1	0	
