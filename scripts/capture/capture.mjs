@@ -20,6 +20,9 @@ const DEFAULT_BOTS = [1, 8, 18, 40];
 const ASLEEP_N = 8;
 const RECORD_N = 18;
 const KILL_GRACE_MS = 1500;
+const THEME_CANVAS = "theme-canvas";
+const THEME_UNIT = "theme-unit";
+const WORKING_WAIT_MS = 40_000;
 
 const children = [];
 const artifacts = [];
@@ -414,7 +417,7 @@ async function readAvgFrameMs(page) {
 		if (html !== undefined && html.length > 0) {
 			return { value: html, source: "html" };
 		}
-		const canvas = document.querySelector("[data-testid=starcraft-canvas]");
+		const canvas = document.querySelector('[data-testid="theme-canvas"]');
 		if (canvas instanceof HTMLElement && canvas.dataset.avgFrameMs) {
 			return { value: canvas.dataset.avgFrameMs, source: "canvas" };
 		}
@@ -443,50 +446,94 @@ async function preparePage(page, input) {
 	);
 }
 
-async function waitWorking(page) {
-	await page.waitForSelector('[data-testid="sc-unit"][data-pose="working"]', {
-		timeout: 45000,
-	});
+async function readPoseCounts(page) {
+	return page.evaluate((unitTestId) => {
+		const units = [...document.querySelectorAll(`[data-testid="${unitTestId}"]`)];
+		const counts = { working: 0, idle: 0, sleeping: 0 };
+		for (const el of units) {
+			if (!(el instanceof HTMLElement)) {
+				continue;
+			}
+			const pose = el.dataset.pose;
+			if (pose === "working" || pose === "idle" || pose === "sleeping") {
+				counts[pose] += 1;
+			}
+		}
+		return counts;
+	}, THEME_UNIT);
+}
+
+async function waitWorking(page, bots) {
+	const need = Math.ceil(bots / 3);
+	const started = Date.now();
+	try {
+		await page.waitForFunction(
+			({ unitTestId, needCount }) => {
+				const units = [...document.querySelectorAll(`[data-testid="${unitTestId}"]`)];
+				const working = units.filter(
+					(el) => el instanceof HTMLElement && el.dataset.pose === "working",
+				).length;
+				return working >= needCount;
+			},
+			{ unitTestId: THEME_UNIT, needCount: need },
+			{ timeout: WORKING_WAIT_MS },
+		);
+	} catch (error) {
+		if (Date.now() - started < WORKING_WAIT_MS - 250) {
+			throw error;
+		}
+	}
 }
 
 async function waitAsleep(page) {
 	await page.waitForFunction(
-		() => {
-			const units = [...document.querySelectorAll('[data-testid="sc-unit"]')];
-			return units.length > 0 && units.every((el) => el.dataset.pose === "sleeping");
+		(unitTestId) => {
+			const units = [...document.querySelectorAll(`[data-testid="${unitTestId}"]`)];
+			return (
+				units.length > 0 &&
+				units.every((el) => el instanceof HTMLElement && el.dataset.pose === "sleeping")
+			);
 		},
-		null,
+		THEME_UNIT,
 		{ timeout: 35000 },
 	);
 }
 
 async function assertPainted(page, bots) {
-	const info = await page.evaluate((count) => {
-		const canvas = document.querySelector("[data-testid=starcraft-canvas]");
-		if (!(canvas instanceof HTMLCanvasElement)) {
-			return { ok: false, reason: "missing canvas" };
-		}
-		const unitCount = canvas.dataset.unitCount;
-		const rows = document.querySelectorAll("[data-testid=bot-row]").length;
-		const ctx = canvas.getContext("2d");
-		if (ctx === null) {
-			return { ok: false, reason: "no 2d context" };
-		}
-		const sample = ctx.getImageData(
-			Math.floor(canvas.width / 2),
-			Math.floor(canvas.height / 2),
-			48,
-			48,
-		).data;
-		const colors = new Set();
-		for (let i = 0; i < sample.length; i += 16) {
-			colors.add(`${sample[i]},${sample[i + 1]},${sample[i + 2]}`);
-		}
-		return {
-			ok: unitCount === String(count) && rows === count && colors.size >= 3,
-			reason: `unitCount=${unitCount} rows=${rows} colors=${colors.size}`,
-		};
-	}, bots);
+	const info = await page.evaluate(
+		({ count, canvasTestId, unitTestId }) => {
+			const canvas = document.querySelector(`[data-testid="${canvasTestId}"]`);
+			if (!(canvas instanceof HTMLElement)) {
+				return { ok: false, reason: "missing theme-canvas" };
+			}
+			const unitCount = canvas.dataset.unitCount;
+			const units = document.querySelectorAll(`[data-testid="${unitTestId}"]`).length;
+			let colors = 0;
+			if (canvas instanceof HTMLCanvasElement) {
+				const ctx = canvas.getContext("2d");
+				if (ctx === null) {
+					return { ok: false, reason: "no 2d context" };
+				}
+				const sample = ctx.getImageData(
+					Math.floor(canvas.width / 2),
+					Math.floor(canvas.height / 2),
+					48,
+					48,
+				).data;
+				const seen = new Set();
+				for (let i = 0; i < sample.length; i += 16) {
+					seen.add(`${sample[i]},${sample[i + 1]},${sample[i + 2]}`);
+				}
+				colors = seen.size;
+			}
+			const paintOk = canvas instanceof HTMLCanvasElement ? colors >= 3 : true;
+			return {
+				ok: unitCount === String(count) && units === count && paintOk,
+				reason: `unitCount=${unitCount} units=${units} colors=${colors}`,
+			};
+		},
+		{ count: bots, canvasTestId: THEME_CANVAS, unitTestId: THEME_UNIT },
+	);
 	if (!info.ok) {
 		throw new Error(`blank or empty capture: ${info.reason}`);
 	}
@@ -500,8 +547,12 @@ async function assertFile(filePath) {
 }
 
 function printManifest(input) {
+	const mix =
+		input.working !== undefined
+			? `\tworking=${String(input.working)}\tidle=${String(input.idle)}\tsleeping=${String(input.sleeping)}`
+			: "";
 	process.stdout.write(
-		`${input.path}\tN=${String(input.n)}\ttheme=${input.theme}\tavgFrameMs=${input.avgFrameMs}\n`,
+		`${input.path}\tN=${String(input.n)}\ttheme=${input.theme}\tavgFrameMs=${input.avgFrameMs}${mix}\n`,
 	);
 	artifacts.push(input.path);
 }
@@ -518,10 +569,11 @@ async function captureStill(input) {
 		if (input.idle) {
 			await waitAsleep(page);
 		} else {
-			await waitWorking(page);
+			await waitWorking(page, input.bots);
 		}
 		await pause(800);
 		await assertPainted(page, input.bots);
+		const poses = await readPoseCounts(page);
 		const avg = await readAvgFrameMs(page);
 		if (avg.source === "missing") {
 			process.stderr.write("capture: warn document.documentElement.dataset.avgFrameMs is absent\n");
@@ -533,6 +585,9 @@ async function captureStill(input) {
 			n: input.bots,
 			theme: input.theme,
 			avgFrameMs: avg.source === "html" ? avg.value : "n/a",
+			working: poses.working,
+			idle: poses.idle,
+			sleeping: poses.sleeping,
 		});
 	} finally {
 		await page.close();
@@ -580,7 +635,7 @@ async function captureRecord(input) {
 	const page = await context.newPage();
 	try {
 		await preparePage(page, { url: pair.url, theme: input.theme, bots: RECORD_N });
-		await waitWorking(page);
+		await waitWorking(page, RECORD_N);
 		await pause(input.seconds * 1000);
 		const avg = await readAvgFrameMs(page);
 		if (avg.source === "missing") {
