@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -274,6 +274,55 @@ test("an existing .png plus a stale lock still refuses, leaving the lock untouch
 		);
 		assert.equal(readFileSync(LOCK_PATH, "utf8"), stale, "the lock was neither rewritten nor released");
 	} finally {
+		rmSync(LOCK_PATH, { force: true });
+	}
+});
+
+// Node's default signal handling exits without unwinding, so the release in cmdGen's
+// `finally` never ran and Ctrl-C on a batch of 40-second calls left the lock behind.
+test("interrupting a batch mid-call releases the gen lock and exits non-zero", async () => {
+	const dir = mkdtempSync(path.join(tmpdir(), "assets-sigint-"));
+	const fakeGrok = path.join(dir, "grok");
+	writeFileSync(fakeGrok, "#!/bin/sh\nsleep 20\n", { mode: 0o755 });
+	writeFileSync(path.join(dir, "request.json"), JSON.stringify({ ...REQUEST, id: "sigint01" }));
+	assert.equal(existsSync(LOCK_PATH), false, "no real gen run is holding the lock");
+
+	// detached so the interrupt reaches the sleeping child too, the way Ctrl-C in a
+	// terminal signals the whole foreground group.
+	const child = spawn(
+		process.execPath,
+		[
+			fileURLToPath(new URL("../main.mjs", import.meta.url)),
+			"gen",
+			"--request",
+			path.join(dir, "request.json"),
+			"--out-dir",
+			dir,
+		],
+		{ encoding: "utf8", env: { ...process.env, GROK_BIN: fakeGrok }, detached: true, stdio: "ignore" },
+	);
+	const exited = new Promise((resolve) => {
+		child.on("exit", (code, signal) => resolve({ code, signal }));
+	});
+
+	try {
+		for (let waited = 0; waited < 5000 && !existsSync(LOCK_PATH); waited += 25) {
+			await new Promise((resolve) => setTimeout(resolve, 25));
+		}
+		assert.equal(existsSync(LOCK_PATH), true, "the batch took the lock before the call");
+		assert.match(readFileSync(LOCK_PATH, "utf8"), /^\d+ \d{4}-/, "the lock records its holder");
+
+		process.kill(-child.pid, "SIGINT");
+		const { code, signal } = await exited;
+		assert.equal(signal, null, "the process handled the signal rather than dying from it");
+		assert.equal(code, 130, "128 plus SIGINT, so an interrupted batch is distinguishable");
+		assert.equal(existsSync(LOCK_PATH), false, "the lock was released on the way out");
+	} finally {
+		try {
+			process.kill(-child.pid, "SIGKILL");
+		} catch {
+			// already gone
+		}
 		rmSync(LOCK_PATH, { force: true });
 	}
 });
