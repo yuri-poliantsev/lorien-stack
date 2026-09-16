@@ -209,17 +209,17 @@ describe("runReplay", () => {
     await Promise.all(roots.map((root) => rm(root, { recursive: true, force: true })));
   });
 
-  it("emits the first line of the first three tapes at 0, 3500, and 7000", async () => {
-    const workRoot = await mkdtemp(path.join(os.tmpdir(), "demo-stagger-"));
+  async function firstEmitTimes(botCount: number): Promise<number[]> {
+    const workRoot = await mkdtemp(path.join(os.tmpdir(), `demo-stagger-${String(botCount)}-`));
     roots.push(workRoot);
     const plan = await loadReplayPlan({
       fixtureRoot: path.join(repoRootFromModule(import.meta.url), "fixtures/demo"),
       workRoot,
       multiplier: 1000,
-      botCount: 3,
+      botCount,
     });
     const abort = new AbortController();
-    const clock = createVirtualClock({ inflight: 3, signal: abort.signal });
+    const clock = createVirtualClock({ inflight: botCount, signal: abort.signal });
     const firstNow = new Map<string, number>();
     await runReplay({
       plan,
@@ -230,15 +230,31 @@ describe("runReplay", () => {
         if (!firstNow.has(step.botId)) {
           firstNow.set(step.botId, clock.now());
         }
-        if (firstNow.size === 3) {
+        if (firstNow.size === botCount) {
           abort.abort();
         }
       },
     });
-    assert.deepEqual(
-      [firstNow.get(ivo), firstNow.get(wren), firstNow.get(sable)],
-      [0, 3500, 7000],
-    );
+    return [...firstNow.values()].sort((a, b) => a - b);
+  }
+
+  it("starts one bot at 0", async () => {
+    assert.deepEqual(await firstEmitTimes(1), [0]);
+  });
+
+  it("starts eight bots at 0, 1500, 3000, 4500, 6000, 7500, 9000, 10500", async () => {
+    assert.deepEqual(await firstEmitTimes(8), [
+      0, 1500, 3000, 4500, 6000, 7500, 9000, 10500,
+    ]);
+  });
+
+  it("starts forty bots 300 ms apart through 11700", async () => {
+    assert.deepEqual(await firstEmitTimes(40), [
+      0, 300, 600, 900, 1200, 1500, 1800, 2100, 2400, 2700, 3000, 3300, 3600,
+      3900, 4200, 4500, 4800, 5100, 5400, 5700, 6000, 6300, 6600, 6900, 7200,
+      7500, 7800, 8100, 8400, 8700, 9000, 9300, 9600, 9900, 10200, 10500, 10800,
+      11100, 11400, 11700,
+    ]);
   });
 
   it("writes the first tape line again after one loop", async () => {
