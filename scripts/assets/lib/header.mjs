@@ -13,15 +13,33 @@ export function readImageHeader(file) {
 function png(bytes, file) {
 	if (bytes.subarray(12, 16).toString("ascii") !== "IHDR") throw new Error(`${file}: PNG without IHDR first`);
 	const colourType = bytes[25];
+	// Colour types 4 and 6 carry an alpha sample per pixel, but a palette PNG spends its
+	// transparency in a tRNS chunk instead, which is what `assets key` emits after
+	// quantisation. Reading only the colour type called those images opaque.
+	const transparency = hasChunk(bytes, "tRNS");
 	return {
 		format: "png",
 		width: bytes.readUInt32BE(16),
 		height: bytes.readUInt32BE(20),
 		bitDepth: bytes[24],
 		colourType,
-		hasAlpha: colourType === 4 || colourType === 6,
+		hasAlpha: colourType === 4 || colourType === 6 || transparency,
+		transparency,
 		chroma: "none",
 	};
+}
+
+// Walk the chunk chain to the first IDAT; tRNS is required to appear before it.
+function hasChunk(bytes, wanted) {
+	let offset = 8;
+	while (offset + 8 <= bytes.length) {
+		const length = bytes.readUInt32BE(offset);
+		const type = bytes.subarray(offset + 4, offset + 8).toString("ascii");
+		if (type === wanted) return true;
+		if (type === "IDAT" || type === "IEND") return false;
+		offset += 12 + length;
+	}
+	return false;
 }
 
 // Walk the JPEG marker chain to the first frame header; the component

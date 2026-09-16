@@ -190,6 +190,33 @@ test("authoritativeRows keeps the newest row per theme and id and marks the rest
 	);
 });
 
+// `assets key` emits a palette PNG, whose transparency lives in a tRNS chunk rather than
+// in an alpha sample per pixel, so the colour type alone called the keyed output opaque.
+test("readImageHeader reports alpha on a palette PNG carrying a tRNS chunk", async () => {
+	const dir = mkdtempSync(path.join(tmpdir(), "assets-trns-"));
+	const pixels = Buffer.alloc(8 * 8 * 4);
+	for (let index = 0; index < 8 * 8; index += 1) {
+		pixels[index * 4] = 0xff;
+		pixels[index * 4 + 3] = index < 32 ? 0 : 0xff;
+	}
+	const palette = path.join(dir, "keyed.png");
+	await sharp(pixels, { raw: { width: 8, height: 8, channels: 4 } }).png({ palette: true }).toFile(palette);
+	const header = readImageHeader(palette);
+	assert.equal(header.colourType, 3, "sharp wrote a palette PNG, not an RGBA one");
+	assert.equal(header.transparency, true);
+	assert.equal(header.hasAlpha, true);
+	assert.match(describeHeader(header), /^png 8x8 chroma=none alpha=true$/);
+
+	const opaque = path.join(dir, "opaque.png");
+	await sharp(Buffer.alloc(8 * 8 * 3, 0x20), { raw: { width: 8, height: 8, channels: 3 } })
+		.png({ palette: true })
+		.toFile(opaque);
+	assert.equal(readImageHeader(opaque).hasAlpha, false, "a palette PNG with no tRNS is still opaque");
+
+	const keyed = readImageHeader(path.join(REPO_ROOT, "scripts/assets/examples/starcraft-worker-keyed.png"));
+	assert.equal(keyed.hasAlpha, true, "the committed keyed example reads back as having alpha");
+});
+
 test("gen refuses an output path that already exists, spending no call and appending no row", () => {
 	const dir = mkdtempSync(path.join(tmpdir(), "assets-clash-"));
 	writeFileSync(path.join(dir, "01.jpg"), "not really a jpeg");
