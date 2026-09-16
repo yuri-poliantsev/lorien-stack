@@ -241,6 +241,12 @@ Adding `playwright` to the root `devDependencies`. Step 4's open PR already adds
 
 Insetting the camera fit by the roster panel's width. The panel is translucent and collapsible, and both the panel and the drawer change width at runtime, so a dynamic inset would make the scene lurch every time the watcher opened a drawer.
 
+## Outcome
+
+Squash-merged to `main` as `b9dab72` after a rebase onto `f257b46`. At that sha `npm test` is 118 passing across client 64, contracts 11 and gateway 43, `npm run typecheck`, `npm run build -w apps/client` and `npm run docs:smoke` pass, CI on `main` is green, and `npm run capture` reads `avgFrameMs` of **1.36 at 40 bots** against Q21's 4ms budget.
+
+Two rounds of review preceded it. The first found the shell sound but the scene unreachable by mouse: capture on pointerdown retargeted the click away from the unit. That round also found the ring following a second copy of the selection inside `scene.ts`. Both are fixed and proven with `page.mouse` rather than `HTMLElement.click()`, which is the lesson worth carrying: a synthetic click routes around the event plumbing that was broken, so it proved nothing about the surface a watcher touches.
+
 ## Next step
 
 Step 5, the StarCraft rework, via the bakeoff in the plan's Process section. It is the first theme to consume `ThemeMountContext.palette` and `ThemeEntry.world` for real, and the first to apply the camera transform to art rather than to the placeholder scene. It also owns the crowding this step left alone: 40 nametags overlap on the twelve fixed stations, and Q4 replaces them with a generative layout. Judge its candidates at 8 and 40 bots with `npm run capture`, and hold them to the same 4ms budget, which the shell now leaves 2.5ms of headroom under.
