@@ -18,8 +18,8 @@ export const DEMO_BOT_MIN = 1;
 export const DEMO_BOT_MAX = 40;
 export const DEFAULT_DEMO_BOTS = 8;
 export const DEMO_CLONE_NAMESPACE = "a11ce000-10e1-41e0-8000-c10de0000001";
-export const DEMO_STAGGER_WINDOW_MS = 12_000;
-export const DEMO_STAGGER_CAP_MS = 1_600;
+const DEMO_STAGGER_WINDOW_MS = 12_000;
+const DEMO_STAGGER_CAP_MS = 1_600;
 export const DEMO_MIN_STEP_MS = 800;
 export const DEMO_QUIET_HOLD_MS = 4_000;
 export const DEMO_SLEEP_HOLD_MS = 3_000;
@@ -101,7 +101,7 @@ export function cloneBotId(input: { sourceId: string; wave: number }): BotId {
   return parsed.value;
 }
 
-export function demoStaggerMs(botCount: number): number {
+function demoStaggerMs(botCount: number): number {
   if (!Number.isFinite(botCount) || botCount <= 0) {
     return DEMO_STAGGER_CAP_MS;
   }

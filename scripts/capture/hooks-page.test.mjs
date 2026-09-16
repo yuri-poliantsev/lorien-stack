@@ -8,6 +8,8 @@ import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 
+import { THEME_POSES } from "../../apps/client/src/themes/hooks.ts";
+
 const repoRoot = fileURLToPath(new URL("../..", import.meta.url));
 const GATEWAY_PORTS = [8060, 8061, 8062, 8063];
 const VITE_PORTS = [5160, 5161, 5162, 5163];
@@ -161,7 +163,8 @@ describe("starcraft hook page", () => {
 					units.length === 40
 				);
 			}, null, { timeout: 30000 });
-			const info = await page.evaluate(() => {
+			const allowed = [...THEME_POSES];
+			const info = await page.evaluate((poses) => {
 				const canvases = document.querySelectorAll('[data-testid="theme-canvas"]');
 				const canvas = canvases[0];
 				const units = [...document.querySelectorAll('[data-testid="theme-unit"]')];
@@ -176,10 +179,10 @@ describe("starcraft hook page", () => {
 						if (!(el instanceof HTMLElement)) {
 							return false;
 						}
-						return el.dataset.pose === "working" || el.dataset.pose === "idle" || el.dataset.pose === "sleeping";
+						return poses.includes(el.dataset.pose ?? "");
 					}).length,
 				};
-			});
+			}, allowed);
 			assert.deepEqual(info, {
 				canvases: 1,
 				unitCount: "40",
