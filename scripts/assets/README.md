@@ -82,9 +82,10 @@ re-execution is not hypothetical: it cost this step six duplicate images and lef
 manifest rows permanently unverifiable, which is what `superseded.tsv` records.
 
 **The lock.** `gen` takes an exclusive `scripts/assets/.gen.lock` for the batch so two runs
-cannot spend the same budget, and releases it on normal exit. A run that dies without
-unwinding leaves the file behind, and the next run refuses with the holder's pid and
-timestamp; delete it once you have confirmed that run is gone.
+cannot spend the same budget. It is released on normal exit and on SIGINT or SIGTERM, so
+Ctrl-C on a long batch is safe and exits 130. Only a signal that cannot be handled
+(`SIGKILL`, a lost machine) leaves the file behind; the next run then refuses with the
+holder's pid and timestamp, and you delete it once you have confirmed that run is gone.
 
 **Refusing an existing output.** `gen` exits non-zero, names the path, spends no call and
 writes no row when `<id>.jpg` or `<id>.png` already exists in the output directory. This is

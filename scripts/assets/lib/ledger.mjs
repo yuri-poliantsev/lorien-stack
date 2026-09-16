@@ -145,9 +145,28 @@ export function takeLock() {
 			`another assets gen run holds ${repoRelative(LOCK_PATH)} (${readFileSync(LOCK_PATH, "utf8").trim()}); delete it if that run is gone`,
 		);
 	}
-	return () => {
+	// Node's default handling of SIGINT and SIGTERM exits without unwinding, so the
+	// release in a `finally` never runs and Ctrl-C on a batch that takes minutes
+	// strands the lock. The next run then refuses for a holder that no longer exists.
+	let released = false;
+	const release = () => {
+		if (released) return;
+		released = true;
+		process.off("SIGINT", onInterrupt);
+		process.off("SIGTERM", onTerminate);
 		rmSync(LOCK_PATH, { force: true });
 	};
+	const onSignal = (code) => {
+		release();
+		process.exit(code);
+	};
+	// 128 plus the signal number, so a caller can tell an interrupted batch from a
+	// failed one.
+	const onInterrupt = () => onSignal(130);
+	const onTerminate = () => onSignal(143);
+	process.once("SIGINT", onInterrupt);
+	process.once("SIGTERM", onTerminate);
+	return release;
 }
 
 export function sha256(file) {
