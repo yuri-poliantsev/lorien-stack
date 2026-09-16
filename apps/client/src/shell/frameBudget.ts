@@ -44,17 +44,38 @@ export const FRAME_BUDGET_WINDOW_MS = 2000;
 export const FRAME_BUDGET_WRITE_MS = 1000;
 export const FRAME_BUDGET_MIN_SAMPLES = 20;
 
-export function startFrameBudget(root: HTMLElement): () => void {
+export type FrameBudgetTarget = { dataset: DOMStringMap };
+
+export type FrameBudgetClock = {
+  requestAnimationFrame(callback: (timestamp: number) => void): number;
+  cancelAnimationFrame(handle: number): void;
+  now(): number;
+};
+
+const browserClock: FrameBudgetClock = {
+  requestAnimationFrame: (callback) => window.requestAnimationFrame(callback),
+  cancelAnimationFrame: (handle) => window.cancelAnimationFrame(handle),
+  now: () => performance.now(),
+};
+
+export function startFrameBudget(
+  root: FrameBudgetTarget,
+  clock: FrameBudgetClock = browserClock,
+): () => void {
   const avg = rollingAverage(FRAME_BUDGET_WINDOW_MS);
   let lastWriteAt: number | undefined;
   let frameId = 0;
   let stopped = false;
 
+  // A restart begins a fresh window. Leaving the old number up would attribute
+  // the previous theme's frame time to the new one for the whole warm-up.
+  delete root.dataset.avgFrameMs;
+
   const tick = (timestamp: number): void => {
     if (stopped) {
       return;
     }
-    const now = performance.now();
+    const now = clock.now();
     if (lastWriteAt === undefined) {
       lastWriteAt = now;
     }
@@ -71,12 +92,13 @@ export function startFrameBudget(root: HTMLElement): () => void {
       lastWriteAt = now;
       root.dataset.avgFrameMs = avg.average().toFixed(2);
     }
-    frameId = window.requestAnimationFrame(tick);
+    frameId = clock.requestAnimationFrame(tick);
   };
 
-  frameId = window.requestAnimationFrame(tick);
+  frameId = clock.requestAnimationFrame(tick);
   return () => {
     stopped = true;
-    window.cancelAnimationFrame(frameId);
+    clock.cancelAnimationFrame(frameId);
+    delete root.dataset.avgFrameMs;
   };
 }
