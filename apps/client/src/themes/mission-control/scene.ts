@@ -63,10 +63,7 @@ const STYLE = `
   padding: 0 !important;
   overflow: hidden;
   color: var(--mc-ink);
-  background:
-    linear-gradient(0deg, rgba(240, 178, 61, 0.045) 1px, transparent 1px) 0 0 / 100% 64px,
-    linear-gradient(90deg, rgba(240, 178, 61, 0.045) 1px, transparent 1px) 0 0 / 64px 100%,
-    #07070a;
+  background: #07070a;
 }
 .mc-world {
   position: absolute;
@@ -163,6 +160,10 @@ const STYLE = `
 .mc-grid {
   position: absolute;
   inset: 0;
+  background-image:
+    linear-gradient(rgba(212, 168, 72, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(212, 168, 72, 0.055) 1px, transparent 1px);
+  background-size: 48px 48px;
 }
 .mc-card {
   position: absolute;
