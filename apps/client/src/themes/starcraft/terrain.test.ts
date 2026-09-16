@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { kindFor, propFor } from "./building.ts";
+import { kindFor, propFor, steelLightRects } from "./building.ts";
 import { skyTint } from "./terrain.ts";
 
 describe("starcraft clock tint", () => {
@@ -45,5 +45,20 @@ describe("starcraft building variants", () => {
       const prop = propFor(`bot-${String(i)}`);
       assert.ok(prop >= 0 && prop <= 3, `bot-${String(i)} has a drawable roof prop`);
     }
+  });
+});
+
+describe("starcraft idle steel light", () => {
+  it("places four shutter slats and three windows on a 100 unit vault", () => {
+    const slots = steelLightRects({ x: 0, y: 0, w: 100, h: 100 });
+    assert.deepEqual(slots, [
+      { x: 16, y: 40, w: 28, h: 2 },
+      { x: 16, y: 46.5, w: 28, h: 2 },
+      { x: 16, y: 53, w: 28, h: 2 },
+      { x: 16, y: 59.5, w: 28, h: 2 },
+      { x: 58, y: 46, w: 7, h: 11 },
+      { x: 67, y: 46, w: 7, h: 11 },
+      { x: 76, y: 46, w: 7, h: 11 },
+    ]);
   });
 });

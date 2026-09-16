@@ -78,6 +78,43 @@ function buildingRect(view: PlotView): { x: number; y: number; w: number; h: num
   return { x: view.x - w / 2, y: view.y + S * BUILD_DROP - h, w, h };
 }
 
+export function steelLightRects(rect: {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}): readonly { x: number; y: number; w: number; h: number }[] {
+  const snap = (n: number): number => Math.round(n * 100) / 100;
+  const slot = (
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+  ): { x: number; y: number; w: number; h: number } => ({
+    x: snap(x),
+    y: snap(y),
+    w: snap(w),
+    h: snap(h),
+  });
+  const shutterX = rect.x + rect.w * 0.16;
+  const shutterY = rect.y + rect.h * 0.4;
+  const shutterW = rect.w * 0.28;
+  const slitH = Math.max(1.2, rect.h * 0.02);
+  const pitch = rect.h * 0.065;
+  const slats = [0, 1, 2, 3].map((k) =>
+    slot(shutterX, shutterY + k * pitch, shutterW, slitH),
+  );
+  const windows = [0, 1, 2].map((k) =>
+    slot(
+      rect.x + rect.w * 0.58 + k * rect.w * 0.09,
+      rect.y + rect.h * 0.46,
+      rect.w * 0.07,
+      rect.h * 0.11,
+    ),
+  );
+  return [...slats, ...windows];
+}
+
 function drawLightPool(ctx: CanvasRenderingContext2D, view: PlotView): void {
   const S = view.cell;
   const cx = view.x + doorSide(view) * S * 0.15;
@@ -126,6 +163,15 @@ function drawFallbackBox(ctx: CanvasRenderingContext2D, view: PlotView, lit: boo
     ctx.fillRect(view.x + bw * 0.1, view.y - h * 0.6, bw * 0.4, h * 0.6);
   }
   ctx.globalAlpha = 1;
+}
+
+function drawSteelLight(ctx: CanvasRenderingContext2D, view: PlotView): void {
+  // The vault sheet has shutters and no windows, so idle vs asleep would be a brightness
+  // wash without these slits.
+  ctx.fillStyle = "#ffc85c";
+  for (const slot of steelLightRects(buildingRect(view))) {
+    ctx.fillRect(slot.x, slot.y, slot.w, slot.h);
+  }
 }
 
 // Crates and drums on the spare corner of a pad. Two building sheets alone make a
@@ -343,6 +389,10 @@ export function drawPlot(ctx: CanvasRenderingContext2D, view: PlotView): void {
       rect.w,
       rect.h,
     );
+  }
+
+  if (view.kind === "vault" && view.pose !== "sleeping") {
+    drawSteelLight(ctx, view);
   }
 
   drawBeacon(ctx, view);
