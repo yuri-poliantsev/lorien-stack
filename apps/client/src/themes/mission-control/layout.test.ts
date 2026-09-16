@@ -76,8 +76,8 @@ describe("mission control card placement", () => {
     assert.equal(HEADER.x >= 316, true, "header clears the roster panel's 296px rail");
   });
 
-  it("fits every card inside the grid area at one, twenty-four and forty", () => {
-    for (const n of [1, 24, 40]) {
+  it("fits every card inside the grid area at every roster size from one to forty", () => {
+    for (let n = 1; n <= 40; n += 1) {
       for (const rect of rects(n)) {
         assert.equal(rect.x >= GRID_AREA.x, true, `card left inside grid area at ${String(n)}`);
         assert.equal(rect.y >= GRID_AREA.y, true, `card top inside grid area at ${String(n)}`);

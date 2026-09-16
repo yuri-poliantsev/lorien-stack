@@ -1,6 +1,7 @@
 import type { ActivityEvent, BotId, BotRecord } from "@lorien-stack/contracts";
 
 import type { Camera } from "../../camera.ts";
+import type { ThemePose } from "../hooks.ts";
 import {
   BOARD,
   HEADER,
@@ -23,16 +24,15 @@ import {
   metricText,
   tallyPoses,
   type CardModel,
-  type CardPose,
 } from "./model.ts";
 
-export type MissionControlRenderInput = {
+type MissionControlRenderInput = {
   roster: readonly BotRecord[];
   activity: ReadonlyMap<BotId, readonly ActivityEvent[]>;
   selectedBotId: BotId | undefined;
 };
 
-export type MissionControlHandle = {
+type MissionControlHandle = {
   render: (input: MissionControlRenderInput) => void;
   unmount: () => void;
 };
@@ -600,7 +600,7 @@ export function mountMissionControlTheme(
       applyScale(scale);
     }
     const live = new Set<string>();
-    const poses: CardPose[] = [];
+    const poses: ThemePose[] = [];
     for (let index = 0; index < ordered.length; index += 1) {
       const bot = ordered[index];
       if (bot === undefined) {

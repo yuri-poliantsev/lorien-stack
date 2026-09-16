@@ -60,7 +60,7 @@ const COLUMN_STEPS: readonly (readonly [number, number])[] = [
   [40, 8],
 ];
 
-export function clampRosterSize(count: number): number {
+function clampRosterSize(count: number): number {
   if (!Number.isFinite(count)) {
     return 1;
   }
@@ -77,7 +77,7 @@ export function gridColumns(count: number): number {
   return 8;
 }
 
-export type Grid = {
+type Grid = {
   cols: number;
   rows: number;
   cardW: number;

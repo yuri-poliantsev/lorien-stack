@@ -2,9 +2,11 @@
 
 ## What was decided
 
-Four candidates built the theme against `.audit/bakeoff-mission-control.md` on `theme-night/07-mission-control-cand-{a,b,c,d}`. Two judges read the code and the stills blind. Root reconciled their verdicts. Candidate a (head `7af6826`) is the base. The final ranking is a, b, c, d.
+Four candidates built the theme against one spec on `theme-night/07-mission-control-cand-{a,b,c,d}`. The spec (an untracked working note during the night) required: a modern editorial dark dashboard, big type, cards, one accent, no CRT, no game skin, no fake terminal (Q17); one card per bot in a generative grid for a roster of 1 to 40, all cards fitting 1920x1080 without scrolling, slot order by bot id; three poses, `working` with an accent edge and the action word plus file path, `idle` with the last action greyed and an age, `sleeping` dimmed to the name with a moon or dot, and an all-asleep board that still reads as a finished dashboard; the NFKC name as the card headline; nothing drawn under the shell's roster panel at any N, which a's 296px rail reservation is the answer to; camera pan and zoom honoured as a transform on the grid; ambience gated by `reducedMotion`; `avgFrameMs` under 4 at 40 bots with per-card DOM diffs; and the lever's hook contract, `data-testid="theme-canvas"` with `data-unit-count`, one `data-testid="theme-unit"` button per bot with `data-bot-id` and `data-pose` in `working | idle | sleeping`, click or Enter calling `context.onSelect`.
 
-Both judges disqualified d as a base. Its pure layout function centres the grid in the full 1920 world with no left reservation, so the shell's roster panel covers the first column at every roster size. Judge 1 ranked a first (21 of 25) and b second (20). Judge 2 ranked b first (22) and a second (17). The disagreement was about b's two visible defects. Judge 1 saw both in every still. The `.mc-card-copy` span had no display, so the action and path ran together as `TALKINGNO FILE TARGET`, and the `LORIEN / MC` wordmark sat under the roster panel and read as `EN / MC`. Judge 2 saw only the wordmark clip and scored b on concept match. Root took judge 1's reading of the stills. Judge 2's grafts were not taken because they moved a's parts into b; with a as the base they are already present.
+Two judges read the code and the stills blind. Judge 1 ranked a > b > d > c and chose a as the base (scores 21, 20, 16, 13 of 25). Judge 2 ranked b > a > c > d and chose b as the base (scores 17 for a, 22 for b, 14 for c, 18 for d before disqualification). Root reconciled their verdicts. Candidate a (head `7af6826`) is the base. The final ranking is a, b, c, d.
+
+Both judges disqualified d as a base. Its pure layout function centres the grid in the full 1920 world with no left reservation, so the shell's roster panel covers the first column at every roster size. The judges' disagreement on the top slot was about b's two visible defects. Judge 1 saw both in every still. The `.mc-card-copy` span had no display, so the action and path ran together as `TALKINGNO FILE TARGET`, and the `LORIEN / MC` wordmark sat under the roster panel and read as `EN / MC`. Judge 2 saw only the wordmark clip and scored b on concept match. Root took judge 1's reading of the stills. Judge 2's grafts were not taken because they moved a's parts into b; with a as the base they are already present.
 
 Four grafts landed, one commit each, in the brief's order.
 
@@ -20,7 +22,7 @@ Kept from a: the 296px rail reservation, the model and test split, the asleep tr
 ```
 HEADER   = { x: 316, y: 44, w: 1560, h: 136 }        header strip, right of the rail
 GRID_AREA = { x: 316, y: 204, w: 1560, h: 832 }      cards, below the header
-Tally    = { roster, working, sleeping }              from tallyPoses(CardPose[])
+Tally    = { roster, working, sleeping }              from tallyPoses(ThemePose[])
 METRICS  = [roster "roster", working "live now", sleeping "asleep"]
 ACTION_GLYPHS: Record<Action, string>                 → ✎ $ … ? ·
 CardModel.line = actionLine({ action, path, maxChars })  "" when asleep

@@ -7,20 +7,20 @@ import {
   type Action,
 } from "../../actions.ts";
 import { ageLabel } from "../../shell/format.ts";
+import type { ThemePose } from "../hooks.ts";
 
-export const WORK_MS = 12_000;
-export const SLEEP_MS = 22_000;
+const WORK_MS = 12_000;
+const SLEEP_MS = 22_000;
 export const SPARK_BUCKETS = 20;
-export const SPARK_BUCKET_MS = 3_000;
+const SPARK_BUCKET_MS = 3_000;
 
 const DASH = "\u2013";
 const ELLIPSIS = "\u2026";
 const MIDDLE_DOT = "\u00B7";
 const MIN_PATH_CHARS = 6;
 
-export type CardPose = "working" | "idle" | "sleeping";
 
-export const POSE_WORDS: Record<CardPose, string> = {
+const POSE_WORDS: Record<ThemePose, string> = {
   working: "working",
   idle: "idle",
   sleeping: "asleep",
@@ -29,7 +29,7 @@ export const POSE_WORDS: Record<CardPose, string> = {
 export function poseFor(input: {
   eventCount: number;
   msSinceActivity: number;
-}): CardPose {
+}): ThemePose {
   if (input.eventCount === 0) {
     return input.msSinceActivity >= SLEEP_MS ? "sleeping" : "idle";
   }
@@ -64,7 +64,7 @@ export function activityBars(input: {
   return counts.map((n) => n / peak);
 }
 
-export type Tally = { roster: number; working: number; sleeping: number };
+type Tally = { roster: number; working: number; sleeping: number };
 
 export const METRICS: readonly { key: keyof Tally; label: string }[] = [
   { key: "roster", label: "roster" },
@@ -72,7 +72,7 @@ export const METRICS: readonly { key: keyof Tally; label: string }[] = [
   { key: "sleeping", label: "asleep" },
 ];
 
-export function tallyPoses(poses: readonly CardPose[]): Tally {
+export function tallyPoses(poses: readonly ThemePose[]): Tally {
   let working = 0;
   let sleeping = 0;
   for (const pose of poses) {
@@ -89,7 +89,7 @@ export function metricText(n: number): string {
   return String(n).padStart(2, "0");
 }
 
-export const ACTION_GLYPHS: Record<Action, string> = {
+const ACTION_GLYPHS: Record<Action, string> = {
   reading: "\u2192",
   writing: "\u270E",
   shell: "$",
@@ -127,7 +127,7 @@ export function actionLine(input: {
 export type CardModel = {
   botId: BotId;
   name: string;
-  pose: CardPose;
+  pose: ThemePose;
   state: string;
   line: string;
   age: string;
@@ -170,7 +170,7 @@ export function cardModel(input: {
 
 // Peaks at 13:00 and troughs at 01:00, so both the accent and the board's own
 // day-or-night word come off one curve rather than two thresholds that can disagree.
-export function dayFactor(hour: number): number {
+function dayFactor(hour: number): number {
   const h = ((Math.trunc(hour) % 24) + 24) % 24;
   return (1 + Math.cos(((h - 13) / 24) * Math.PI * 2)) / 2;
 }
