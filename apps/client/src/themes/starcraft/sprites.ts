@@ -16,24 +16,28 @@ export type SpriteSet = {
   ground: HTMLImageElement | undefined;
 };
 
-type Sheet = Omit<Sprite, "lit" | "dark"> & { src: string };
+export function assetUrl(name: string, base: string): string {
+  const prefix = base.endsWith("/") ? base : `${base}/`;
+  return `${prefix}themes/starcraft/${name}.png`;
+}
+
+type Sheet = Omit<Sprite, "lit" | "dark"> & { name: string };
 
 const SHEETS: Record<BuildKind, Sheet> = {
   hut: {
-    src: "/themes/starcraft/hut.png",
+    name: "hut",
     box: { x: 76, y: 83, w: 368, h: 335 },
     beacon: { x: 0.356, y: 0.042 },
     door: 1,
   },
   vault: {
-    src: "/themes/starcraft/vault.png",
+    name: "vault",
     box: { x: 85, y: 103, w: 356, h: 306 },
     beacon: { x: 0.444, y: 0.029 },
     door: -1,
   },
 };
 
-const GROUND_SRC = "/themes/starcraft/ground.png";
 const NIGHT_WASH = "rgba(20, 28, 46, 0.78)";
 
 // One dark twin per sheet, made once at load. The lit sheet carries glowing windows and a
@@ -70,7 +74,7 @@ export function loadSprites(onReady: () => void): SpriteSet {
       };
       onReady();
     });
-    image.src = sheet.src;
+    image.src = assetUrl(sheet.name, import.meta.env.BASE_URL);
   }
 
   const ground = new Image();
@@ -78,7 +82,7 @@ export function loadSprites(onReady: () => void): SpriteSet {
     set.ground = ground;
     onReady();
   });
-  ground.src = GROUND_SRC;
+  ground.src = assetUrl("ground", import.meta.env.BASE_URL);
 
   return set;
 }
