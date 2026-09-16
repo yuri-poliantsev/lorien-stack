@@ -101,6 +101,10 @@ Vite preview at base `/` on 5211: `/?theme=lorien` requests `/themes/lorien/*.pn
 - The lever on `main` prints manifest lines to stdout and writes no `manifest.tsv` in `--out`; the lines are saved by hand beside each run under `/tmp/theme-night/06-lorien/`.
 - One commit for the Pages prefix, not a failing-test commit then a fix. The wrap-up asked for one.
 
+## Outcome
+
+Squash-merged to `main` as `a1f04ed` from PR head `96a689e` on the root's authorization, https://github.com/yuri-poliantsev/lorien-stack/pull/21. The merge commit's workflow run is https://github.com/yuri-poliantsev/lorien-stack/actions/runs/35065361307. `ci` succeeded in 19s and `pages` in 17s.
+
 ## Next step
 
-Merge on the root's authorization, then delete `theme-night/06-lorien-cand-{a,b,c,d}` on origin after the root confirms. Step 7 (Mission control) runs on its own branch. The README gallery in step 9 picks up `docs/images/themes/lorien-8.png` and `lorien.mp4`.
+Candidate branches `theme-night/06-lorien-cand-{a,b,c,d}` stay on origin until the root confirms deletion. Step 7 (Mission control) runs on its own branch. The README gallery in step 9 picks up `docs/images/themes/lorien-8.png` and `lorien.mp4`.
