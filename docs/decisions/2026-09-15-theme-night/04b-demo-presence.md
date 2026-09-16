@@ -56,6 +56,10 @@ Keeping the 24s hold and only correcting `lastActivityAt`. That hold put most of
 
 Driving idle from freshness aging on a live clock during demo. Demo does not run that timer. Explicit `quiet` and `sleep` hints are the same vocabulary without a second clock.
 
+## Outcome
+
+Squash-merged to `main` as `f257b46` in [#14](https://github.com/yuri-poliantsev/lorien-stack/pull/14). Neither this entry nor the PR body records gate figures.
+
 ## Next step
 
 Do not merge until the root says `merge authorized at <sha>`.

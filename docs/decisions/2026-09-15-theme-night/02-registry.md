@@ -106,6 +106,10 @@ Restyling the StarCraft scene. Visual output is frozen until step 5.
 
 Reduced-motion and camera utilities. Those are step 3.
 
+## Outcome
+
+Squash-merged to `main` as `75b9284` in [#9](https://github.com/yuri-poliantsev/lorien-stack/pull/9). This entry records 29 passing client cases at the head that merged, and the PR body records all four gates passing there without per-workspace counts.
+
 ## Next step
 
 Step 3. Shell redesign. Overlay roster, header, inspector drawer, stats strip, camera utility, bundled fonts, reduced motion. Keep this header's picker. Do not restyle the StarCraft scene.

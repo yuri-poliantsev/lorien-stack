@@ -192,6 +192,10 @@ as a card. No count check, no state check and no forbid line was touched.
   generator does not keep label text consistent with the state it draws, which is a reason the
   implementation must render labels in code rather than bake them into art.
 
+## Outcome
+
+Squash-merged to `main` as `902731f` in [#12](https://github.com/yuri-poliantsev/lorien-stack/pull/12). The PR body records all four gates at the head that merged with `npm test` at 40 passing, and `npm run assets -- selftest` at 31 passing, which this entry also records.
+
 ## The next step
 
 For the three theme owners, each starting a bakeoff per the plan's Process section:
