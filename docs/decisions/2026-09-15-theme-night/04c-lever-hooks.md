@@ -4,7 +4,7 @@
 
 The capture lever waits on `theme-canvas` and `theme-unit` with poses `working | idle | sleeping`. A working still shoots when at least `ceil(N / 3)` units are `working`, or after 40 s. The manifest line records `working= idle= sleeping=` from those poses.
 
-Right after roster-ready, capture preflights the hooks. Within 5 s there must be one `theme-canvas` whose `data-unit-count` equals N, and N `theme-unit` nodes each with `data-bot-id` and a pose in the set. A miss exits 1 and names the theme, the missing hook, and the counts. That stops an 85 s silent wait when a candidate omits `data-pose`.
+Right after roster-ready, capture preflights the hooks. Within 5 s there must be one `theme-canvas` whose `data-unit-count` equals N, and N `theme-unit` nodes each with `data-bot-id` and a pose in the set. A miss exits 1 and names the theme, the missing hook, and the counts. A StarCraft build with `dataset.pose` removed, run at N=8, exited 1 in 9.06 s with `theme=starcraft missing data-pose canvases=1 unitCount=8 units=8 withBotId=8 withPose=0`. The scene edit was reverted.
 
 Demo start stagger is `min(1600, floor(12000 / N))` ms so every tape starts within about 12 s. Quiet and sleep holds stay at 4000 ms and 3000 ms.
 
