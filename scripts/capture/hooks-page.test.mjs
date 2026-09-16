@@ -66,10 +66,22 @@ function waitFor(predicate, timeoutMs, label) {
 }
 
 function stop(child) {
-	if (child.exitCode !== null || child.killed) {
-		return;
-	}
-	child.kill("SIGTERM");
+	return new Promise((resolve) => {
+		if (child.exitCode !== null) {
+			resolve();
+			return;
+		}
+		const timer = setTimeout(() => {
+			if (child.exitCode === null) {
+				child.kill("SIGKILL");
+			}
+		}, 1500);
+		child.once("exit", () => {
+			clearTimeout(timer);
+			resolve();
+		});
+		child.kill("SIGTERM");
+	});
 }
 
 async function chromePath() {
@@ -131,8 +143,8 @@ async function startPair() {
 			return res.ok;
 		}, 20000, "vite");
 	} catch (error) {
-		stop(gateway);
-		stop(vite);
+		await stop(gateway);
+		await stop(vite);
 		throw error;
 	}
 	return {
@@ -145,13 +157,17 @@ async function startPair() {
 describe("starcraft hook page", () => {
 	it("mounts 40 theme-unit elements on one theme-canvas", async () => {
 		const pair = await startPair();
-		const executablePath = await chromePath();
-		const launch = { headless: true, args: ["--disable-dev-shm-usage"] };
-		if (executablePath !== undefined) {
-			launch.executablePath = executablePath;
-		}
-		const browser = await chromium.launch(launch);
+		let browser;
 		try {
+			if (process.env.HOOKS_PAGE_LAUNCH_FAIL === "1") {
+				throw new Error("forced launch failure");
+			}
+			const executablePath = await chromePath();
+			const launch = { headless: true, args: ["--disable-dev-shm-usage"] };
+			if (executablePath !== undefined) {
+				launch.executablePath = executablePath;
+			}
+			browser = await chromium.launch(launch);
 			const page = await browser.newPage();
 			await page.goto(pair.url, { waitUntil: "domcontentloaded", timeout: 30000 });
 			await page.waitForFunction(() => {
@@ -191,9 +207,11 @@ describe("starcraft hook page", () => {
 				withPose: 40,
 			});
 		} finally {
-			await browser.close();
-			stop(pair.gateway);
-			stop(pair.vite);
+			if (browser !== undefined) {
+				await browser.close();
+			}
+			await stop(pair.gateway);
+			await stop(pair.vite);
 		}
 	});
 });
