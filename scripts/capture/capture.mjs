@@ -14,13 +14,17 @@ import {
 	WORKING_WAIT_MS,
 	countPoses,
 	formatManifestLine,
+	formatWorkingTimeout,
 	preflightHooks,
+	resolveCapturePorts,
 	workingNeed,
 } from "./ready.mjs";
 
 const repoRoot = fileURLToPath(new URL("../..", import.meta.url));
-const GATEWAY_PORTS = [8044, 8045, 8046, 8047, 8048, 8049];
-const PREVIEW_PORTS = [5184, 5185, 5186, 5187, 5188, 5189];
+const DEFAULT_GATEWAY_PORTS = [8044, 8045, 8046, 8047, 8048, 8049];
+const DEFAULT_PREVIEW_PORTS = [5184, 5185, 5186, 5187, 5188, 5189];
+let GATEWAY_PORTS = DEFAULT_GATEWAY_PORTS;
+let PREVIEW_PORTS = DEFAULT_PREVIEW_PORTS;
 const HOMEBREW_FFMPEG = "/opt/homebrew/bin/ffmpeg";
 const MAC_CHROME = path.join(
 	os.homedir(),
@@ -104,6 +108,15 @@ function parseArgs(argv) {
 		throw new Error("--record must be a positive integer");
 	}
 	return options;
+}
+
+function applyCapturePorts(env) {
+	const ports = resolveCapturePorts(env, {
+		gateway: DEFAULT_GATEWAY_PORTS,
+		preview: DEFAULT_PREVIEW_PORTS,
+	});
+	GATEWAY_PORTS = ports.gateway;
+	PREVIEW_PORTS = ports.preview;
 }
 
 function parseBots(raw) {
@@ -503,9 +516,8 @@ async function readPoseCounts(page) {
 	return countPoses(poses);
 }
 
-async function waitWorking(page, bots) {
-	const need = workingNeed(bots);
-	const started = Date.now();
+async function waitWorking(page, input) {
+	const need = workingNeed(input.bots);
 	try {
 		await page.waitForFunction(
 			({ unitTestId, needCount }) => {
@@ -519,9 +531,22 @@ async function waitWorking(page, bots) {
 			{ timeout: WORKING_WAIT_MS },
 		);
 	} catch (error) {
-		if (Date.now() - started < WORKING_WAIT_MS - 250) {
+		let poses;
+		try {
+			poses = await readPoseCounts(page);
+		} catch {
 			throw error;
 		}
+		throw new Error(
+			formatWorkingTimeout({
+				theme: input.theme,
+				n: input.bots,
+				need,
+				working: poses.working,
+				idle: poses.idle,
+				sleeping: poses.sleeping,
+			}),
+		);
 	}
 }
 
@@ -603,7 +628,7 @@ async function captureStill(input) {
 		if (input.idle) {
 			await waitAsleep(page);
 		} else {
-			await waitWorking(page, input.bots);
+			await waitWorking(page, { theme: input.theme, bots: input.bots });
 		}
 		await pause(800);
 		await assertPainted(page, input.bots);
@@ -669,7 +694,7 @@ async function captureRecord(input) {
 	const page = await context.newPage();
 	try {
 		await preparePage(page, { url: pair.url, theme: input.theme, bots: RECORD_N });
-		await waitWorking(page, RECORD_N);
+		await waitWorking(page, { theme: input.theme, bots: RECORD_N });
 		await pause(input.seconds * 1000);
 		const avg = await readAvgFrameMs(page);
 		if (avg.source === "missing") {
@@ -731,6 +756,7 @@ async function main() {
 		usage();
 		throw error;
 	}
+	applyCapturePorts(process.env);
 	await mkdir(options.out, { recursive: true });
 	if (options.record !== undefined) {
 		ffmpegBin = await resolveFfmpeg();

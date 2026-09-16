@@ -47,7 +47,33 @@ export function preflightHooks(input) {
 export function formatManifestLine(input) {
 	const mix =
 		input.working !== undefined
-			? `\tworking=${String(input.working)}\tidle=${String(input.idle)}\tsleeping=${String(input.sleeping)}`
+			? `\tpose_working=${String(input.working)}\tpose_idle=${String(input.idle)}\tpose_sleeping=${String(input.sleeping)}`
 			: "";
 	return `${input.path}\tN=${String(input.n)}\ttheme=${input.theme}\tavgFrameMs=${input.avgFrameMs}${mix}`;
+}
+
+export function formatWorkingTimeout(input) {
+	return `theme=${input.theme} N=${String(input.n)} need=${String(input.need)} pose_working=${String(input.working)} pose_idle=${String(input.idle)} pose_sleeping=${String(input.sleeping)}`;
+}
+
+export function parsePortPool(raw, label) {
+	if (raw === undefined || raw.length === 0) {
+		return undefined;
+	}
+	const ports = raw.split(",").map((part) => Number(part.trim()));
+	if (ports.length === 0 || ports.some((n) => !Number.isInteger(n) || n < 1 || n > 65535)) {
+		throw new Error(`${label} must be comma-separated integers from 1 to 65535`);
+	}
+	return ports;
+}
+
+export function resolveCapturePorts(env, defaults) {
+	const gateway = parsePortPool(env.CAPTURE_GATEWAY_PORTS, "CAPTURE_GATEWAY_PORTS") ?? defaults.gateway;
+	const preview = parsePortPool(env.CAPTURE_PREVIEW_PORTS, "CAPTURE_PREVIEW_PORTS") ?? defaults.preview;
+	if (gateway.length !== preview.length) {
+		throw new Error(
+			`CAPTURE_GATEWAY_PORTS and CAPTURE_PREVIEW_PORTS must have the same length, got ${String(gateway.length)} and ${String(preview.length)}`,
+		);
+	}
+	return { gateway, preview };
 }

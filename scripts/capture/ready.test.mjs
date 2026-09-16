@@ -1,7 +1,13 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { countPoses, formatManifestLine, preflightHooks, workingNeed } from "./ready.mjs";
+import {
+	countPoses,
+	formatManifestLine,
+	formatWorkingTimeout,
+	preflightHooks,
+	workingNeed,
+} from "./ready.mjs";
 
 describe("capture ready", () => {
 	it("needs 1, 3, and 14 working poses at N=1, 8, and 40", () => {
@@ -21,7 +27,7 @@ describe("capture ready", () => {
 				idle: 18,
 				sleeping: 8,
 			}),
-			"/tmp/theme-night/04c/starcraft-40.png\tN=40\ttheme=starcraft\tavgFrameMs=1.55\tworking=14\tidle=18\tsleeping=8",
+			"/tmp/theme-night/04c/starcraft-40.png\tN=40\ttheme=starcraft\tavgFrameMs=1.55\tpose_working=14\tpose_idle=18\tpose_sleeping=8",
 		);
 	});
 
@@ -31,6 +37,20 @@ describe("capture ready", () => {
 			idle: 1,
 			sleeping: 1,
 		});
+	});
+
+	it("names theme, N, need, and pose counts when working wait times out", () => {
+		assert.equal(
+			formatWorkingTimeout({
+				theme: "starcraft",
+				n: 8,
+				need: 3,
+				working: 0,
+				idle: 8,
+				sleeping: 0,
+			}),
+			"theme=starcraft N=8 need=3 pose_working=0 pose_idle=8 pose_sleeping=0",
+		);
 	});
 
 	it("names the missing data-pose hook when eight units omit pose", () => {
