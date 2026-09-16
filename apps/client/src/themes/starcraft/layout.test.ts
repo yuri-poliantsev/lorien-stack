@@ -68,8 +68,8 @@ describe("starcraft grid plan", () => {
     const twentyFour = planGrid(24).cell;
     const forty = planGrid(40).cell;
     assert.equal(Math.round(eight), 400, "eight bots sit at the cell cap");
-    assert.equal(Math.round(twentyFour), 237, "twenty-four bots shrink to 237");
-    assert.equal(Math.round(forty), 190, "forty bots shrink to 190");
+    assert.equal(Math.round(twentyFour), 233, "twenty-four bots shrink to 233");
+    assert.equal(Math.round(forty), 186, "forty bots shrink to 186");
     assert.ok(eight > twentyFour && twentyFour > forty, "cell size falls as the roster grows");
   });
 

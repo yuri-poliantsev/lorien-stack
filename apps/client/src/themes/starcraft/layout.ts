@@ -14,7 +14,7 @@ const MAX_BOTS = 40;
 // A plot's drawn height as a multiple of the column pitch. Above the pad centre sits
 // the building and its nametag, below it the action line, and the row behind has to
 // clear both or the grid stops being countable.
-export const PLOT_ABOVE = 0.64;
+export const PLOT_ABOVE = 0.66;
 export const PLOT_BELOW = 0.38;
 export const PLOT_HEIGHT = PLOT_ABOVE + PLOT_BELOW;
 

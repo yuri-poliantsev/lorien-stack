@@ -223,10 +223,17 @@ function drawWorkerProp(
     return;
   }
   if (view.action === "talking") {
+    const bx = x + side * hh * 0.44;
     ctx.fillStyle = "rgba(240, 236, 220, 0.94)";
-    ctx.fillRect(x + side * hh * 0.44 - hh * 0.26, y - hh * 1.52, hh * 0.52, hh * 0.32);
+    ctx.fillRect(bx - hh * 0.26, y - hh * 1.56, hh * 0.52, hh * 0.32);
+    ctx.beginPath();
+    ctx.moveTo(bx - side * hh * 0.2, y - hh * 1.24);
+    ctx.lineTo(bx - side * hh * 0.04, y - hh * 1.24);
+    ctx.lineTo(bx - side * hh * 0.26, y - hh * 1.1);
+    ctx.closePath();
+    ctx.fill();
     ctx.fillStyle = "#2a2f34";
-    ctx.fillRect(x + side * hh * 0.44 - hh * 0.19, y - hh * 1.42, hh * 0.38, hh * 0.08);
+    ctx.fillRect(bx - hh * 0.19, y - hh * 1.46, hh * 0.38, hh * 0.08);
     return;
   }
   if (view.action === "thinking") {
@@ -348,7 +355,8 @@ export function drawPlotLabel(ctx: CanvasRenderingContext2D, view: PlotView): vo
   const S = view.cell;
   const asleep = view.pose === "sleeping";
   const nameSize = Math.max(9, S * 0.078);
-  const plateY = buildingRect(view).y - S * 0.075;
+  // Clear of the roof beacon, which sits within a pixel or two of the sheet's top edge.
+  const plateY = buildingRect(view).y - S * 0.095;
 
   ctx.font = `600 ${nameSize.toFixed(1)}px ${view.font}`;
   ctx.textAlign = "center";
