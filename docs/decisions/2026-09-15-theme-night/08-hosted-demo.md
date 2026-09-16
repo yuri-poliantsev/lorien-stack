@@ -74,9 +74,18 @@ Replaying missed cycles in a burst after a backgrounded tab throttles the interv
 
 `actions/configure-pages`. Pages is enabled once through `gh api`, and the job has nothing to configure per run.
 
-## Next step
+## Outcome
 
-Wait for `merge authorized at <sha>`. After the squash merge, watch `gh run list --branch main --limit 1` until the `pages` job deploys, then run `BASE=https://yuri-poliantsev.github.io/lorien-stack/ LABEL=hosted node /tmp/theme-night/08-hosted-demo/proof.mjs` and record the hosted numbers here.
+Squash-merged to `main` as `9d05465` from PR head `d90b8c7` on the root's authorization, https://github.com/yuri-poliantsev/lorien-stack/pull/17. The merge commit's workflow run is https://github.com/yuri-poliantsev/lorien-stack/actions/runs/35058943701. `ci` succeeded in 19s and `pages` in 21s, the first deploy of the site.
+
+The hosted URL is https://yuri-poliantsev.github.io/lorien-stack/. It answered 200 on the first fetch after the deploy job finished. `/tmp/theme-night/08-hosted-demo/proof.mjs` with `BASE` set to that URL, Playwright at 1920x1080, `hosted-manifest.json`:
+
+- Bare URL. `html[data-source]` is `demo`, `html[data-theme]` is `starcraft`, roster of 8 ready at 569ms, first working bot at 579ms. After the 6s settle the strip read 3 working / 5 idle / 0 asleep / 22 ev/min, 8 units, 5 in the working pose, `avgFrameMs` 0.49. Zero WebSockets opened, zero failed requests. `hosted-8.png` shows Ivo, Reed, Wren, Anouk and Sable at WORK, Mira, Koji and Lauren at IDLE.
+- `?demo=40`. Roster of 40 with `Anouk 2..5`, `Ivo 2..5`, ready at 361ms, working at 369ms, strip 16 working / 24 idle / 0 asleep / 87 ev/min, 40 units, 21 working, `avgFrameMs` 1.32. Zero WebSockets, zero failed requests. `hosted-40.png` shows the clones stacked on the twelve stations with WORK labels across the floor.
+
+The demo bots in the hosted build follow #18's stagger, so all eight are awake by 10.5s.
+
+## Next step
 
 #18 is on `main` and the client matches it. The follow-up that earns its place is a `packages/replay` holding `expandDemoRoster`, the tape builder and the constants, imported by both the gateway and the client, so the cross-check test becomes unnecessary and is deleted.
 
