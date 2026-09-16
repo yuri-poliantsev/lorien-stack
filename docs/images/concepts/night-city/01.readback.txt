@@ -1,0 +1,13 @@
+The image is a front-on view of a night skyline across a strip of still water, with eight towers standing in a single horizontal row of mixed heights, the two tallest in the centre and shorter ones toward both edges. Four of the towers are black silhouettes with no window lights and a small red light on the roof; the other four have grids of lit windows and an orange flame-shaped light on the roof. The lit towers show yellow and orange window panes, except the centre-right tower, whose windows and upper storeys are cyan and pale blue. The sky is deep navy and purple with scattered white stars, a band of pale mist sits at the bases of the towers, and the water in the foreground holds dark reflections of the buildings. Each tower carries a lime-yellow rectangular badge near its base that reads NEXUS PLAZA with 24HR underneath. The dominant colours are navy, black, lime yellow, orange, and cyan.
+
+--- checked against 01.spec.md ---
+pass require city | skyline | skyscraper | skyscrapers | towers | tower
+pass require eight | 8
+pass require night | dark sky | evening | after dark
+pass require window | windows | lit | lights | glowing | illuminated
+pass require red | beacon | antenna | rooftop
+pass forbid daylight
+pass forbid daytime
+pass forbid blue sky
+pass forbid sunny
+verdict pass

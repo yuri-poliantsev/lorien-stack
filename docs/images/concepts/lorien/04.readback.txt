@@ -1,0 +1,12 @@
+A side-on view shows a pale tree trunk along the left edge and pale branches stretching across a night sky. Seven dark wooden platforms sit on those branches, three on an upper branch and four on a lower branch. Each platform has a black lamp post with two lanterns, a wooden railing, and a hanging wooden plaque. The upper plaques read Lorien Post 3, Galad 7, and Linuin Watch; the lower plaques read Amluin Overlook, Mallorn 11, Nenya Rest, and Leafsong 4. Deep indigo and purple fill the sky and the distant tree silhouettes, pale silver-white fills the bark, and the platforms are black-brown. White stars cover the sky, and small yellow-green lights hang in the air. Some hanging lanterns glow yellow-green; the rest of the lanterns stay dark and unlit.
+
+--- checked against 04.spec.md ---
+pass require side view | side-on | from the side | profile | side elevation
+FAIL require eight | 8
+pass require platform | platforms | flet | flets | treehouse | treehouses | deck | decks
+pass require dark | unlit | night | shadow | shadowed | silhouette | silhouettes
+FAIL require firefly | fireflies | spark | sparks | pinpoint | pinpoints | dot | dots | speck | specks
+pass forbid sunlit
+pass forbid daylight
+pass forbid bright sunshine
+verdict fail

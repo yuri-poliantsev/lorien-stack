@@ -1,0 +1,12 @@
+The image is a high three-quarter view of eight boxy modular buildings on sandy tan ground scattered with reddish rocks. They sit in two rows of four, alternating an orange-yellow unit with a dark blue-grey unit in each row. The four orange units have open doorways pouring warm yellow light onto the sand, glowing louvered vents, yellow-and-black hazard stripes, and a figure in armour working at an open crate; they are labelled SEC-04, HAB-07, LAB-11, and STO-09, with HAB-07 printed on two faces of the same unit. The four grey units have closed roll-up shutters, rust and scuffs, a red beacon on a short mast, and no interior light; one shutter reads OFFLINE in red and another carries faded lettering. Active units are lit orange metal with open doors and welding sparks; dormant units are dark metal with shutters down and only the red beacons glowing.
+
+--- checked against 03.spec.md ---
+pass require isometric | axonometric | three-quarter | angled overhead | diagonal overhead
+pass require eight | 8
+pass require worker | workers | figure | figures | unit | units | robot | robots
+pass require building | buildings | structure | structures | bunker | bunkers | depot | depots
+pass require two rows | rows | grid | four
+pass require dark | dim | unlit | shadowed | dormant
+pass forbid photograph
+pass forbid photorealistic
+verdict pass

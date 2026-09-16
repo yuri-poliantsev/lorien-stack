@@ -1,0 +1,13 @@
+The image is a frontal, slightly elevated view into a rectangular glass tank, looking down at a sandy bed against teal water. Eight structures sit on grey stones in two rows of four, with green leafy plants between them. Two of the eight, one at the front left and one at the back right, are open, with long orange tentacles radiating from a bright yellow-white centre ringed in purple; the other six are closed into pale pink or cream mounds with ridged surfaces and no inner glow. An orange-and-white striped fish rests on each of the eight structures. Pale beams of light fall from above through the water, and streams of bubbles rise on the left and right. Gold plaques on the sand read ROCK 01, ROCK 02, ROCK 03, ROCK 04, ROCK 05, and ROCK 06. The dominant colours are teal, sand beige, orange, pale pink, cream, and grey.
+
+--- checked against 01.spec.md ---
+pass require aquarium | tank | underwater | reef | fish tank
+pass require eight | 8
+FAIL require anemone | anemones | coral | corals | polyp | polyps
+pass require fish
+pass require rock | rocks | sand | substrate | stone | stones
+pass require blue | teal | green water | dim | glow
+pass forbid above water
+pass forbid dry land
+pass forbid desert
+verdict fail

@@ -1,0 +1,18 @@
+This is a straight-on frontal view of a dark rectangular field. A narrow vertical column sits on the left and a larger rectangular area occupies the rest of the frame. Eight identical empty rectangles occupy that larger area, arranged in two rows of four. The dominant colours are near-black and charcoal, with thin pale-grey borders and white capital letters. The light is even and flat, with no cast shadows. The left column reads OVERVIEW, METRICS, AUDIENCE, CONTENT, REACH, CONVERSIONS, and SETTINGS, and a filled pale circle sits to the left of OVERVIEW. The eight rectangles read SESSIONS, USERS, PAGE VIEWS, AVG DURATION, BOUNCE RATE, CONVERSIONS, NEW VISITS, and RETENTION, each with a small filled pale circle in its top-right corner. OVERVIEW is brighter white with a circle beside it; the other six left-column labels are dimmer grey and have no circles.
+
+--- checked against 03.spec.md ---
+pass require dark | black | near-black | dark background
+pass require eight | 8
+pass require card | cards | panel | panels | tile | tiles | module | modules | rectangle | rectangles | box | boxes
+pass require outline | outlines | border | borders | thin | grey | gray | muted | dim | dimmed | empty
+pass require dot | dots | point | points | circle | circles | marker | markers
+pass require text | type | label | labels | heading | monospace | lettering | name | names
+pass forbid crt
+pass forbid scanline
+pass forbid scanlines
+pass forbid phosphor
+pass forbid cathode
+pass forbid error
+pass forbid warning
+pass forbid red
+verdict pass

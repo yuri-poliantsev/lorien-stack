@@ -1,0 +1,14 @@
+The image is a frontal canopy-height view looking through two pale tree trunks that fill the left and right of the frame and open onto a star-flecked teal and violet sky. Six wooden platforms with rope railings occupy the mid-canopy at staggered heights, three on the left of the gap and three on the right, each carrying one or two hanging wooden plaques. The plaques read Linellen, Starvite, Lirthen, Vanya, Lithuvante, Nori, Marta, Lirellen, Alindlara, and Moonleaf. Pale grey-white bark, teal and purple leaves, brown planks, and a cool night sky set the colour, cut by warm yellow light from hanging lanterns. Platforms that look active are washed in that lantern light, showing brown boards, rugs, lecterns with papers, and robed figures whose faces and clothing are visible. Platforms that look dark sit in shadow, their boards nearly black and their occupants reduced to silhouettes beside small pinpoints of light.
+
+--- checked against 01.spec.md ---
+FAIL require side view | side-on | from the side | profile view | seen from the side
+FAIL require eight | 8
+pass require platform | platforms | flet | flets | treehouse | treehouses | deck | decks
+pass require lantern | lanterns | lamp | lamps | light | lights | glow | glowing | lit
+pass require dark | dim | unlit | shadowed | dormant | out
+pass require forest | trees | tree | canopy | woodland
+pass forbid top-down
+pass forbid overhead view
+pass forbid bird's-eye
+pass forbid aerial view
+verdict fail

@@ -1,0 +1,14 @@
+The image is a side-on view looking horizontally through a forest, with two large trunks framing the left and right edges, a canopy of yellow-green leaves along the top, and a band of teal, purple, and pink sky above. Two thick horizontal sheets of pale lavender fog cut across the middle of the scene, and more trees recede into the mist between the two foreground trunks. Nine wooden platforms with branch-shaped railings sit on the trunks: two stacked on the left tree, two stacked on the right tree, and five staggered through the fog in the middle. The dominant colours are yellow-green foliage, grey-violet bark, brown wood, pale white-lavender fog, and the teal-to-pink sky. Warm yellow light comes from hanging lanterns and from lamps on the left platforms; the rest of the scene is cooler and dimmer under the fog. Two hooded figures in dark cloaks with green lining stand at wooden lecterns and desks with papers and a quill on the left platforms, and a third hooded figure stands at a lectern on a lower midground platform. The lit platforms are warm brown with gold light on the boards and railings; the lower right platform and several midground platforms are darker purple-brown wood with little or no warm light.
+
+--- checked against 03.spec.md ---
+pass require side view | side-on | from the side | profile | side elevation
+FAIL require eight | 8
+pass require platform | platforms | flet | flets | treehouse | treehouses | deck | decks
+pass require mist | fog | haze | depth | layers | receding | distance | background
+pass require lantern | lanterns | lamp | lamps | lit | glowing | glow
+pass require dark | dim | unlit | shadowed | dormant
+pass forbid top-down
+pass forbid overhead
+pass forbid bird's-eye
+pass forbid aerial
+verdict fail

@@ -1,0 +1,12 @@
+The image is a high isometric view looking down across an office floor. A pale grey cross-shaped walkway cuts a sage-green tiled carpet into four clusters of the same L-shaped beige cubicle desks. Fifteen of those cubicles are visible, packed in staggered rows in each quadrant, with several cropped by the edges of the frame. Beige wood, sage-green carpet, pale grey aisles, grey chairs, and black monitors and lamps fill the scene; occupied screens add bright blue and two lamps add warm yellow. Light across the floor is even and flat. White nameplates on the cubicle partitions read I. TANA. Cubicles that look active hold seated people in green or purple hoodies and show bright blue screens, three of them with rows of pale text, and two of those desks also have a lit yellow lamp; cubicles that look dark or dormant have empty grey chairs, black screens, and unlit black lamps, except one far-right cubicle where a person in brown trousers sits at a dark screen.
+
+--- checked against 01.spec.md ---
+pass require isometric | axonometric | three-quarter | angled overhead | diagonal overhead
+FAIL require eight | 8
+pass require desk | desks | workstation | workstations | cubicle | cubicles | pod | pods
+pass require monitor | monitors | screen | screens | computer | computers
+pass require chair | chairs
+pass require office | floor | room | workspace
+pass forbid side view
+pass forbid front elevation
+verdict fail

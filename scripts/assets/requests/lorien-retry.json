@@ -1,0 +1,12 @@
+{
+	"requests": [
+		{
+			"id": "04",
+			"theme": "lorien",
+			"kind": "concept",
+			"size": "16:9",
+			"spec": "docs/images/concepts/lorien/04.spec.md",
+			"prompt": "A side-on view of a mallorn forest deep in the night, two thick pale limbs running across a star-filled indigo sky, carrying four wooden elven platforms along the upper limb and four along the lower limb. Every lantern on every platform is cold, black and extinguished, with no flame, no filament and no warm glow anywhere on any platform, and no figure stands on any of them. The only light in the whole frame is one small green firefly spark hovering beside each of the eight platforms, and the faint starlight on the pale wooden plaque hanging beneath each one. Painterly stylised 2D game art, near-monochrome indigo and silver palette lit only by cool moonlight, the platforms reading as clear dark silhouettes against the sky."
+		}
+	]
+}

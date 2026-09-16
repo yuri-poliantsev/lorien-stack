@@ -1,0 +1,2 @@
+id	theme	kind	path	sha256	promptPath	source	attempts	readback	verdict
+worker	starcraft	sprite	docs/images/assets/starcraft/sprite/worker.jpg	7195a694da59e50856dace3d54206675b8d1eda42535312b1e8d3a09bf162fb4	docs/images/assets/starcraft/sprite/worker.prompt.txt	grok	1		unread

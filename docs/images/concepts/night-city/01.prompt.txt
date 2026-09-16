@@ -1,0 +1,15 @@
+A night skyline seen straight on from across the water, eight towers of clearly different heights and widths standing shoulder to shoulder, four tall ones grouped at the centre and four lower ones at the edges. Some towers blaze with rows of lit windows and a burning beacon on the roof, and the others stand almost black against the sky with a single red aircraft light at the crown. Stylised 2D game art, flat graphic shapes, deep indigo sky, cyan and warm amber window light, faint haze along the waterline. A lit sign band crosses the lower floors of every tower.
+
+--- wrapper handed to /Users/iuriipoliantsev/.grok/bin/grok ---
+Produce exactly one image file and stop.
+
+Step 1. Call image_gen exactly once. Pass aspect_ratio "16:9". Pass this prompt text verbatim, with no additions, no rewording, and no style notes of your own:
+<<<PROMPT
+A night skyline seen straight on from across the water, eight towers of clearly different heights and widths standing shoulder to shoulder, four tall ones grouped at the centre and four lower ones at the edges. Some towers blaze with rows of lit windows and a burning beacon on the roof, and the others stand almost black against the sky with a single red aircraft light at the crown. Stylised 2D game art, flat graphic shapes, deep indigo sky, cyan and warm amber window light, faint haze along the waterline. A lit sign band crosses the lower floors of every tower.
+PROMPT
+
+Step 2. Copy the resulting image to exactly this absolute path, creating parent directories if they are missing: /Users/iuriipoliantsev/Documents/projects/lorien-worktrees/05a-asset-lever/docs/images/concepts/night-city/01.jpg
+
+Step 3. Print that absolute path as your entire final message. No prose, no markdown, no code fences, no trailing text.
+
+Hard rules. Exactly one image call, and no second attempt even if the result looks wrong. Do not call image_edit if you called image_gen, or image_gen if you called image_edit. Do not write, move, or delete any file outside /Users/iuriipoliantsev/Documents/projects/lorien-worktrees/05a-asset-lever/docs/images/concepts/night-city. Do not run git. Do not ask questions.

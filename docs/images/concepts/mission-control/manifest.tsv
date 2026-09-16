@@ -1,0 +1,21 @@
+id	theme	kind	path	sha256	promptPath	source	attempts	readback	verdict
+01	mission-control	concept	docs/images/concepts/mission-control/01.jpg	571431a0dd4cedd9b7e79af6d930146dc7d308354a1b2422c257b968e5064624	docs/images/concepts/mission-control/01.prompt.txt	grok	1		unread
+03	mission-control	concept	docs/images/concepts/mission-control/03.jpg	603ed13a48778d59425fd78b486ad6680f7bd50b8356226da6e101382e7234c2	docs/images/concepts/mission-control/03.prompt.txt	grok	1		unread
+05	mission-control	concept	docs/images/concepts/mission-control/05.jpg	4b648241738d2c540cb0a68bd50c5ba06eec9d514e6a7fcad849a46c143a6214	docs/images/concepts/mission-control/05.prompt.txt	grok	1		unread
+02	mission-control	concept	docs/images/concepts/mission-control/02.jpg	37f88f554c3bbe3c6b54651ffa71cc0cfe87b51ba4384da64ab30a7dae7b6194	docs/images/concepts/mission-control/02.prompt.txt	grok	1		unread
+03	mission-control	concept	docs/images/concepts/mission-control/03.jpg	bff1499f871c9abff5908f71620eaecbabf91444f92f489e294d9eb76e7cf373	docs/images/concepts/mission-control/03.prompt.txt	grok	1		unread
+04	mission-control	concept	docs/images/concepts/mission-control/04.jpg	8afad1d5a248afedd35dc714f823d2785c2dc94dff6f2f70fc5e54bbd06cd5a9	docs/images/concepts/mission-control/04.prompt.txt	grok	1		unread
+05	mission-control	concept	docs/images/concepts/mission-control/05.jpg	b36f879f7ca8f009c664c0962b86d03906bbf1e0e225b3d35634e614da61c764	docs/images/concepts/mission-control/05.prompt.txt	grok	1		unread
+02	mission-control	concept	docs/images/concepts/mission-control/02.jpg	5dd52758e04637515ae21322443560893b7b7f133b8bfd96c712ccb1a0493fd4	docs/images/concepts/mission-control/02.prompt.txt	grok	1		unread
+06	mission-control	concept	docs/images/concepts/mission-control/06.jpg	c3c858a7dcb27d8d7fa08e19eacc2176da8ca00520d6a05d26e5b01e54bae8c0	docs/images/concepts/mission-control/06.prompt.txt	grok	1		unread
+04	mission-control	concept	docs/images/concepts/mission-control/04.jpg	82d313fb46ebdffe03a93963eff3b5a82823dabbb2643d867f5a8f52f82b57e0	docs/images/concepts/mission-control/04.prompt.txt	grok	1		unread
+07	mission-control	concept	docs/images/concepts/mission-control/07.jpg	46aedc508bc0422bd73e2d35a8c6254d49ac072c83ccb05183b9d3ea3eb21fbf	docs/images/concepts/mission-control/07.prompt.txt	grok	1		unread
+07	mission-control	concept	docs/images/concepts/mission-control/07.jpg	46aedc508bc0422bd73e2d35a8c6254d49ac072c83ccb05183b9d3ea3eb21fbf	docs/images/concepts/mission-control/07.prompt.txt	grok	1		unread
+06	mission-control	concept	docs/images/concepts/mission-control/06.jpg	9f8067d876f694d6d8f79ef3451030e28e3912e400d2c232f9c06ca34453ba4f	docs/images/concepts/mission-control/06.prompt.txt	grok	1		unread
+01	mission-control	concept	docs/images/concepts/mission-control/01.jpg	571431a0dd4cedd9b7e79af6d930146dc7d308354a1b2422c257b968e5064624	docs/images/concepts/mission-control/01.prompt.txt	grok	1	15 checks pass	pass
+02	mission-control	concept	docs/images/concepts/mission-control/02.jpg	5dd52758e04637515ae21322443560893b7b7f133b8bfd96c712ccb1a0493fd4	docs/images/concepts/mission-control/02.prompt.txt	grok	1	14 checks pass	pass
+03	mission-control	concept	docs/images/concepts/mission-control/03.jpg	bff1499f871c9abff5908f71620eaecbabf91444f92f489e294d9eb76e7cf373	docs/images/concepts/mission-control/03.prompt.txt	grok	1	14 checks pass	pass
+04	mission-control	concept	docs/images/concepts/mission-control/04.jpg	82d313fb46ebdffe03a93963eff3b5a82823dabbb2643d867f5a8f52f82b57e0	docs/images/concepts/mission-control/04.prompt.txt	grok	1	13 checks pass	pass
+05	mission-control	concept	docs/images/concepts/mission-control/05.jpg	b36f879f7ca8f009c664c0962b86d03906bbf1e0e225b3d35634e614da61c764	docs/images/concepts/mission-control/05.prompt.txt	grok	1	13 checks pass	pass
+06	mission-control	concept	docs/images/concepts/mission-control/06.jpg	9f8067d876f694d6d8f79ef3451030e28e3912e400d2c232f9c06ca34453ba4f	docs/images/concepts/mission-control/06.prompt.txt	grok	1	14 checks pass	pass
+07	mission-control	concept	docs/images/concepts/mission-control/07.jpg	46aedc508bc0422bd73e2d35a8c6254d49ac072c83ccb05183b9d3ea3eb21fbf	docs/images/concepts/mission-control/07.prompt.txt	grok	1	13 checks pass	pass

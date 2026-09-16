@@ -1,0 +1,18 @@
+The image is a front-facing, slightly elevated view of a dark rectangular panel filling the frame. Eight horizontal bars sit stacked one above another against a black background. Each bar carries a left-hand label, a line graph across the middle, and a small framed square at the far right with a round marker inside it. The labels read TRAFFIC, CONVERSIONS, ENGAGEMENT, RETENTION, REACH, BOUNCE, SESSIONS, and PIPELINE. The dominant colours are black, dark grey, white, and amber-orange. The scene is flat and graphic, with no directional light or shadows, only solid colour on a matte black field. The four bars labelled TRAFFIC, ENGAGEMENT, REACH, and SESSIONS are darker, with amber-orange vertical ticks at the left, amber-orange or white titles, bright amber-orange graph lines, and amber-orange dots in the right-hand frames. The four bars labelled CONVERSIONS, RETENTION, BOUNCE, and PIPELINE are paler grey, with no left ticks, white titles, faint grey graph lines, and grey dots in the right-hand frames.
+
+--- checked against 06.spec.md ---
+pass require dark | black | near-black | dark background
+pass require eight | 8
+pass require row | rows | list | stacked | strip | strips | band | bands
+pass require name | names | text | type | label | labels | heading | lettering
+pass require bar | bars | accent | edge | stripe | stripes | line | lines
+pass require dim | dimmed | muted | grey | gray | faint | dark
+pass forbid crt
+pass forbid scanline
+pass forbid scanlines
+pass forbid phosphor
+pass forbid cathode
+pass forbid grid of cards
+pass forbid pixel art
+pass forbid sprite
+verdict pass

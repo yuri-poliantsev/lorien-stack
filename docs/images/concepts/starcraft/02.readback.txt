@@ -1,0 +1,13 @@
+The image is drawn from a high isometric viewpoint looking down across a night landscape. Eight matching rectangular grey buildings sit on separate raised concrete pads arranged in a staggered grid, with grey paths between them and one empty pad in the foreground. Yellow painted borders mark the pad edges, and chain-link fencing runs along some of the pads. Dark blue and grey dominate the scene, broken by red roof lights, yellow pad lines, and pale window glow, under a dark sky filled with small stars. Each building carries a glowing red cylindrical beacon on its roof, and the word FACTORY appears on the building faces above yellow rectangular plaques. Buildings that look active have bright pale-white window panels, and buildings that look dormant have dark unlit windows.
+
+--- checked against 02.spec.md ---
+pass require isometric | axonometric | three-quarter | angled overhead | diagonal overhead
+pass require eight | 8
+pass require building | buildings | structure | structures | bunker | bunkers | depot | depots
+pass require dark | unlit | shadowed | night | dormant
+pass require beacon | beacons | light | lights | dot | dots | point | points | lamp | lamps
+pass forbid ruined
+pass forbid rubble
+pass forbid destroyed
+pass forbid wreckage
+verdict pass
