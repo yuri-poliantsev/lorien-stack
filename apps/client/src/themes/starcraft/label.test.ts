@@ -28,7 +28,7 @@ describe("starcraft plot label", () => {
     });
     assert.equal(label.name, "Anouk", "the nametag is the bot name");
     assert.equal(label.status, "working reading", "read_file reads as working reading");
-    assert.equal(label.path, "apps/gateway/src/presence.ts", "a path that fits is left whole");
+    assert.equal(label.path, "…/src/presence.ts", "the tail of the path survives the budget");
   });
 
   it("names the pose and nothing else when a bot is idle", () => {
