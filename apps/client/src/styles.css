@@ -331,8 +331,8 @@ body {
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 0.8rem;
+  font-weight: 500;
   letter-spacing: 0.06em;
-  text-transform: none;
   color: var(--shell-fg);
 }
 
@@ -407,20 +407,6 @@ body {
   white-space: nowrap;
   color: var(--shell-fg);
   opacity: 0.8;
-}
-
-h2 {
-  margin: 0 0 0.5rem;
-  font-size: 0.8rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted);
-  font-weight: 600;
-}
-
-.muted {
-  color: var(--muted);
-  margin: 0.25rem 0;
 }
 
 .theme-picker {
