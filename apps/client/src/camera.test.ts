@@ -55,6 +55,14 @@ describe("screenToWorldAt", () => {
 });
 
 describe("zoomAtState", () => {
+  it("doubles zoom around a bottom-right anchor to an exact state", () => {
+    // Anchor sits 200px right and 150px below centre at zoom 1, so it is over
+    // world (600, 450). Doubling halves that offset in world units, which walks
+    // the centre to (500, 375) and leaves the anchor over the same world point.
+    const next = zoomAtState({ x: 400, y: 300, zoom: 1 }, { w: 800, h: 600 }, { x: 600, y: 450 }, 2);
+    assert.deepEqual(next, { x: 500, y: 375, zoom: 2 });
+  });
+
   it("holds the world point under a non-centre anchor fixed", () => {
     const state = { x: 800, y: 450, zoom: 0.5 };
     const viewport = { w: 800, h: 600 };
