@@ -3,6 +3,11 @@ import type { ActivityEvent, BotId, BotRecord } from "@lorien-stack/contracts";
 import type { Camera, Viewport } from "../camera.ts";
 import { WORLD_HEIGHT as LORIEN_HEIGHT, WORLD_WIDTH as LORIEN_WIDTH } from "./lorien/layout.ts";
 import { mountLorienTheme } from "./lorien/scene.ts";
+import {
+  WORLD_HEIGHT as MISSION_CONTROL_WORLD_HEIGHT,
+  WORLD_WIDTH as MISSION_CONTROL_WORLD_WIDTH,
+} from "./mission-control/layout.ts";
+import { mountMissionControlTheme } from "./mission-control/scene.ts";
 import { WORLD_HEIGHT, WORLD_WIDTH } from "./starcraft/layout.ts";
 import { mountStarCraftTheme } from "./starcraft/scene.ts";
 
@@ -91,8 +96,28 @@ const LORIEN: ThemeEntry = {
   },
 };
 
+const MISSION_CONTROL_PREVIEW =
+  "data:image/svg+xml," +
+  encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect fill="#07070a" width="64" height="64"/><rect fill="#14141a" x="8" y="12" width="20" height="18"/><rect fill="#f0b23d" x="8" y="12" width="3" height="18"/><rect fill="#14141a" x="34" y="12" width="20" height="18"/><rect fill="#14141a" x="8" y="34" width="20" height="18"/><rect fill="#14141a" x="34" y="34" width="20" height="18"/><rect fill="#f0b23d" x="34" y="34" width="3" height="18"/></svg>`,
+  );
+
+const MISSION_CONTROL: ThemeEntry = {
+  id: "mission-control",
+  label: "Mission control",
+  mount: mountMissionControlTheme,
+  preview: { kind: "url", href: MISSION_CONTROL_PREVIEW },
+  world: { w: MISSION_CONTROL_WORLD_WIDTH, h: MISSION_CONTROL_WORLD_HEIGHT },
+  palette: {
+    panelBg: "rgba(16, 16, 21, 0.9)",
+    fg: "#f4f1ea",
+    accent: "#f0b23d",
+    font: '"IBM Plex Mono", ui-monospace, monospace',
+  },
+};
+
 export const THEMES: ThemeRegistry = {
-  entries: [STARCRAFT, LORIEN],
+  entries: [STARCRAFT, LORIEN, MISSION_CONTROL],
   get(id) {
     return this.entries.find((entry) => entry.id === id);
   },
