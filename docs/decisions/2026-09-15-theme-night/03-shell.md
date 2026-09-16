@@ -163,9 +163,13 @@ Q2, Q3, Q9, Q13, Q14, Q18, Q20, Q21 in `docs/plans/2026-09-15-theme-night.md`, a
 
 Client tests went from 29 cases to 62, all passing, alongside contracts at 11 and gateway at 29. `npm run typecheck`, `npm run build -w apps/client` and `npm run docs:smoke` pass.
 
-`/tmp/theme-night/03-shell/capture.mjs` captured the StarCraft theme at 1, 8, 18 and 40 bots in a 1440x900 viewport, each against a gateway it started itself. Measured `avgFrameMs`: 0.64 at 1 bot, 0.77 at 8, 0.93 at 18, and **1.29 at 40**, against Q21's 4ms target. The run also asserted that the roster panel lists every bot and that the stats strip's working, idle and asleep counts sum to the roster size, so the two surfaces cannot disagree.
+Step 4 merged as `17e0b14` while this step was building, so the committed stills come from its lever. `npm run capture -- --theme starcraft --bots 1,8,18,40 --out docs/images/themes --record 20` at the rebased head measured `avgFrameMs` of 1.01 at 1 bot, 1.02 at 8, 1.30 at 18, and **1.42 at 40**, against Q21's 4ms target. `docs/images/themes/` is regenerated because the stills there showed the old sidebar, which step 4's entry set the precedent for after the step 2 header landed.
 
-At 40 bots the panel is 775px tall inside an 860px scene, so all 40 rows are visible without scrolling at a 18.6px row height. The 40-bot frame reads 7 working, 33 idle, 26 events per minute in the strip, and exactly 7 rows carry a green dot and an action word.
+Before the lever existed, `/tmp/theme-night/03-shell/capture.mjs` ran the same sweep in a 1440x900 viewport against a gateway it started itself, reading 0.64, 0.77, 0.93 and 1.29. That script also asserted that the roster panel lists every bot and that the stats strip's working, idle and asleep counts sum to the roster size, so the two surfaces cannot disagree.
+
+At 40 bots in that viewport the panel is 775px tall inside an 860px scene, so all 40 rows are visible without scrolling at a 18.6px row height. Its 40-bot frame read 7 working, 33 idle and 26 events per minute in the strip, with exactly 7 rows carrying a green dot and an action word.
+
+The all-asleep still reads 0 working, 0 idle, 8 asleep, 0 events per minute, with every row on the muted dot and no action word. That is Q2's all-asleep constraint.
 
 `/tmp/theme-night/03-shell/proof.mjs` asserted the seven surfaces against the live client. `document.fonts.check` returned true for `400 14px "IBM Plex Mono"` and `500 14px "IBM Plex Mono"`. The camera fit to `x 480, y 270, zoom 1.5000`, which is the world's centre and `min(1440/960, 860/540)`. A drag moved it to `373.33, 210.00` with zoom unchanged, a wheel up raised zoom to `2.7332`, and `Home` restored the fit values exactly. Clicking a roster row opened the drawer with three tape rows, the newest showing tool `Read`, path `apps/gateway/src/presence.ts`, role `tool`, a timestamp, and one truncated text line. Collapsing the roster and reloading kept `data-collapsed="true"`. A context with `reducedMotion: "reduce"` set `data-reduced-motion="true"` and computed the panel's `transition-duration` as `0s`.
 
@@ -174,6 +178,8 @@ At 40 bots the panel is 775px tall inside an 860px scene, so all 40 rows are vis
 The first 40-bot capture showed the inspector drawer painted over a quarter of the frame while its own `data-open` read `false`. An author `display: flex` outranks the user-agent rule for `[hidden]`, so the element was flagged closed and still on screen. The dataset assertion had passed. `.inspector[hidden] { display: none }` fixes it, and the proof now asserts computed `display` and a zero width rather than the flag.
 
 The same capture showed the action column printing `unknown` on 33 of 40 rows, which reads as an error rather than as silence. The roster now spends that column only on an observed action and lets the presence dot carry the rest. `data-action` still holds the real value for the capture lever.
+
+The first lever run reported `avgFrameMs=42.10` at 1 bot. The instrument published its first sample immediately, and that sample was page load rather than a frame. The value now appears only once the window holds at least 20 frames, which took the same run to 1.01. A number that is briefly absent is better than one that is wrong, and step 4's lever already warns when the dataset key is missing.
 
 ### A note for step 4
 
