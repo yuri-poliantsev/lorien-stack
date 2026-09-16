@@ -1,0 +1,12 @@
+The image is a front-facing illustration of a single lantern centered on a solid magenta field. Three dark teal glass panels occupy the body: a wide panel in the center and a narrower panel on each side, divided by four vertical gold posts. A domed gold cap with radiating ridges sits above the body, topped by a small knob and a circular ring. A flared gold base sits under the body. The dominant colours are magenta, gold, and dark teal. Pale yellow highlights sit on the left and upper surfaces of the metal, and a pale diagonal streak runs across each glass panel. The three glass panels are the same dark teal, with no inner light.
+
+--- checked against lantern.spec.md ---
+pass require lantern | lamp | luminaire | light fixture
+pass require glass | pane | panes | case | casing | housing
+pass require gold | brass | bronze | metal | metallic
+pass require magenta | pink | fuchsia
+pass require side | side-on | straight-on | profile | frontal | front-facing | eye level | elevation
+pass forbid top-down
+pass forbid overhead
+pass forbid aerial
+verdict pass

@@ -1,0 +1,15 @@
+A row of colossal smooth silver-grey mallorn tree trunks seen straight on from the side, each rising the full height of the frame and running off both the top and the bottom edge, standing far apart with wide empty gaps between them, a broad trunk near the left edge, a broad trunk near the right edge, and two slimmer ones between. Hazy pale blue-grey bark with a soft cool edge-light down one side of every trunk and faint carved ring texture, no leaves, no branches, no ground. Painterly stylised flat 2D game art with soft cel shading, muted silver-grey and cool blue-green only, no purple and no pink anywhere in the trunks. The trunks stand alone on a completely flat uniform magenta field that fills every gap between them and the whole space around them, with no sky, no ground, no horizon, no shadow and no scenery of any kind.
+
+--- wrapper handed to /Users/iuriipoliantsev/.grok/bin/grok ---
+Produce exactly one image file and stop.
+
+Step 1. Call image_gen exactly once. Pass aspect_ratio "16:9". Pass this prompt text verbatim, with no additions, no rewording, and no style notes of your own:
+<<<PROMPT
+A row of colossal smooth silver-grey mallorn tree trunks seen straight on from the side, each rising the full height of the frame and running off both the top and the bottom edge, standing far apart with wide empty gaps between them, a broad trunk near the left edge, a broad trunk near the right edge, and two slimmer ones between. Hazy pale blue-grey bark with a soft cool edge-light down one side of every trunk and faint carved ring texture, no leaves, no branches, no ground. Painterly stylised flat 2D game art with soft cel shading, muted silver-grey and cool blue-green only, no purple and no pink anywhere in the trunks. The trunks stand alone on a completely flat uniform magenta field that fills every gap between them and the whole space around them, with no sky, no ground, no horizon, no shadow and no scenery of any kind.
+PROMPT
+
+Step 2. Copy the resulting image to exactly this absolute path, creating parent directories if they are missing: /var/folders/pg/03wfg4_x5ms5n_1vthnkmdm40000gn/T/asset-scratch/7bd2063cd6ce867d/out.jpg
+
+Step 3. Print that absolute path as your entire final message. No prose, no markdown, no code fences, no trailing text.
+
+Hard rules. Exactly one image call, and no second attempt even if the result looks wrong. Do not call image_edit if you called image_gen, or image_gen if you called image_edit. Do not write, move, or delete any file outside /var/folders/pg/03wfg4_x5ms5n_1vthnkmdm40000gn/T/asset-scratch/7bd2063cd6ce867d. Do not run git. Do not ask questions.

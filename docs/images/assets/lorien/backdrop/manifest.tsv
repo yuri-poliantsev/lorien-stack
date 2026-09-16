@@ -1,0 +1,7 @@
+id	theme	kind	path	sha256	promptPath	source	attempts	readback	verdict
+canopy-mid	lorien	backdrop	docs/images/assets/lorien/backdrop/canopy-mid.jpg	5878d8096de7b7693089df86d16ce6f123126b2044a09f1820dd558a165c0c73	docs/images/assets/lorien/backdrop/canopy-mid.prompt.txt	grok	1		unread
+branches-near	lorien	backdrop	docs/images/assets/lorien/backdrop/branches-near.jpg	588683434406dd683db02a50dad17ba0a2f9ec3e4f0f439def664e70aa7454c2	docs/images/assets/lorien/backdrop/branches-near.prompt.txt	grok	1		unread
+trunks-far	lorien	backdrop	docs/images/assets/lorien/backdrop/trunks-far.jpg	1cac1eb3ac9e69d9378145d76d75a28b7ccb96401aa69acf508ddc8593de2522	docs/images/assets/lorien/backdrop/trunks-far.prompt.txt	grok	1		unread
+trunks-far	lorien	backdrop	docs/images/assets/lorien/backdrop/trunks-far.jpg	1cac1eb3ac9e69d9378145d76d75a28b7ccb96401aa69acf508ddc8593de2522	docs/images/assets/lorien/backdrop/trunks-far.prompt.txt	grok	1	8 checks pass	pass
+canopy-mid	lorien	backdrop	docs/images/assets/lorien/backdrop/canopy-mid.jpg	5878d8096de7b7693089df86d16ce6f123126b2044a09f1820dd558a165c0c73	docs/images/assets/lorien/backdrop/canopy-mid.prompt.txt	grok	1	8 checks pass	pass
+branches-near	lorien	backdrop	docs/images/assets/lorien/backdrop/branches-near.jpg	588683434406dd683db02a50dad17ba0a2f9ec3e4f0f439def664e70aa7454c2	docs/images/assets/lorien/backdrop/branches-near.prompt.txt	grok	1	8 checks pass	pass

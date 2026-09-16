@@ -1,0 +1,13 @@
+The picture is a straight-on front view of a wooden bench centered on a flat magenta ground, with empty space above the rail and below the feet. Eight seat planks sit side by side across the platform. Four posts with spherical tops stand along the rails, two inner posts splitting the back into two openwork vine panels and two outer posts enclosing a carved side panel at each end, with two X-shaped legs under the platform, one toward each end. The dominant colours are magenta, medium brown, and pale gold. Light is even and frontal, with paler tops on the seat boards and rails and darker brown on the undersides, the inner faces of the posts, and the receding faces of the legs. The two back panels are cut through so the magenta ground shows in the gaps of the gold vine work, and the two side panels keep solid brown wood behind the same gold vine carving.
+
+--- checked against flet.spec.md ---
+pass require platform | deck | flet | stage | balcony | walkway
+pass require railing | rail | balustrade | fence | banister | posts
+pass require wood | wooden | timber | plank | planks
+pass require brown | honey | gold | tan | amber | cream
+pass require magenta | pink | fuchsia
+pass require side | side-on | straight-on | profile | frontal | front-facing | eye level | elevation
+pass forbid top-down
+pass forbid overhead
+pass forbid aerial
+verdict pass
