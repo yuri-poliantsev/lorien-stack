@@ -3,6 +3,7 @@ import type { ActivityEvent, BotId, BotRecord } from "@lorien-stack/contracts";
 import type { Camera } from "../../camera.ts";
 import {
   BOARD,
+  HEADER,
   RAIL,
   WORLD_HEIGHT,
   WORLD_WIDTH,
@@ -14,11 +15,15 @@ import {
   type Rect,
 } from "./layout.ts";
 import {
+  METRICS,
   SPARK_BUCKETS,
   accentForHour,
   boardClock,
   cardModel,
+  metricText,
+  tallyPoses,
   type CardModel,
+  type CardPose,
 } from "./model.ts";
 
 export type MissionControlRenderInput = {
@@ -104,6 +109,57 @@ const STYLE = `
   font-size: 11px;
   letter-spacing: 0.28em;
   text-transform: uppercase;
+}
+.mc-header {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+}
+.mc-eyebrow {
+  color: var(--mc-muted);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+.mc-title {
+  margin-top: 6px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--mc-line);
+  font-size: 30px;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.mc-metrics {
+  display: grid;
+  flex: 1 1 auto;
+  grid-template-columns: repeat(3, 1fr);
+  border-bottom: 1px solid var(--mc-line);
+}
+.mc-metric {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 12px;
+  border-left: 1px solid var(--mc-line);
+}
+.mc-metric:first-child {
+  border-left: 0;
+}
+.mc-metric-value {
+  font-size: 34px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
+}
+.mc-metric-label {
+  color: var(--mc-muted);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.mc-metric[data-kind="working"] .mc-metric-label {
+  color: var(--mc-accent);
 }
 .mc-grid {
   position: absolute;
@@ -367,6 +423,20 @@ export function mountMissionControlTheme(
   const clockPhase = span("mc-clock-phase", clock);
   board.append(rail);
 
+  const header = span("mc-header", board);
+  box(header, { x: HEADER.x - BOARD.x, y: HEADER.y - BOARD.y, w: HEADER.w, h: HEADER.h });
+  span("mc-eyebrow", header).textContent = "Operational overview";
+  span("mc-title", header).textContent = "Mission Control";
+  const metrics = span("mc-metrics", header);
+  const metricValues = METRICS.map((metric) => {
+    const item = span("mc-metric", metrics);
+    item.dataset.kind = metric.key;
+    const value = span("mc-metric-value", item);
+    span("mc-metric-label", item).textContent = metric.label;
+    return value;
+  });
+  let tallyKey = "";
+
   const grid = document.createElement("div");
   grid.className = "mc-grid";
   grid.dataset.testid = "theme-canvas";
@@ -536,6 +606,7 @@ export function mountMissionControlTheme(
       applyScale(scale);
     }
     const live = new Set<string>();
+    const poses: CardPose[] = [];
     for (let index = 0; index < ordered.length; index += 1) {
       const bot = ordered[index];
       if (bot === undefined) {
@@ -559,15 +630,25 @@ export function mountMissionControlTheme(
         card.selected = isSelected;
         card.el.dataset.selected = String(isSelected);
       }
-      writeCard(
-        card,
-        cardModel({
-          bot,
-          events: model.activity.get(bot.id),
-          nowMs,
-          firstSeenMs: firstSeen.get(bot.id) ?? nowMs,
-        }),
-      );
+      const next = cardModel({
+        bot,
+        events: model.activity.get(bot.id),
+        nowMs,
+        firstSeenMs: firstSeen.get(bot.id) ?? nowMs,
+      });
+      poses.push(next.pose);
+      writeCard(card, next);
+    }
+    const tally = tallyPoses(poses);
+    const nextTallyKey = `${String(tally.roster)}/${String(tally.working)}/${String(tally.sleeping)}`;
+    if (tallyKey !== nextTallyKey) {
+      tallyKey = nextTallyKey;
+      METRICS.forEach((metric, i) => {
+        const value = metricValues[i];
+        if (value !== undefined) {
+          value.textContent = metricText(tally[metric.key]);
+        }
+      });
     }
     for (const [id, card] of cards) {
       if (!live.has(id)) {

@@ -5,6 +5,7 @@ import { parseBotId, type BotRecord } from "@lorien-stack/contracts";
 
 import {
   GRID_AREA,
+  HEADER,
   cardOrder,
   cardRect,
   cardScale,
@@ -69,6 +70,12 @@ describe("mission control grid columns", () => {
 });
 
 describe("mission control card placement", () => {
+  it("starts the grid below the header strip and shares its left edge", () => {
+    assert.equal(GRID_AREA.x, HEADER.x);
+    assert.equal(GRID_AREA.y >= HEADER.y + HEADER.h, true, "grid clears the header");
+    assert.equal(HEADER.x >= 316, true, "header clears the roster panel's 296px rail");
+  });
+
   it("fits every card inside the grid area at one, twenty-four and forty", () => {
     for (const n of [1, 24, 40]) {
       for (const rect of rects(n)) {
@@ -121,7 +128,7 @@ describe("mission control card placement", () => {
     }
     const grid = gridFor(40);
     assert.equal(grid.cardW.toFixed(2), "184.50");
-    assert.equal(grid.cardH.toFixed(2), "188.80");
+    assert.equal(grid.cardH.toFixed(2), "156.80");
   });
 
   it("caps the card size and centres the block so one bot is not a full-board slab", () => {
@@ -162,7 +169,7 @@ describe("mission control type scale", () => {
       meta: 10,
       path: 9,
       pad: 10,
-      spark: 79,
+      spark: 66,
     });
   });
 
@@ -180,7 +187,7 @@ describe("mission control type scale", () => {
   it("grows the chart with the card so a roomy card is not mostly empty", () => {
     assert.deepEqual(
       [8, 24, 40].map((n) => cardScale(gridFor(n)).spark),
-      [156, 100, 79],
+      [156, 84, 66],
     );
     assert.equal(cardScale({ cardW: 200, cardH: 0 }).spark, 20, "chart holds a floor of twenty");
   });

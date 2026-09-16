@@ -16,7 +16,9 @@ import {
   activityBars,
   boardClock,
   cardModel,
+  metricText,
   poseFor,
+  tallyPoses,
 } from "./model.ts";
 
 const NOW = Date.parse("2026-09-15T21:00:00.000Z");
@@ -201,6 +203,21 @@ describe("mission control card model", () => {
       },
       { pose: "idle", state: "idle", name: "Ivo", age: "\u2013", events: 0 },
     );
+  });
+});
+
+describe("mission control status band", () => {
+  it("counts the roster, the live cards and the sleepers off the card poses", () => {
+    assert.deepEqual(tallyPoses(["working", "idle", "sleeping", "working", "idle", "idle"]), {
+      roster: 6,
+      working: 2,
+      sleeping: 1,
+    });
+    assert.deepEqual(tallyPoses([]), { roster: 0, working: 0, sleeping: 0 });
+  });
+
+  it("zero-pads the band numbers to two digits like the concept frame", () => {
+    assert.deepEqual([0, 7, 40].map(metricText), ["00", "07", "40"]);
   });
 });
 

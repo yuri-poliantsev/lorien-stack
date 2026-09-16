@@ -61,6 +61,31 @@ export function activityBars(input: {
   return counts.map((n) => n / peak);
 }
 
+export type Tally = { roster: number; working: number; sleeping: number };
+
+export const METRICS: readonly { key: keyof Tally; label: string }[] = [
+  { key: "roster", label: "roster" },
+  { key: "working", label: "live now" },
+  { key: "sleeping", label: "asleep" },
+];
+
+export function tallyPoses(poses: readonly CardPose[]): Tally {
+  let working = 0;
+  let sleeping = 0;
+  for (const pose of poses) {
+    if (pose === "working") {
+      working += 1;
+    } else if (pose === "sleeping") {
+      sleeping += 1;
+    }
+  }
+  return { roster: poses.length, working, sleeping };
+}
+
+export function metricText(n: number): string {
+  return String(n).padStart(2, "0");
+}
+
 export type CardModel = {
   botId: BotId;
   name: string;

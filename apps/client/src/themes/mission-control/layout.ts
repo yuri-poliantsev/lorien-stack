@@ -11,6 +11,7 @@ const BOARD_INSET = 20;
 const RAIL_WIDTH = 296;
 
 const BOARD_PAD = 24;
+const HEADER_HEIGHT = 136;
 const GUTTER = 12;
 const MAX_CARD_W = 440;
 const MAX_CARD_H = 372;
@@ -31,11 +32,18 @@ export const RAIL: Rect = {
   h: BOARD.h,
 };
 
-export const GRID_AREA: Rect = {
+export const HEADER: Rect = {
   x: BOARD.x + RAIL_WIDTH,
   y: BOARD.y + BOARD_PAD,
   w: BOARD.w - RAIL_WIDTH - BOARD_PAD,
-  h: BOARD.h - BOARD_PAD * 2,
+  h: HEADER_HEIGHT,
+};
+
+export const GRID_AREA: Rect = {
+  x: HEADER.x,
+  y: HEADER.y + HEADER.h + BOARD_PAD,
+  w: HEADER.w,
+  h: BOARD.h - BOARD_PAD * 3 - HEADER.h,
 };
 
 const COLUMN_STEPS: readonly (readonly [number, number])[] = [
