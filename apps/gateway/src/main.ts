@@ -32,6 +32,8 @@ import {
 import {
   collectPresenceHints,
   createPresenceClock,
+  PRESENCE_REASON_QUIET,
+  PRESENCE_REASON_RECENT,
   PRESENCE_REASON_SLEEP,
   resolvePresenceConfig,
   type PresenceClock,
@@ -44,7 +46,9 @@ import {
   loadReplayPlan,
   runReplay,
   seedDemoWorkspace,
+  type ReplayQuiet,
   type ReplaySleep,
+  type ReplayWake,
 } from "./replay.ts";
 
 export { DEFAULT_DEMO_BOTS, DEMO_BOT_MAX, DEMO_BOT_MIN };
@@ -275,19 +279,47 @@ export async function startGateway(options: GatewayOptions = {}): Promise<Gatewa
     }
   }
 
-  function handleSleep(step: ReplaySleep): void {
+  function emitDemoHint(input: {
+    botId: BotId;
+    lastActivityAt: IsoTimestamp;
+    reason: string;
+  }): void {
     roster = advanceRevision(roster);
     const hint = presenceHintFromQuietClock({
-      lastActivityAt: step.lastActivityAt,
+      lastActivityAt: input.lastActivityAt,
       now: nowIso(),
-      reason: PRESENCE_REASON_SLEEP,
+      reason: input.reason,
     });
-    lastDemoHints.set(step.botId, hint);
+    lastDemoHints.set(input.botId, hint);
     broadcast({
       type: "presence",
       revision: roster.revision,
-      botId: step.botId,
+      botId: input.botId,
       hint,
+    });
+  }
+
+  function handleSleep(step: ReplaySleep): void {
+    emitDemoHint({
+      botId: step.botId,
+      lastActivityAt: step.lastActivityAt,
+      reason: PRESENCE_REASON_SLEEP,
+    });
+  }
+
+  function handleWake(step: ReplayWake): void {
+    emitDemoHint({
+      botId: step.botId,
+      lastActivityAt: step.lastActivityAt,
+      reason: PRESENCE_REASON_RECENT,
+    });
+  }
+
+  function handleQuiet(step: ReplayQuiet): void {
+    emitDemoHint({
+      botId: step.botId,
+      lastActivityAt: step.lastActivityAt,
+      reason: PRESENCE_REASON_QUIET,
     });
   }
 
@@ -407,6 +439,8 @@ export async function startGateway(options: GatewayOptions = {}): Promise<Gatewa
         plan: demoPlan,
         signal: abort.signal,
         onSleep: handleSleep,
+        onWake: handleWake,
+        onQuiet: handleQuiet,
       });
       if (abort.signal.aborted) {
         return;

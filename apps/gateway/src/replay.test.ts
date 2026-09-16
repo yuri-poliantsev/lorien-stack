@@ -4,8 +4,11 @@ import os from "node:os";
 import path from "node:path";
 import { after, describe, it } from "node:test";
 
+import { parseIsoTimestamp } from "@lorien-stack/contracts";
+
 import { repoRootFromModule } from "./main.ts";
 import {
+  DEMO_QUIET_HOLD_MS,
   DEMO_SLEEP_HOLD_MS,
   cloneBotId,
   expandDemoRoster,
@@ -269,7 +272,100 @@ describe("runReplay", () => {
     });
     assert.equal(emits[0]?.line, first.line);
     assert.equal(emits[tape.appends.length]?.line, first.line);
-    assert.equal(emits[tape.appends.length]?.now, cycleWait + DEMO_SLEEP_HOLD_MS);
+    assert.equal(
+      emits[tape.appends.length]?.now,
+      cycleWait + DEMO_QUIET_HOLD_MS + DEMO_SLEEP_HOLD_MS,
+    );
+  });
+
+  it("puts the last rewritten event at on the sleep hint, not the fixture date", async () => {
+    const workRoot = await mkdtemp(path.join(os.tmpdir(), "demo-sleep-at-"));
+    roots.push(workRoot);
+    const plan = await loadReplayPlan({
+      fixtureRoot: path.join(repoRootFromModule(import.meta.url), "fixtures/demo"),
+      workRoot,
+      multiplier: 1000,
+      botCount: 1,
+    });
+    const tape = plan.tapes[0];
+    assert.ok(tape !== undefined);
+    assert.equal(tape.lastActivityAt, "2026-08-27T09:30:03.000Z");
+    const issued: string[] = [];
+    const abort = new AbortController();
+    const clock = createVirtualClock({ inflight: 1, signal: abort.signal });
+    let lastWriteAt = "";
+    let sleepAt = "";
+    await runReplay({
+      plan,
+      signal: abort.signal,
+      sleep: (ms) => clock.sleep(ms),
+      now() {
+        const raw = `2026-09-16T10:00:${String(issued.length).padStart(2, "0")}.000Z`;
+        issued.push(raw);
+        const parsed = parseIsoTimestamp(raw);
+        if (!parsed.ok) {
+          throw new Error(parsed.error);
+        }
+        return parsed.value;
+      },
+      onAppend() {
+        lastWriteAt = issued[issued.length - 1] ?? "";
+      },
+      onSleep(step) {
+        sleepAt = step.lastActivityAt;
+        abort.abort();
+      },
+    });
+    assert.equal(tape.appends.length, 7);
+    assert.equal(lastWriteAt, "2026-09-16T10:00:06.000Z");
+    assert.equal(sleepAt, "2026-09-16T10:00:06.000Z");
+    assert.equal(sleepAt.startsWith("2026-08-27"), false);
+  });
+
+  it("emits a recent wake hint when the tape loops", async () => {
+    const workRoot = await mkdtemp(path.join(os.tmpdir(), "demo-wake-"));
+    roots.push(workRoot);
+    const plan = await loadReplayPlan({
+      fixtureRoot: path.join(repoRootFromModule(import.meta.url), "fixtures/demo"),
+      workRoot,
+      multiplier: 1000,
+      botCount: 1,
+    });
+    const abort = new AbortController();
+    const clock = createVirtualClock({ inflight: 1, signal: abort.signal });
+    const hints: Array<{ kind: string; at: string; now: number }> = [];
+    let loops = 0;
+    await runReplay({
+      plan,
+      signal: abort.signal,
+      sleep: (ms) => clock.sleep(ms),
+      now() {
+        const parsed = parseIsoTimestamp("2026-09-16T11:00:00.000Z");
+        if (!parsed.ok) {
+          throw new Error(parsed.error);
+        }
+        return parsed.value;
+      },
+      onWake(step) {
+        hints.push({ kind: step.kind, at: step.lastActivityAt, now: clock.now() });
+        loops += 1;
+        if (loops === 2) {
+          abort.abort();
+        }
+      },
+      onSleep(step) {
+        hints.push({ kind: step.kind, at: step.lastActivityAt, now: clock.now() });
+      },
+    });
+    assert.equal(hints[0]?.kind, "wake");
+    assert.equal(hints[0]?.at, "2026-09-16T11:00:00.000Z");
+    assert.equal(hints[0]?.now, 0);
+    const firstSleep = hints.find((item) => item.kind === "sleep");
+    assert.equal(firstSleep?.kind, "sleep");
+    const secondWake = hints.filter((item) => item.kind === "wake")[1];
+    assert.equal(secondWake?.kind, "wake");
+    assert.equal(secondWake?.at, "2026-09-16T11:00:00.000Z");
+    assert.ok((secondWake?.now ?? 0) > (firstSleep?.now ?? 0));
   });
 
   it("idles every bot asleep and writes no transcript lines", async () => {

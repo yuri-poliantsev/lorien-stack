@@ -19,9 +19,10 @@ export const DEMO_BOT_MAX = 40;
 export const DEFAULT_DEMO_BOTS = 8;
 export const DEMO_CLONE_NAMESPACE = "a11ce000-10e1-41e0-8000-c10de0000001";
 export const DEMO_STAGGER_MS = 3500;
-export const DEMO_CLONE_STAGGER_MS = 400;
+export const DEMO_CLONE_STAGGER_MS = 1600;
 export const DEMO_MIN_STEP_MS = 800;
-export const DEMO_SLEEP_HOLD_MS = 24_000;
+export const DEMO_QUIET_HOLD_MS = 4_000;
+export const DEMO_SLEEP_HOLD_MS = 4_000;
 
 export type ReplayAppend = {
   kind: "append";
@@ -33,6 +34,18 @@ export type ReplayAppend = {
 
 export type ReplaySleep = {
   kind: "sleep";
+  botId: BotId;
+  lastActivityAt: IsoTimestamp;
+};
+
+export type ReplayWake = {
+  kind: "wake";
+  botId: BotId;
+  lastActivityAt: IsoTimestamp;
+};
+
+export type ReplayQuiet = {
+  kind: "quiet";
   botId: BotId;
   lastActivityAt: IsoTimestamp;
 };
@@ -306,14 +319,26 @@ export async function seedDemoWorkspace(input: {
   }
 }
 
+function wallNow(): IsoTimestamp {
+  const parsed = parseIsoTimestamp(new Date().toISOString());
+  if (!parsed.ok) {
+    throw new Error(parsed.error);
+  }
+  return parsed.value;
+}
+
 export async function runReplay(input: {
   plan: ReplayPlan;
   signal: AbortSignal;
   sleep?: (ms: number) => Promise<void>;
+  now?: () => IsoTimestamp;
   onSleep: (step: ReplaySleep) => void;
+  onWake?: (step: ReplayWake) => void;
+  onQuiet?: (step: ReplayQuiet) => void;
   onAppend?: (step: ReplayAppend) => void;
 }): Promise<void> {
   const sleep = input.sleep ?? ((ms: number) => delay(ms, input.signal));
+  const now = input.now ?? wallNow;
   await Promise.all(
     input.plan.tapes.map((tape) =>
       runTape({
@@ -321,7 +346,10 @@ export async function runReplay(input: {
         loop: input.plan.loop,
         signal: input.signal,
         sleep,
+        now,
         onSleep: input.onSleep,
+        ...(input.onWake !== undefined ? { onWake: input.onWake } : {}),
+        ...(input.onQuiet !== undefined ? { onQuiet: input.onQuiet } : {}),
         ...(input.onAppend !== undefined ? { onAppend: input.onAppend } : {}),
       }),
     ),
@@ -333,16 +361,27 @@ async function runTape(input: {
   loop: boolean;
   signal: AbortSignal;
   sleep: (ms: number) => Promise<void>;
+  now: () => IsoTimestamp;
   onSleep: (step: ReplaySleep) => void;
+  onWake?: (step: ReplayWake) => void;
+  onQuiet?: (step: ReplayQuiet) => void;
   onAppend?: (step: ReplayAppend) => void;
 }): Promise<void> {
   const opened = new Set<string>();
+  let lastEmittedAt: IsoTimestamp | undefined;
   if (input.tape.startOffsetMs > 0) {
     await input.sleep(input.tape.startOffsetMs);
   }
   do {
     if (input.signal.aborted) {
       return;
+    }
+    if (input.tape.appends.length > 0) {
+      input.onWake?.({
+        kind: "wake",
+        botId: input.tape.botId,
+        lastActivityAt: input.now(),
+      });
     }
     for (const step of input.tape.appends) {
       if (input.signal.aborted) {
@@ -361,12 +400,25 @@ async function runTape(input: {
       } else {
         await appendFile(step.filePath, `${step.line}\n`);
       }
+      lastEmittedAt = input.now();
       input.onAppend?.(step);
+    }
+    const sleepAt = lastEmittedAt ?? input.now();
+    if (input.loop && input.tape.appends.length > 0) {
+      input.onQuiet?.({
+        kind: "quiet",
+        botId: input.tape.botId,
+        lastActivityAt: sleepAt,
+      });
+      await input.sleep(DEMO_QUIET_HOLD_MS);
+      if (input.signal.aborted) {
+        return;
+      }
     }
     input.onSleep({
       kind: "sleep",
       botId: input.tape.botId,
-      lastActivityAt: input.tape.lastActivityAt,
+      lastActivityAt: sleepAt,
     });
     if (!input.loop) {
       return;
