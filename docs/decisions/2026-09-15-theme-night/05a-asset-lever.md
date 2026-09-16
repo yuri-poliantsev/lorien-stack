@@ -45,16 +45,24 @@ already exist without spending calls.
 ## What evidence decided it
 
 **The lever runs.** 63 Grok Build calls (32 `image_gen`, 31 read-back) and 32 images, all
-logged in `scripts/assets/calls.tsv`. `npm run assets -- ledger --verify` re-hashes all 50
-path-bearing manifest rows against the files on disk and re-reads each header: 0 bad rows,
-6 rows tolerated because they are named with a reason in `scripts/assets/superseded.tsv`.
+logged in `scripts/assets/calls.tsv`. `npm run assets -- ledger --verify` re-hashes all 56
+manifest rows against the files on disk and re-reads each header: 0 bad rows, 6 rows
+tolerated because they are named with a reason in `scripts/assets/superseded.tsv`.
 
-**The night's spend is three calls higher than this branch records.** The live verifier
-re-proved `gen`, `readback`, `key`, the lock and the ledger against real artifacts in a
-throwaway worktree, spending 3 calls and 2 images that this branch's `calls.tsv` never saw
-because the ledger is per-checkout. The night's running total is **67 calls and 35 images**,
-against caps of 500 and 400. Whoever merges should read the branch total as an undercount of
-3 calls and 2 images.
+**The night's spend is spread across three ledgers, only one of which is on this branch.**
+The cap ledger is per-checkout, so the branch total is not the night total:
+
+| where | calls | images |
+| --- | --- | --- |
+| this branch's `scripts/assets/calls.tsv` | 63 | 32 |
+| the live verifier's throwaway worktree, since discarded | 3 | 2 |
+| the root's opening probe, recorded only in the root trail | 1 | 1 |
+| **night total** | **67** | **35** |
+
+Against caps of 500 calls and 400 images. Whoever merges should read this branch's ledger as
+an undercount of 4 calls and 3 images. The verifier's 3 calls re-proved `gen`, `readback`,
+`key`, the lock and the ledger against real artifacts; its worktree is gone, so those rows
+cannot be recovered into the shared file.
 
 **The plan's recorded facts held, with two corrections.** Every output is JPEG with 4:2:0
 chroma, as the plan says. But the frames came back at **1280x720**, not 1024x1024, when the
@@ -72,7 +80,7 @@ everything. On the real artifact:
 `scripts/assets/examples/starcraft-worker-keyed.png`, a 128x128 palette PNG with 5,452
 opaque and 10,932 transparent pixels, keyed from the generated `worker.jpg`, which
 `readImageHeader` now reports as `alpha=true` because its transparency lives in a `tRNS`
-chunk rather than a per-pixel alpha sample. 30 tests pass.
+chunk rather than a per-pixel alpha sample. 31 tests pass.
 
 **Blind read-back found defects that looking at the images did not.** Frame
 `lorien/04` is the all-asleep frame, and by eye it looked like a dark forest with the
