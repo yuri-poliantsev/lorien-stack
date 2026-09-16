@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { defaultOutDir, generate } from "./lib/gen.mjs";
+import { defaultOutDir, existingOutput, generate } from "./lib/gen.mjs";
 import { describeHeader, readImageHeader } from "./lib/header.mjs";
 import { keyImage } from "./lib/key.mjs";
 import {
@@ -11,6 +11,7 @@ import {
 	SUPERSEDED_LEDGER,
 	authoritativeRows,
 	capLine,
+	displayPath,
 	readManifest,
 	sha256,
 	supersededHashes,
@@ -79,27 +80,53 @@ async function cmdGen() {
 	const requests = parseRequests(JSON.parse(readFileSync(file, "utf8")), path.basename(file));
 	const parallel = Math.min(4, Number(flags.parallel ?? 3));
 	process.stdout.write(`assets gen: ${String(requests.length)} requests, ${String(parallel)} in parallel, ${capLine()}\n`);
+
+	// Refusing an id whose output exists is a decision about the request file, not about
+	// the batch, so it is settled before the lock is taken. Otherwise a stale lock hides
+	// the refusal behind an unrelated error and the author never learns which id to change.
+	const runnable = [];
+	for (const request of requests) {
+		const clash = existingOutput(outDirFor(request), request.id);
+		if (clash === undefined) runnable.push(request);
+		else refuse(request, clash);
+	}
+	if (runnable.length === 0) {
+		process.exitCode = 1;
+		return;
+	}
+
 	const releaseLock = flags["dry-run"] === true ? () => {} : takeLock();
 	try {
-		await runBatch(requests, parallel);
+		await runBatch(runnable, parallel);
 	} finally {
 		releaseLock();
 	}
+	if (runnable.length < requests.length) process.exitCode = 1;
+}
+
+function outDirFor(request) {
+	return typeof flags["out-dir"] === "string" ? resolve(flags["out-dir"]) : defaultOutDir(request);
+}
+
+function refuse(request, clash) {
+	process.stderr.write(
+		`  ${request.id} REFUSED, ${displayPath(clash)} already exists; a manifest row hashed it, so pick a new id (${request.id}-2)\n`,
+	);
 }
 
 async function runBatch(requests, parallel) {
 	const outcomes = await pool(requests, parallel, async (request) => {
-		const outDir = typeof flags["out-dir"] === "string" ? resolve(flags["out-dir"]) : defaultOutDir(request);
+		const outDir = outDirFor(request);
 		try {
 			const result = await generate(request, { outDir, dryRun: flags["dry-run"] === true });
 			if (result.dryRun) {
 				process.stdout.write(`  ${request.id} dry-run -> ${path.relative(REPO_ROOT, result.outPath)}\n`);
 				return { id: request.id, ok: true };
 			}
+			// generate keeps its own check, so a direct caller and anything that appeared
+			// since the batch was screened is still refused rather than overwritten.
 			if (result.clash !== undefined) {
-				process.stderr.write(
-					`  ${request.id} REFUSED, ${result.clash} already exists; a manifest row hashed it, so pick a new id (${request.id}-2)\n`,
-				);
+				refuse(request, result.clash);
 				return { id: request.id, ok: false };
 			}
 			if (result.exhausted) {

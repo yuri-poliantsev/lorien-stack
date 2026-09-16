@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -11,6 +11,7 @@ import { lastPathLike, looksLikeAuthFailure } from "../lib/grok.mjs";
 import { describeHeader, readImageHeader } from "../lib/header.mjs";
 import {
 	CALL_LEDGER,
+	LOCK_PATH,
 	REPO_ROOT,
 	ROOT_MANIFEST,
 	authoritativeRows,
@@ -243,6 +244,37 @@ test("gen refuses an output path that already exists, spending no call and appen
 	assert.doesNotMatch(run.stderr, /\.\.\/\.\.\//);
 	assert.equal(readFileSync(ROOT_MANIFEST, "utf8"), before, "no manifest row appended");
 	assert.equal(readFileSync(CALL_LEDGER, "utf8"), callsBefore, "no call logged");
+});
+
+// The refusal is a verdict on the request file, so it has to survive an unrelated
+// failure. Taking the global lock first meant a stale lock reported itself instead and
+// the author never learned which id to change.
+test("an existing .png plus a stale lock still refuses, leaving the lock untouched", () => {
+	const dir = mkdtempSync(path.join(tmpdir(), "assets-lock-"));
+	writeFileSync(path.join(dir, "01.png"), "not really a png");
+	const requestFile = path.join(dir, "request.json");
+	writeFileSync(requestFile, JSON.stringify(REQUEST));
+	assert.equal(existsSync(LOCK_PATH), false, "no real gen run is holding the lock");
+
+	const stale = "99999 2026-09-16T00:00:00.000Z\n";
+	writeFileSync(LOCK_PATH, stale, { flag: "wx" });
+	try {
+		const run = spawnSync(
+			process.execPath,
+			[fileURLToPath(new URL("../main.mjs", import.meta.url)), "gen", "--request", requestFile, "--out-dir", dir],
+			{ encoding: "utf8", env: { ...process.env, GROK_BIN: path.join(dir, "no-such-grok") } },
+		);
+		assert.equal(run.status, 1);
+		assert.match(run.stderr, /REFUSED/);
+		assert.doesNotMatch(run.stderr, /holds scripts\/assets\/\.gen\.lock/, "the lock error did not take priority");
+		assert.ok(
+			run.stderr.split("\n").some((line) => line.includes(`REFUSED, ${path.join(dir, "01.png")} already exists`)),
+			`the .png output is refused by name: ${run.stderr}`,
+		);
+		assert.equal(readFileSync(LOCK_PATH, "utf8"), stale, "the lock was neither rewritten nor released");
+	} finally {
+		rmSync(LOCK_PATH, { force: true });
+	}
 });
 
 test("verifyRows fails a row whose file hash differs unless the hash is named superseded", () => {
