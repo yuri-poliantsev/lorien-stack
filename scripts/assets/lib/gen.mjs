@@ -62,7 +62,7 @@ export function wrapperPrompt(request, outPath, referencePath) {
 	].join("\n");
 }
 
-export const OUTPUT_EXTENSIONS = [".jpg", ".png"];
+const OUTPUT_EXTENSIONS = [".jpg", ".png"];
 
 // An append-only manifest row is only worth anything if its file is still the file
 // it hashed, so an output path is written exactly once. A retry of 04 is 04-2.
@@ -107,16 +107,24 @@ export async function generate(request, { outDir = defaultOutDir(request), dryRu
 
 	if (dryRun) return { ok: true, dryRun: true, outPath, promptPath, wrapper };
 
-	rmSync(scratch.dir, { recursive: true, force: true });
-	mkdirSync(scratch.dir, { recursive: true });
-	if (scratch.reference !== undefined) copyFileSync(path.resolve(REPO_ROOT, request.reference), scratch.reference);
+	let result;
+	let landed;
+	try {
+		rmSync(scratch.dir, { recursive: true, force: true });
+		mkdirSync(scratch.dir, { recursive: true });
+		if (scratch.reference !== undefined) copyFileSync(path.resolve(REPO_ROOT, request.reference), scratch.reference);
 
-	assertUnderCaps(1);
-	const result = await runGrok(wrapper);
+		assertUnderCaps(1);
+		result = await runGrok(wrapper);
+		const scratched = existsSync(scratch.outPath) ? scratch.outPath : resolveLanded(result.text, scratch.outPath);
+		landed = scratched === undefined ? undefined : movePath(scratched, outPath);
+	} finally {
+		// A missing reference, a cap refusal or a failed call all leave the scratch
+		// directory behind otherwise, under a name that is stable per request.
+		rmSync(scratch.dir, { recursive: true, force: true });
+	}
+
 	const combined = `${result.stdout}\n${result.stderr}`;
-	const scratched = existsSync(scratch.outPath) ? scratch.outPath : resolveLanded(result.text, scratch.outPath);
-	const landed = scratched === undefined ? undefined : movePath(scratched, outPath);
-	rmSync(scratch.dir, { recursive: true, force: true });
 	logCall({
 		id: `${request.theme}/${request.id}`,
 		op: request.reference ? "image_edit" : "image_gen",
