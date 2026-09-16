@@ -24,11 +24,11 @@ export function plotLabel(input: {
   const events = input.events;
   const last = events === undefined ? undefined : events[events.length - 1];
   if (last === undefined) {
-    return { name, status: "working", path: "" };
+    return { name, status: "WORKING", path: "" };
   }
   return {
     name,
-    status: `working ${actionFromEvent(last)}`,
+    status: `WORKING · ${actionFromEvent(last).toUpperCase()}`,
     path: shortenPath(pathFromToolEvent(last) ?? "", PATH_CHARS),
   };
 }

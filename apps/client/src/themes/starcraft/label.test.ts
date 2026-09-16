@@ -27,7 +27,7 @@ describe("starcraft plot label", () => {
       events: [toolEvent("read_file", '{"target_file":"apps/gateway/src/presence.ts"}')],
     });
     assert.equal(label.name, "Anouk", "the nametag is the bot name");
-    assert.equal(label.status, "working reading", "read_file reads as working reading");
+    assert.equal(label.status, "WORKING · READING", "read_file reads as WORKING · READING");
     assert.equal(label.path, "…/src/presence.ts", "the tail of the path survives the budget");
   });
 
@@ -54,7 +54,7 @@ describe("starcraft plot label", () => {
 
   it("falls back to the bare pose when a working bot has no event yet", () => {
     const label = plotLabel({ name: "Koji", pose: "working", events: [] });
-    assert.equal(label.status, "working", "no event means no action word");
+    assert.equal(label.status, "WORKING", "no event means no action word");
   });
 
   it("reports the assistant and user roles as talking and thinking", () => {
@@ -67,7 +67,7 @@ describe("starcraft plot label", () => {
     };
     assert.equal(
       plotLabel({ name: "Reed", pose: "working", events: [assistant] }).status,
-      "working talking",
+      "WORKING · TALKING",
       "an assistant turn reads as talking",
     );
   });

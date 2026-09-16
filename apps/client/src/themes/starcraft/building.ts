@@ -374,31 +374,53 @@ export function drawPlotLabel(ctx: CanvasRenderingContext2D, view: PlotView): vo
   if (view.label.status.length === 0) {
     return;
   }
+  if (view.pose === "working") {
+    drawWorkingChip(ctx, view);
+    return;
+  }
   const statusSize = Math.max(8, S * 0.068);
-  const statusY = view.y + S * 0.265;
   outlinedText(ctx, {
     text: view.label.status,
     x: view.x,
-    y: statusY,
+    y: view.y + S * 0.265,
     size: statusSize,
     weight: 500,
-    fill: view.pose === "working" ? "#ffe0a0" : "#e3e8ee",
+    fill: "#e3e8ee",
     font: view.font,
   });
+}
 
-  if (view.label.path.length === 0) {
-    return;
-  }
+function drawWorkingChip(ctx: CanvasRenderingContext2D, view: PlotView): void {
+  const S = view.cell;
+  const statusSize = Math.max(8, S * 0.068);
   const pathSize = Math.max(8, S * 0.062);
-  outlinedText(ctx, {
-    text: view.label.path,
-    x: view.x,
-    y: statusY + statusSize * 1.05,
-    size: pathSize,
-    weight: 400,
-    fill: "#d7dee6",
-    font: view.font,
-  });
+  const hasPath = view.label.path.length > 0;
+  const padW = S * 0.88;
+  const statusY = view.y + S * 0.265;
+  const padX = statusSize * 0.7;
+  const padY = statusSize * 0.45;
+  const chipH = hasPath ? statusSize + pathSize + padY * 2.4 : statusSize + padY * 2;
+  ctx.font = `700 ${statusSize.toFixed(1)}px ${view.font}`;
+  const statusW = ctx.measureText(view.label.status).width;
+  ctx.font = `400 ${pathSize.toFixed(1)}px ${view.font}`;
+  const pathW = hasPath ? ctx.measureText(view.label.path).width : 0;
+  const chipW = Math.min(padW, Math.max(statusW, pathW) + padX * 2);
+  const top = statusY - padY - statusSize * 0.5;
+  ctx.fillStyle = "rgba(22, 16, 11, 0.92)";
+  ctx.fillRect(view.x - chipW / 2, top, chipW, chipH);
+  ctx.strokeStyle = "rgba(255, 208, 106, 0.55)";
+  ctx.lineWidth = Math.max(1, S * 0.006);
+  ctx.strokeRect(view.x - chipW / 2 + 0.5, top + 0.5, chipW - 1, chipH - 1);
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = "#ffe0a0";
+  ctx.font = `700 ${statusSize.toFixed(1)}px ${view.font}`;
+  ctx.fillText(view.label.status, view.x, statusY);
+  if (hasPath) {
+    ctx.fillStyle = "#d7dee6";
+    ctx.font = `400 ${pathSize.toFixed(1)}px ${view.font}`;
+    ctx.fillText(view.label.path, view.x, statusY + statusSize * 1.05);
+  }
 }
 
 // measureText runs a full text layout, and a forty-plot field asks for forty of them every
