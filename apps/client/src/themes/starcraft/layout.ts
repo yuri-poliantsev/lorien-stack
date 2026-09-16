@@ -1,5 +1,7 @@
 import type { ActivityEvent, BotId, BotRecord, SpatialAnchor } from "@lorien-stack/contracts";
 
+import type { ThemePose } from "../hooks.ts";
+
 export const WORLD_WIDTH = 960;
 export const WORLD_HEIGHT = 540;
 
@@ -34,7 +36,7 @@ export type Seat = {
   unitY: number;
 };
 
-export type UnitPose = "working" | "idle" | "sleeping";
+export type UnitPose = ThemePose;
 
 export const STATIONS: readonly Station[] = [
   { id: "core", kind: "core", x: 470, y: 250, label: "Core" },

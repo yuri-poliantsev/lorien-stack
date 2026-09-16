@@ -11,7 +11,7 @@ import {
   type Seat,
   type UnitPose,
 } from "./layout.ts";
-import { THEME_CANVAS_TESTID, THEME_UNIT_TESTID } from "../hooks.ts";
+import { THEME_CANVAS_TESTID, THEME_UNIT_TESTID, type ThemePose } from "../hooks.ts";
 import { PALETTE, drawStation, drawTerrain, drawUnit, unitAccent, worldToView } from "./sprites.ts";
 
 export type StarCraftRenderInput = {
@@ -170,7 +170,8 @@ export function mountStarCraftTheme(
       }
       btn.dataset.botId = bot.id;
       btn.dataset.botName = bot.name;
-      btn.dataset.pose = pose;
+      const hookPose: ThemePose = pose;
+      btn.dataset.pose = hookPose;
       btn.dataset.stationId = seat.station.id;
       btn.dataset.selected = String(bot.id === model.selectedBotId);
       btn.style.zIndex = "2";

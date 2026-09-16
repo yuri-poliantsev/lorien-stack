@@ -8,8 +8,6 @@ import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 
-import { THEME_POSES } from "../../apps/client/src/themes/hooks.ts";
-
 const repoRoot = fileURLToPath(new URL("../..", import.meta.url));
 const GATEWAY_PORTS = [8060, 8061, 8062, 8063];
 const VITE_PORTS = [5160, 5161, 5162, 5163];
@@ -179,7 +177,7 @@ describe("starcraft hook page", () => {
 					units.length === 40
 				);
 			}, null, { timeout: 30000 });
-			const allowed = [...THEME_POSES];
+			const allowed = ["working", "idle", "sleeping"];
 			const info = await page.evaluate((poses) => {
 				const canvases = document.querySelectorAll('[data-testid="theme-canvas"]');
 				const canvas = canvases[0];
