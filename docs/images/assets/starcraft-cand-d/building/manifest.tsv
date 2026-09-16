@@ -1,0 +1,3 @@
+id	theme	kind	path	sha256	promptPath	source	attempts	readback	verdict
+wood-lit	starcraft-cand-d	building	docs/images/assets/starcraft-cand-d/building/wood-lit.jpg	f54b317e7616d569d6f855dae27959acb907bf46144176ff4d96e785fb1dfeb4	docs/images/assets/starcraft-cand-d/building/wood-lit.prompt.txt	grok	1		unread
+steel-dark	starcraft-cand-d	building	docs/images/assets/starcraft-cand-d/building/steel-dark.jpg	d05bda4b2b0423ab9a376dc8175e7d2a9d8712eddae761c732bcbd9c5ae2cd5b	docs/images/assets/starcraft-cand-d/building/steel-dark.prompt.txt	grok	1		unread
