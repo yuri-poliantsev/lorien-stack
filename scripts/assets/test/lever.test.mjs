@@ -15,6 +15,7 @@ import {
 	REPO_ROOT,
 	ROOT_MANIFEST,
 	authoritativeRows,
+	discardsFor,
 	idStem,
 	readManifest,
 	readSuperseded,
@@ -315,10 +316,25 @@ test("superseded.tsv names exactly the six rows written before gen refused to ov
 });
 
 test("discardsFor counts a retry suffix against the same asset, so the discard cap cannot reset", () => {
+	const rows = [
+		{ theme: "lorien", id: "04", verdict: "fail" },
+		{ theme: "lorien", id: "04-2", verdict: "fail" },
+		{ theme: "lorien", id: "04-3", verdict: "unread" },
+		{ theme: "lorien", id: "05", verdict: "fail" },
+		{ theme: "starcraft", id: "04", verdict: "fail" },
+	];
+	// The third attempt sees both earlier discards, which is what makes MAX_DISCARDS of 2
+	// fire on it rather than on an id that has been renamed out of its own history.
+	assert.equal(discardsFor("lorien", "04-3", rows), 2);
+	assert.equal(discardsFor("lorien", "04", rows), 2);
+	assert.equal(discardsFor("lorien", "05", rows), 1, "a different asset keeps its own budget");
+	assert.equal(discardsFor("starcraft", "04", rows), 1, "the same id under another theme is another asset");
+	assert.equal(discardsFor("lorien", "06", rows), 0);
+
 	assert.equal(idStem("04"), "04");
 	assert.equal(idStem("04-2"), "04");
 	assert.equal(idStem("04-2-3"), "04-2");
-	assert.equal(idStem("worker-idle"), "worker-idle");
+	assert.equal(idStem("worker-idle"), "worker-idle", "a dash before a non-number is part of the name");
 });
 
 test("mentions matches whole terms, so a count check cannot pass on a substring", () => {

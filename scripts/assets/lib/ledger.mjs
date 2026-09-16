@@ -177,9 +177,7 @@ export function idStem(id) {
 	return id.replace(/-\d+$/, "");
 }
 
-export function discardsFor(theme, id) {
+export function discardsFor(theme, id, rows = readManifest()) {
 	const stem = idStem(id);
-	return readManifest().filter(
-		(row) => row.theme === theme && idStem(row.id) === stem && row.verdict === "fail",
-	).length;
+	return rows.filter((row) => row.theme === theme && idStem(row.id) === stem && row.verdict === "fail").length;
 }
