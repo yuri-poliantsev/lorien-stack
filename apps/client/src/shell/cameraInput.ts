@@ -21,8 +21,7 @@ export function bindCameraInput(
     return { x: event.clientX - rect.left, y: event.clientY - rect.top };
   }
 
-  // Panning captures the pointer to the scene, which would steal the click from
-  // any shell control layered over it. Overlays opt out of the camera entirely.
+  // Dragging inside a shell panel scrolls that panel. It must not also pan the scene.
   function overCamera(node: EventTarget | null): boolean {
     return !(node instanceof Element) || node.closest("[data-shell-overlay]") === null;
   }
@@ -35,7 +34,6 @@ export function bindCameraInput(
     lastX = event.clientX;
     lastY = event.clientY;
     dragged = false;
-    target.setPointerCapture(event.pointerId);
   }
 
   function onPointerMove(event: PointerEvent): void {
@@ -47,8 +45,13 @@ export function bindCameraInput(
     if (!dragged && Math.abs(dx) + Math.abs(dy) < DRAG_THRESHOLD_PX) {
       return;
     }
-    dragged = true;
-    target.dataset.panning = "true";
+    if (!dragged) {
+      dragged = true;
+      target.dataset.panning = "true";
+      // Capture waits for the threshold. Taking it on pointerdown retargets the
+      // click away from the unit under the cursor, so a plain click never selects.
+      target.setPointerCapture(event.pointerId);
+    }
     lastX = event.clientX;
     lastY = event.clientY;
     camera.panByScreen(dx, dy);
