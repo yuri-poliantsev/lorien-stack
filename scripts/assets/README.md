@@ -66,7 +66,16 @@ Any hedge in the description ("appears to", "possibly", "some kind of") is a fai
 `game-asset-core`: a hedge means the property is not actually legible.
 
 `ledger --verify` re-hashes every manifest row against the file on disk and re-reads each
-header, so a manifest claim can never outlive its artifact.
+header, so a manifest claim can never outlive its artifact. A row whose file no longer
+hashes to the recorded value fails the command; the only tolerated exceptions are the
+hashes named with a reason in `scripts/assets/superseded.tsv`, which holds the six rows
+written before `gen` learned to refuse an overwrite. Nothing new belongs in that file.
+
+That refusal is the other half: `gen` exits non-zero, names the path, spends no call and
+writes no row when `<id>.jpg` or `<id>.png` already exists in the output directory. A
+discarded frame therefore stays on disk to back its row, and a retry of `04` is requested
+as `04-2`. The discard cap counts the stem before that suffix, so a retry cannot reset its
+own budget.
 
 ## Manifests
 

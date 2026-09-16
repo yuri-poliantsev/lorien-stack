@@ -8,13 +8,16 @@ import {
 	NIGHT_CAP_CALLS,
 	NIGHT_CAP_IMAGES,
 	REPO_ROOT,
+	SUPERSEDED_LEDGER,
 	authoritativeRows,
 	capLine,
 	readManifest,
 	sha256,
+	supersededHashes,
 	takeLock,
 	repoRelative,
 	totals,
+	verifyRows,
 } from "./lib/ledger.mjs";
 import { readback } from "./lib/readback.mjs";
 import { MANIFEST_COLUMNS, parseRequests } from "./lib/shape.mjs";
@@ -93,6 +96,12 @@ async function runBatch(requests, parallel) {
 				process.stdout.write(`  ${request.id} dry-run -> ${path.relative(REPO_ROOT, result.outPath)}\n`);
 				return { id: request.id, ok: true };
 			}
+			if (result.clash !== undefined) {
+				process.stderr.write(
+					`  ${request.id} REFUSED, ${result.clash} already exists; a manifest row hashed it, so pick a new id (${request.id}-2)\n`,
+				);
+				return { id: request.id, ok: false };
+			}
 			if (result.exhausted) {
 				process.stdout.write(`  ${request.id} exhausted after 2 discards, verdict written, coordinator decides\n`);
 				return { id: request.id, ok: false, exhausted: true };
@@ -170,27 +179,26 @@ function cmdLedger() {
 		`assets ledger: ${String(rows.length)} manifest rows, ${String(calls)}/${String(NIGHT_CAP_CALLS)} calls, ${String(images)}/${String(NIGHT_CAP_IMAGES)} images\n`,
 	);
 	if (flags.verify !== true) return;
-	let bad = 0;
-	let superseded = 0;
-	for (const entry of authoritativeRows(rows)) {
-		if (entry.row.path.length === 0) continue;
-		if (entry.superseded) {
-			superseded += 1;
-			continue;
-		}
-		const absolute = path.join(REPO_ROOT, entry.row.path);
-		try {
-			const header = readImageHeader(absolute);
-			const ok = sha256(absolute) === entry.row.sha256;
-			if (!ok) bad += 1;
-			process.stdout.write(`  ${ok ? "ok" : "MISMATCH"} ${entry.row.path} ${describeHeader(header)}\n`);
-		} catch (error) {
-			bad += 1;
-			process.stdout.write(`  MISSING ${entry.row.path} ${error.message}\n`);
+	// Every row with a path is checked against the file it hashed. A mismatch is a
+	// failure unless the hash is named in superseded.tsv, which only holds rows
+	// written before gen refused to overwrite an output.
+	const results = verifyRows(rows, supersededHashes(), (relative) => sha256(path.join(REPO_ROOT, relative)));
+	for (const result of results) {
+		if (result.status === "ok") {
+			const header = readImageHeader(path.join(REPO_ROOT, result.row.path));
+			process.stdout.write(`  ok ${result.row.path} ${describeHeader(header)}\n`);
+		} else if (result.status === "missing") {
+			process.stdout.write(`  MISSING ${result.row.path} ${result.detail}\n`);
+		} else {
+			process.stdout.write(
+				`  ${result.status === "superseded" ? "superseded" : "MISMATCH"} ${result.row.path} row=${result.row.sha256.slice(0, 12)} disk=${result.actual.slice(0, 12)}\n`,
+			);
 		}
 	}
+	const bad = results.filter((result) => result.status === "mismatch" || result.status === "missing").length;
+	const superseded = results.filter((result) => result.status === "superseded").length;
 	process.stdout.write(
-		`assets ledger: ${String(bad)} bad rows, ${String(superseded)} superseded rows skipped\n`,
+		`assets ledger: ${String(bad)} bad rows, ${String(superseded)} rows superseded by name in ${repoRelative(SUPERSEDED_LEDGER)}\n`,
 	);
 	if (bad > 0) process.exitCode = 1;
 }

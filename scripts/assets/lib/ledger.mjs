@@ -8,6 +8,8 @@ export const REPO_ROOT = fileURLToPath(new URL("../../../", import.meta.url));
 export const ASSETS_DIR = path.join(REPO_ROOT, "scripts/assets");
 export const ROOT_MANIFEST = path.join(ASSETS_DIR, "manifest.tsv");
 export const CALL_LEDGER = path.join(ASSETS_DIR, "calls.tsv");
+export const SUPERSEDED_LEDGER = path.join(ASSETS_DIR, "superseded.tsv");
+const SUPERSEDED_COLUMNS = ["manifestLine", "theme", "id", "sha256", "reason"];
 
 export const NIGHT_CAP_CALLS = 500;
 export const NIGHT_CAP_IMAGES = 400;
@@ -78,6 +80,38 @@ export function logManifest(row, outDir) {
 	return checked;
 }
 
+// Rows written before gen refused to overwrite an output: the file moved out from
+// under the hash, so the hash can never be reproduced. Each one is named here with
+// its reason, and `ledger --verify` tolerates a mismatch only for these. Nothing
+// gets added to this file; a new mismatch is a bug, not an exception.
+export function readSuperseded() {
+	return readRows(SUPERSEDED_LEDGER, SUPERSEDED_COLUMNS);
+}
+
+export function supersededHashes() {
+	return new Set(readSuperseded().map((row) => row.sha256));
+}
+
+// Every row that names a file is checked against that file. `mismatch` and
+// `missing` are failures; `superseded` is the only tolerated disagreement, and only
+// because the hash is named in superseded.tsv.
+export function verifyRows(rows, tolerated, hash) {
+	const results = [];
+	for (const row of rows) {
+		if (row.path.length === 0) continue;
+		let actual;
+		try {
+			actual = hash(row.path);
+		} catch (error) {
+			results.push({ row, status: "missing", detail: error.message });
+			continue;
+		}
+		if (actual === row.sha256) results.push({ row, status: "ok", actual });
+		else results.push({ row, status: tolerated.has(row.sha256) ? "superseded" : "mismatch", actual });
+	}
+	return results;
+}
+
 // The manifest is append-only, so an id that was generated again keeps its old
 // rows. Only the newest row per theme and id still describes a file on disk.
 export function authoritativeRows(rows = readManifest()) {
@@ -129,6 +163,16 @@ export function attemptsFor(theme, id) {
 	return readManifest().filter((row) => row.theme === theme && row.id === id).length;
 }
 
+// gen refuses to overwrite an output, so a retry of frame 04 arrives as 04-2 and
+// then 04-3. The stem before that suffix is the asset, and the discard cap counts
+// the stem, or a retry would silently reset its own budget.
+export function idStem(id) {
+	return id.replace(/-\d+$/, "");
+}
+
 export function discardsFor(theme, id) {
-	return readManifest().filter((row) => row.theme === theme && row.id === id && row.verdict === "fail").length;
+	const stem = idStem(id);
+	return readManifest().filter(
+		(row) => row.theme === theme && idStem(row.id) === stem && row.verdict === "fail",
+	).length;
 }

@@ -1,13 +1,25 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 import sharp from "sharp";
-import { defaultOutDir, wrapperPrompt } from "../lib/gen.mjs";
+import { defaultOutDir, existingOutput, wrapperPrompt } from "../lib/gen.mjs";
 import { lastPathLike, looksLikeAuthFailure } from "../lib/grok.mjs";
 import { describeHeader, readImageHeader } from "../lib/header.mjs";
-import { authoritativeRows } from "../lib/ledger.mjs";
+import {
+	CALL_LEDGER,
+	REPO_ROOT,
+	ROOT_MANIFEST,
+	authoritativeRows,
+	idStem,
+	readManifest,
+	readSuperseded,
+	sha256,
+	verifyRows,
+} from "../lib/ledger.mjs";
 import { diffAgainstSpec, mentions, note, parseSpec } from "../lib/readback.mjs";
 import { aspectRatio, parseRequests } from "../lib/shape.mjs";
 
@@ -157,6 +169,73 @@ test("authoritativeRows keeps the newest row per theme and id and marks the rest
 			["lorien", "02", "d", false],
 		],
 	);
+});
+
+test("gen refuses an output path that already exists, spending no call and appending no row", () => {
+	const dir = mkdtempSync(path.join(tmpdir(), "assets-clash-"));
+	writeFileSync(path.join(dir, "01.jpg"), "not really a jpeg");
+	assert.equal(existingOutput(dir, "01"), path.join(dir, "01.jpg"));
+	assert.equal(existingOutput(dir, "02"), undefined);
+
+	const requestFile = path.join(dir, "request.json");
+	writeFileSync(requestFile, JSON.stringify(REQUEST));
+	const before = readFileSync(ROOT_MANIFEST, "utf8");
+	const callsBefore = readFileSync(CALL_LEDGER, "utf8");
+	const run = spawnSync(
+		process.execPath,
+		[fileURLToPath(new URL("../main.mjs", import.meta.url)), "gen", "--request", requestFile, "--out-dir", dir],
+		// A broken GROK_BIN means a regression here fails the test instead of spending a call.
+		{ encoding: "utf8", env: { ...process.env, GROK_BIN: path.join(dir, "no-such-grok") } },
+	);
+	assert.equal(run.status, 1);
+	assert.match(run.stderr, /REFUSED/);
+	assert.ok(run.stderr.includes(path.join(dir, "01.jpg")), `stderr names the clashing path: ${run.stderr}`);
+	assert.equal(readFileSync(ROOT_MANIFEST, "utf8"), before, "no manifest row appended");
+	assert.equal(readFileSync(CALL_LEDGER, "utf8"), callsBefore, "no call logged");
+});
+
+test("verifyRows fails a row whose file hash differs unless the hash is named superseded", () => {
+	const rows = [
+		{ theme: "lorien", id: "01", path: "a.jpg", sha256: "aaa" },
+		{ theme: "lorien", id: "02", path: "b.jpg", sha256: "bbb" },
+		{ theme: "lorien", id: "03", path: "c.jpg", sha256: "ccc" },
+		{ theme: "lorien", id: "04", path: "", sha256: "" },
+	];
+	const disk = { "a.jpg": "aaa", "b.jpg": "drifted", "c.jpg": "drifted" };
+	const results = verifyRows(rows, new Set(["ccc"]), (file) => {
+		if (!(file in disk)) throw new Error("no such file");
+		return disk[file];
+	});
+	assert.deepEqual(
+		results.map((result) => [result.row.path, result.status]),
+		[
+			["a.jpg", "ok"],
+			["b.jpg", "mismatch"],
+			["c.jpg", "superseded"],
+		],
+		"a row with no path is skipped, an unnamed drift is a mismatch, a named one is tolerated",
+	);
+});
+
+test("superseded.tsv names exactly the six rows written before gen refused to overwrite", () => {
+	const named = readSuperseded();
+	assert.equal(named.length, 6);
+	const drifted = verifyRows(readManifest(), new Set(), (relative) => sha256(path.join(REPO_ROOT, relative))).filter(
+		(result) => result.status !== "ok",
+	);
+	assert.deepEqual(
+		drifted.map((result) => result.row.sha256).sort(),
+		named.map((row) => row.sha256).sort(),
+		"every row that no longer matches its file is named in superseded.tsv, and nothing else is",
+	);
+	for (const row of named) assert.ok(row.reason.length > 20, `${row.theme}/${row.id} states why`);
+});
+
+test("discardsFor counts a retry suffix against the same asset, so the discard cap cannot reset", () => {
+	assert.equal(idStem("04"), "04");
+	assert.equal(idStem("04-2"), "04");
+	assert.equal(idStem("04-2-3"), "04-2");
+	assert.equal(idStem("worker-idle"), "worker-idle");
 });
 
 test("mentions matches whole terms, so a count check cannot pass on a substring", () => {

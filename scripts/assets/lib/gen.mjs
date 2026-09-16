@@ -45,7 +45,22 @@ export function wrapperPrompt(request, outPath) {
 	].join("\n");
 }
 
+export const OUTPUT_EXTENSIONS = [".jpg", ".png"];
+
+// An append-only manifest row is only worth anything if its file is still the file
+// it hashed, so an output path is written exactly once. A retry of 04 is 04-2.
+export function existingOutput(outDir, id) {
+	return OUTPUT_EXTENSIONS.map((extension) => path.join(outDir, `${id}${extension}`)).find((candidate) =>
+		existsSync(candidate),
+	);
+}
+
 export async function generate(request, { outDir = defaultOutDir(request), dryRun = false } = {}) {
+	const clash = existingOutput(outDir, request.id);
+	if (clash !== undefined) {
+		return { ok: false, clash: repoRelative(clash) };
+	}
+
 	const discards = discardsFor(request.theme, request.id);
 	if (discards >= MAX_DISCARDS) {
 		const row = logManifest(
