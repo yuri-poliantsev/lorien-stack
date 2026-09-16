@@ -42,6 +42,10 @@ Registry labels live in `apps/client/src/themes/registry.ts`. The labels are Sta
 
 `docs:smoke` already requires the observe-only sentence, Quick start before Live bots, and the live.md plus setup-prompt links. Those headings were kept. The Tests footer still said root `npm test` runs contracts only. Root `package.json` now runs every workspace, then the capture tests, so that sentence was updated.
 
+Local gates at this PR head, saved under `/tmp/theme-night/09-readme/`. `test.txt` exit 0, TAP fail 0 across four runners, 11 then 164 then 45 then 6 tests. `typecheck.txt` and `build.txt` exit 0. `docs-smoke.txt` prints ok. GitHub's HTML for this branch has 4 tables and 10 images, saved as `github-readme.html`. The stale second-theme sentence is absent. Playwright full-page of the blob is `github-readme.png`. The hosted demo screenshot is `hosted-demo.png`. It shows StarCraft as default, with Lórien and Mission Control in the header picker.
+
+CI run https://github.com/yuri-poliantsev/lorien-stack/actions/runs/35074860126 passed in 20s. The `pages` job skipped on the PR. That skip is the workflow's main-only deploy gate.
+
 ## What was rejected and why
 
 Recapturing stills. The brief forbids it. The committed lever files are the marketing artifacts.
