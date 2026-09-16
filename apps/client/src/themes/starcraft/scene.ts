@@ -36,7 +36,7 @@ const STYLE = `
   background: #070a06;
   overflow: hidden;
 }
-.theme-host[data-theme="starcraft"] canvas[data-testid="theme-canvas"] {
+.theme-host[data-theme="starcraft"] canvas[data-testid="${THEME_CANVAS_TESTID}"] {
   display: block;
   width: 100%;
   height: 100%;
